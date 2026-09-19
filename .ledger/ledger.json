@@ -572,33 +572,53 @@
    "statement": "Free trial: any IP gets 5 real-data calls per day across all endpoints without paying, tracked in-memory with an IP-keyed counter that resets daily.",
    "test": "bash .ledger/oracle_L35.sh: bare probe returns 402, trial returns 200 with x_trial_remaining, 5/day/IP limit enforced, 6th call 402, per-IP isolation",
    "scope": [
-    "server.py",
-    ".ledger/oracle_L35.sh",
-    "trial_tracker.py"
+    "trial_tracker.py",
+    ".ledger/oracle_L35.sh"
    ],
    "oracle": "bash .ledger/oracle_L35.sh",
    "expect": "L35_ORACLE_PASS",
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-18T20:46:00+00:00"
+   "minted": "2026-09-18T20:46:00+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "trial_tracker.py",
+      ".ledger/oracle_L35.sh"
+     ],
+     "block": 33.5,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    }
+   ]
   },
   {
    "id": "L36",
    "block": 33.6,
-   "statement": "Free trial returns real module data, not fake/demo data — the same extract/check/domain/search/geoip/nano-info function that a paid call uses, but with free_trial: True and trial_remaining: N.",
+   "statement": "Free trial returns real module data, not fake/demo data \u2014 the same extract/check/domain/search/geoip/nano-info function that a paid call uses, but with free_trial: True and trial_remaining: N.",
    "test": "bash .ledger/oracle_L35.sh: trial response body has real trafilatura output (title 'Example Domain', text > 10 chars), payment.free_trial=True, payment.trial_remaining=4, payment.amount_xno=0",
    "scope": [
-    "server.py",
-    ".ledger/oracle_L35.sh",
-    "trial_tracker.py"
+    "trial_tracker.py",
+    ".ledger/oracle_L35.sh"
    ],
    "oracle": "bash .ledger/oracle_L35.sh",
    "expect": "L35_ORACLE_PASS",
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-18T20:46:00+00:00"
+   "minted": "2026-09-18T20:46:00+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "trial_tracker.py",
+      ".ledger/oracle_L35.sh"
+     ],
+     "block": 33.6,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    }
+   ]
   },
   {
    "id": "L37",
@@ -636,16 +656,24 @@
    "statement": "One paid call to /api/v1/status returns the URL's HTTP status, redirect chain, TLS expiry, response time and body hash.",
    "test": "bash .ledger/oracle_L39.sh prints L39_STATUS_PASS: bare /api/v1/status answers 402 naming its own resource URL, a real call returns every contract key with status_code 200 for example.com and a 64-hex content hash, a same-hash drift call reports changed=false, and invalid input errors.",
    "scope": [
-    "server.py",
-    "status_check.py",
-    "endpoint_meta.py"
+    "status_check.py"
    ],
    "oracle": "bash .ledger/oracle_L39.sh",
    "expect": "STATUS_ORACLE_PASS",
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-18T17:33:10+00:00"
+   "minted": "2026-09-18T17:33:10+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "status_check.py"
+     ],
+     "block": 33.9,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    }
+   ]
   },
   {
    "id": "L40",
@@ -653,7 +681,6 @@
    "statement": "/api/v1/status is announced with its price in every discovery surface, so a directory crawler can find the new endpoint.",
    "test": "bash .ledger/oracle_L39.sh prints L39_STATUS_PASS: the string /api/v1/status is present in /.well-known/x402, /.well-known/agent.json, /.well-known/agent-tools.json, /openapi.json, /agents.txt and /.well-known/ard.json, each answering 200.",
    "scope": [
-    "server.py",
     "endpoint_meta.py"
    ],
    "oracle": "bash .ledger/oracle_L39.sh",
@@ -661,7 +688,17 @@
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-18T17:33:10+00:00"
+   "minted": "2026-09-18T17:33:10+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "endpoint_meta.py"
+     ],
+     "block": 34.0,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    }
+   ]
   },
   {
    "id": "L41",
@@ -669,14 +706,24 @@
    "statement": "/.well-known/agent-card.json serves a conformant A2A card naming the six skills and the Nano x402 rail with the treasury payTo.",
    "test": "bash .ledger/oracle_L39.sh prints L40_AGENTCARD_PASS: the card carries protocolVersion 0.3.x, name, url, six complete skills, the x402-nano security scheme with network nano:mainnet, a nano_ payTo and prices matching the endpoints.",
    "scope": [
-    "server.py"
+    "endpoint_meta.py"
    ],
    "oracle": "bash .ledger/oracle_L41.sh",
    "expect": "AGENTCARD_ORACLE_PASS",
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-18T17:33:17+00:00"
+   "minted": "2026-09-18T17:33:17+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "endpoint_meta.py"
+     ],
+     "block": 33.0,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    }
+   ]
   },
   {
    "id": "L42",
@@ -684,14 +731,24 @@
    "statement": "The agent-card.json at /.well-known/agent-card.json describes the 6 Vend skills with name, description, and the Nano x402 payment rail as the sole security scheme",
    "test": "inspect",
    "scope": [
-    "*.py"
+    "endpoint_meta.py"
    ],
    "oracle": "bash .ledger/oracle_L41.sh",
    "expect": "AGENTCARD_ORACLE_PASS",
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-18T19:39:37+00:00"
+   "minted": "2026-09-18T19:39:37+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "endpoint_meta.py"
+     ],
+     "block": 33.0,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    }
+   ]
   },
   {
    "id": "L43",
@@ -701,28 +758,49 @@
    "scope": [
     "bin/funnel-report.py"
    ],
-   "oracle": ".ledger/oracle_L43.sh",
+   "oracle": "bash .ledger/oracle_L43.sh",
    "expect": null,
    "source": null,
    "grounding": "oracle",
    "version": 1,
-   "minted": "2026-09-19T09:07:26+00:00"
+   "minted": "2026-09-19T09:07:26+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:25:38+00:00",
+     "oracle": "bash .ledger/oracle_L43.sh",
+     "why": "the recorded command had no interpreter; the executor ran it via /bin/sh and it exited 126"
+    }
+   ]
   },
   {
    "id": "L44",
-   "block": 37.0,
+   "block": 37,
    "statement": "A health report may not be green while the payment store it depends on is unreadable.",
    "test": "bash .ledger/oracle_L47.sh points the store at an unwritable directory and requires /health to report non-ok with the store detail, then restores a writable store and requires status ok",
    "scope": [
-    "server.py",
-    "store.py"
+    "store_health.py"
    ],
-   "oracle": ".ledger/oracle_L47.sh",
+   "oracle": "bash .ledger/oracle_L47.sh",
    "expect": null,
    "source": null,
    "grounding": "oracle",
    "version": 3,
-   "minted": "2026-09-19T09:44:27+00:00"
+   "minted": "2026-09-19T09:44:27+00:00",
+   "versions": [
+    {
+     "at": "2026-09-19T12:13:12+00:00",
+     "scope": [
+      "store_health.py"
+     ],
+     "block": 37,
+     "why": "evidence-cap: scope narrowed to the file that carries the behaviour"
+    },
+    {
+     "at": "2026-09-19T12:25:38+00:00",
+     "oracle": "bash .ledger/oracle_L47.sh",
+     "why": "the recorded command had no interpreter; the executor ran it via /bin/sh and it exited 126"
+    }
+   ]
   },
   {
    "id": "L45",
@@ -7527,7 +7605,7 @@
        "pass": false,
        "oracle_exit": 0,
        "oracle_ok": true,
-       "weak": "0/6 mutants caught, e.g. bin/atomicwrite.py:14 ' and '→' or '",
+       "weak": "0/6 mutants caught, e.g. bin/atomicwrite.py:14 ' and '\u2192' or '",
        "mutants": {
         "total": 6,
         "killed": 0
@@ -28031,6 +28109,531 @@
      "coverage_gaps": [],
      "injection": [],
      "at": "2026-09-19T12:06:27+00:00"
+    },
+    {
+     "kind": "verify",
+     "ok": false,
+     "refusable": true,
+     "results": [
+      {
+       "id": "L0",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L1",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L2",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L3",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L4",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L5",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L6",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L7",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L8",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L10",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L12",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L15",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L16",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L17",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L19",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L20",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L21",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L22",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L23",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L24",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L25",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L26",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L27",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L28",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L29",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "qwen/qwen3-235b-a22b-2507",
+       "control": "passed"
+      },
+      {
+       "id": "L30",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L31",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L32",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L33",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L34",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L35",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L36",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L37",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L38",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 0,
+        "killed": 0
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L39",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L40",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L41",
+       "pass": false,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L42",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L43",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 7,
+        "killed": 7
+       },
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L44",
+       "pass": false,
+       "oracle_exit": 126,
+       "oracle_ok": false,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L45",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 7,
+        "killed": 7
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      },
+      {
+       "id": "L46",
+       "pass": true,
+       "oracle_exit": 0,
+       "oracle_ok": true,
+       "mutants": {
+        "total": 6,
+        "killed": 6
+       },
+       "cached": true,
+       "judge": "deepseek/deepseek-v4-pro-0813",
+       "control": "passed"
+      }
+     ],
+     "pre_sig": "1cf75fb2a6eff8e728746294bb5f3de83c753c19c3c1250f209a200c460c4922",
+     "tier": "strong",
+     "coverage_gaps": [
+      "cdp_verify.py",
+      "test_cdp_verify.py",
+      "test_paid_response.py",
+      "tests/test_trial.py",
+      "vend_mcp.py"
+     ],
+     "injection": [],
+     "at": "2026-09-19T12:22:12+00:00"
     }
    ]
   }
@@ -28038,17 +28641,17 @@
  "deltas": [
   {
    "block": 9.0,
-   "text": "L9 scope: [nano_verify.py, server.py] → [nano_verify.py]: the challenge is built in nano_verify; server.py is covered by L10, so the law's evidence fits its cap",
+   "text": "L9 scope: [nano_verify.py, server.py] \u2192 [nano_verify.py]: the challenge is built in nano_verify; server.py is covered by L10, so the law's evidence fits its cap",
    "at": "2026-09-17T00:55:04+00:00"
   },
   {
    "block": 10.0,
-   "text": "require_payment.signature: single shared PRICE_RAW → per-endpoint price_raw parameter (domain-info 0.0005 XNO)",
+   "text": "require_payment.signature: single shared PRICE_RAW \u2192 per-endpoint price_raw parameter (domain-info 0.0005 XNO)",
    "at": "2026-09-17T01:50:27+00:00"
   },
   {
    "block": 10.0,
-   "text": "x402 manifest resources: 2 endpoints → 3 (domain-info added)",
+   "text": "x402 manifest resources: 2 endpoints \u2192 3 (domain-info added)",
    "at": "2026-09-17T01:50:27+00:00"
   },
   {
@@ -28058,47 +28661,47 @@
   },
   {
    "block": 16.0,
-   "text": "server.py resources: 5 → 6 (nano-info endpoint added; oracle_L20.sh manifest/agent-tools counts updated to 6)",
+   "text": "server.py resources: 5 \u2192 6 (nano-info endpoint added; oracle_L20.sh manifest/agent-tools counts updated to 6)",
    "at": "2026-09-17T17:08:03+00:00"
   },
   {
    "block": 16.0,
-   "text": "server.py evidence-cap refactor: extracted endpoint_input_spec and OpenAPI spec builder into endpoint_meta.py; server.py dropped from 54K→34K (numbered 60.5K→38K), endpoint_meta.py added. Re-anchored base_commit. L7/L24 scoped to endpoint_meta.py. All 20 laws now under the 60K evidence cap.",
+   "text": "server.py evidence-cap refactor: extracted endpoint_input_spec and OpenAPI spec builder into endpoint_meta.py; server.py dropped from 54K\u219234K (numbered 60.5K\u219238K), endpoint_meta.py added. Re-anchored base_commit. L7/L24 scoped to endpoint_meta.py. All 20 laws now under the 60K evidence cap.",
    "at": "2026-09-17T19:28:36+00:00"
   },
   {
    "block": 19.0,
-   "text": "nano-info.resource_url: https://nano.paypercall.dev/api/v1/nano-info → https://extract.paypercall.dev/api/v1/nano-info (dead Vercel A record, DNS owner-disabled)",
+   "text": "nano-info.resource_url: https://nano.paypercall.dev/api/v1/nano-info \u2192 https://extract.paypercall.dev/api/v1/nano-info (dead Vercel A record, DNS owner-disabled)",
    "at": "2026-09-18T04:41:45+00:00"
   },
   {
    "block": 19.0,
-   "text": "paid_endpoint.result_error_read: result['error'] (KeyError → HTTP 500 after payment taken) → result.get('error')",
+   "text": "paid_endpoint.result_error_read: result['error'] (KeyError \u2192 HTTP 500 after payment taken) \u2192 result.get('error')",
    "at": "2026-09-18T04:41:45+00:00"
   },
   {
    "block": 19.0,
-   "text": "probe_calls.reporting: counted as customer calls/payers → status probe_internal, excluded from calls, payers and deliveries",
+   "text": "probe_calls.reporting: counted as customer calls/payers \u2192 status probe_internal, excluded from calls, payers and deliveries",
    "at": "2026-09-18T04:41:45+00:00"
   },
   {
    "block": 9.0,
-   "text": "L7.unpaid_query_call: strict 402 → 200-with-trial for trial-eligible; bare probe stays 402",
+   "text": "L7.unpaid_query_call: strict 402 \u2192 200-with-trial for trial-eligible; bare probe stays 402",
    "at": "2026-09-18T16:52:19+00:00"
   },
   {
    "block": 9.0,
-   "text": "L8.unpaid_checklink: strict 402 → 200-with-trial for trial-eligible; bare checks still 402",
+   "text": "L8.unpaid_checklink: strict 402 \u2192 200-with-trial for trial-eligible; bare checks still 402",
    "at": "2026-09-18T17:03:17+00:00"
   },
   {
    "block": 9.0,
-   "text": "L12.unpaid_search: strict 402 → 200-with-trial for trial-eligible; bare still 402",
+   "text": "L12.unpaid_search: strict 402 \u2192 200-with-trial for trial-eligible; bare still 402",
    "at": "2026-09-18T17:03:17+00:00"
   },
   {
    "block": 9.0,
-   "text": "L10.bare_probe.payment: strict 402 for all → 402 for naked, trial-200 for real calls",
+   "text": "L10.bare_probe.payment: strict 402 for all \u2192 402 for naked, trial-200 for real calls",
    "at": "2026-09-18T17:03:32+00:00"
   }
  ],
@@ -32297,6 +32900,16 @@
    "at": "2026-09-19T12:06:27+00:00",
    "prev": "75054c73ebe323b3722083fa03544b6daa4481a155b8c5579b8080ae026289fb",
    "receipt": "cb64d70247346e60d0cc684bcf4e51ac0e7eb55b2c29574453bb7abda582d512"
+  },
+  {
+   "kind": "verify",
+   "payload": {
+    "block": "38",
+    "ok": false
+   },
+   "at": "2026-09-19T12:22:12+00:00",
+   "prev": "cb64d70247346e60d0cc684bcf4e51ac0e7eb55b2c29574453bb7abda582d512",
+   "receipt": "1ed30876dfe8cdc15ff522699dcb4ca8d7f136e2d1787e25a973148494bf9d89"
   }
  ]
 }

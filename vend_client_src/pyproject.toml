@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "vend-client"
 version = "0.1.0"
 description = "Python client for Vend API Merchant"
-readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Vend", email = "vend@paypercall.dev"}
@@ -29,7 +28,7 @@ paid = ["feeless402>=0.2.0"]
 
 [project.urls]
 Homepage = "https://paypercall.dev"
-Source = "https://github.com/PANDeveloper001/vend-client"
+Source = "https://github.com/PANDeveloper001/vend"
 Documentation = "https://paypercall.dev"
 
 [project.scripts]
