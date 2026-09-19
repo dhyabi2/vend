@@ -606,8 +606,55 @@ async def mcp_registry_auth():
     )
 
 
+# The cached result of the deep health check, refreshed in the background. /health serves this and
+# never does network I/O itself: the handler is async and the probes are blocking, so doing them
+# inline stalls the event loop and every paid request queues behind the health check.
+_HEALTH_CACHE: dict = {"checked_at": 0.0, "result": None}
+_HEALTH_REFRESH_S = float(os.environ.get("VEND_HEALTH_REFRESH_S", "60"))
+
+
 @app.get("/health")
 async def health():
+    """Return the cached deep check immediately, with its age.
+
+    Answering in milliseconds matters more than answering with this second's data: a health endpoint
+    that takes eight seconds is itself an outage for everything sharing the loop.
+    """
+    import time as _t
+    cached = _HEALTH_CACHE.get("result")
+    if cached is None:
+        # Nothing cached yet (first seconds after a restart). Say so rather than block to find out.
+        return JSONResponse({"ok": True, "status": "starting",
+                             "detail": "deep check has not run yet", "age_s": None})
+    out = dict(cached)
+    out["age_s"] = round(_t.time() - _HEALTH_CACHE["checked_at"], 1)
+    out["stale"] = out["age_s"] > _HEALTH_REFRESH_S * 3
+    return JSONResponse(out)
+
+
+async def _health_refresher():
+    """Run the deep check off the event loop, forever, and cache what it finds."""
+    import asyncio as _a
+    import time as _t
+    from starlette.concurrency import run_in_threadpool
+    while True:
+        try:
+            result = await run_in_threadpool(_deep_health)
+            _HEALTH_CACHE["result"] = result
+            _HEALTH_CACHE["checked_at"] = _t.time()
+        except Exception as e:  # noqa: BLE001 - the refresher must never die
+            _HEALTH_CACHE["result"] = {"ok": False, "error": str(e)[:200]}
+            _HEALTH_CACHE["checked_at"] = _t.time()
+        await _a.sleep(_HEALTH_REFRESH_S)
+
+
+@app.on_event("startup")
+async def _start_health_refresher():
+    import asyncio as _a
+    _a.create_task(_health_refresher())
+
+
+def _deep_health():
     """Health check endpoint — always returns 200 with per-module and
     per-upstream status. Pings Nano RPC, ip-api.com, and DuckDuckGo
     to verify external service reachability."""
