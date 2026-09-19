@@ -43,6 +43,20 @@
 - The search endpoint was one of the top-called endpoints (~500/day outside). Fixing its
   reliability removes a real reason a buyer would try, hit a timeout, and leave.
 
+## Second fix during close-out: the public status page was lying (19/21 -> 21/21)
+
+While re-running `bin/update-directory-index.py`, the probe marked extract/geoip/domain as
+`error` at 15s timeouts even though every endpoint answered a correct 402 challenge or `/health`
+200 in 7-16s when probed individually. Root cause: every `/health` call does a live Nano RPC ping,
+an ip-api lookup AND a real search-backend call (~8s each), and the probe loop runs them
+back-to-back so upstream calls queue; paid-endpoint 402 construction also hits RPC. A 15s budget
+mislabelled slow-but-correct responses as errors.
+
+Fix: `bin/update-directory-index.py` now gives our own health/paid-endpoint/discovery probes a
+30s budget. Result verified live: **21/21 all healthy** (was showing 19-20/21, hiding real service).
+Same run confirms the earlier search multi-backend fix end-to-end (search 402 answers in 31ms,
+search/health ok).
+
 ## Unverified / open
 
 - L43/L45/L46 verify status in ledger is unchanged (judge backend flaky on large batches; oracles
