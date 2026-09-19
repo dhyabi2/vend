@@ -319,10 +319,17 @@
       "status": "submitted",
       "submitted_at": "2026-09-19T22:10:00Z",
       "note": "Submission branch pushed to fork. One-click PR: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1"
+    },
+    {
+      "directory": "mcpub.dev",
+      "url": "https://extract.paypercall.dev/mcp",
+      "status": "live",
+      "verified_at": "2026-09-19",
+      "note": "Keyless MCP directory (no account, no review). Registered via JSON-RPC tools/call submit. Requires /.well-known/mcp.json (now served by server.py). Confirmed in archive via get tool: source:archive, submitted_at 1789862061, status live."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-19T23:12:04Z",
+    "timestamp": "2026-09-19T23:57:13Z",
     "all_healthy": false,
     "endpoints_ok": 20,
     "endpoints_total": 21

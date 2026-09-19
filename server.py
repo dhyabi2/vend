@@ -556,6 +556,20 @@ async def sitemap_xml():
     )
 
 
+@app.get("/.well-known/mcp.json")
+async def well_known_mcp():
+    """MCP discovery manifest (mcp.json) — lets mcpub.dev and other keyless
+    MCP directories verify and index Vend's live remote endpoint."""
+    return FileResponse(
+        os.path.join(STATIC_DIR, "mcp.json"),
+        media_type="application/json",
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=3600",
+        },
+    )
+
+
 @app.get("/robots.txt")
 async def robots_txt():
     """Robots exclusion standard — points crawlers to sitemap and discovery paths."""
