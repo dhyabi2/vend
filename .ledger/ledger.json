@@ -1,5 +1,5 @@
 {
- "base_commit": "c0425fdb637b2e481361a8d554be958adc457ce6",
+ "base_commit": "81249833730603dfa84edabba28341bd7e7853a7",
  "blocks": {
   "1": {
    "attempts": [
@@ -32796,6 +32796,17 @@
    },
    "prev": "26e1de4294abe854289928a899eaeb7e6dcd627fbfd1f4da90cf50604dd12f26",
    "receipt": "77348dc5be9e0569d9f4ef1354760aef70bd09c547389622729fe699bad4583c"
+  },
+  {
+   "kind": "reanchor",
+   "payload": {
+    "from": "c0425fdb637b2e481361a8d554be958adc457ce6",
+    "to": "81249833730603dfa84edabba28341bd7e7853a7",
+    "reason": "10 commits of verified work since init pushed every server.py-scoped law's evidence over the 60K cap; re-anchor so evidence measures the new work."
+   },
+   "at": "2026-09-19T18:42:07+00:00",
+   "prev": "77348dc5be9e0569d9f4ef1354760aef70bd09c547389622729fe699bad4583c",
+   "receipt": "646b033812b3b9e171bbf258c3f2424d079b0f36ef185358d1bfe61532bb53e0"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
