@@ -33,3 +33,4 @@ id_ed25519
 mcp-registry-key.hex
 .vivioo-edit-key*
 deploy/vend.env
+server.json
