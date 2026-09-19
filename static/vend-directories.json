@@ -294,10 +294,28 @@
       "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
       "published_at": "2026-09-19T08:22:00Z",
       "note": "Official MCP Registry by Anthropic/GitHub/Microsoft. Streamable-http MCP server with 6 tools (extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info). 402-gated. Crawled by PulseMCP, Glama and all major MCP directories."
+    },
+    {
+      "directory": "MCPSafe (Security-First MCP Directory)",
+      "url": "https://mcpsafe.dev",
+      "status": "submitted",
+      "submitted_at": "2026-09-19",
+      "submission_id": "c514fa00-9335-42bb-8277-87d515523141",
+      "note": "Security-first MCP server directory. Keyless POST /api/v1/submissions (type url). Pending security scan. Vend MCP at extract.paypercall.dev/mcp submitted."
+    },
+    {
+      "directory": "AgentShare MCP Registry",
+      "url": "https://agentshare.dev/registry",
+      "status": "submitted",
+      "submitted_at": "2026-09-19",
+      "submission_id": "37",
+      "status_url": "https://agentshare.dev/registry/status/VD2Vug16Jv0NjtX89hYxTI4aRPRmiMsudWsTT_m_qfo",
+      "category": "data_commerce",
+      "note": "Curated DeFi/data/commerce MCP registry, keyless POST /api/v1/registry/submit. Category data_commerce. Pending_review id 37. 7 x402 endpoints."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-19T17:56:37Z",
+    "timestamp": "2026-09-19T18:02:39Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
