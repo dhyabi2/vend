@@ -312,12 +312,19 @@
       "status_url": "https://agentshare.dev/registry/status/VD2Vug16Jv0NjtX89hYxTI4aRPRmiMsudWsTT_m_qfo",
       "category": "data_commerce",
       "note": "Curated DeFi/data/commerce MCP registry, keyless POST /api/v1/registry/submit. Category data_commerce. Pending_review id 37. 7 x402 endpoints."
+    },
+    {
+      "directory": "MCPFind (mcpfind.org)",
+      "url": "https://github.com/PANDeveloper001/mcp-find/tree/add-vend-api-merchant",
+      "status": "submitted",
+      "submitted_at": "2026-09-19T22:10:00Z",
+      "note": "Submission branch pushed to fork. One-click PR: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1"
     }
   ],
   "probe": {
-    "timestamp": "2026-09-19T21:41:47Z",
-    "all_healthy": true,
-    "endpoints_ok": 21,
+    "timestamp": "2026-09-19T22:17:49Z",
+    "all_healthy": false,
+    "endpoints_ok": 20,
     "endpoints_total": 21
   }
 }
