@@ -132,9 +132,10 @@
     },
     {
       "directory": "AI Kendra",
-      "url": "https://aikendra.com/submit",
-      "status": "submitted",
-      "note": "Submitted 2026-09-18, reviewed within 48 hours"
+      "url": "https://aikendra.com/ai-tools/tool/vend-api-merchant",
+      "status": "live",
+      "verified_at": "2026-09-19",
+      "note": "Vend API Merchant listed at aikendra.com/ai-tools/tool/vend-api-merchant. Category: Coding & Development. Pricing: Paid. Tags: x402, API marketplace, pay-per-call, Nano, XNO."
     },
     {
       "directory": "AiAgents.Directory",
@@ -294,7 +295,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-19T12:34:49Z",
+    "timestamp": "2026-09-19T16:20:04Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
