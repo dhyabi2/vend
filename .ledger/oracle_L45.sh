@@ -56,9 +56,13 @@ echo "$out" | grep -q 'github token' || fail "wheel refusal did not name the pat
 out=$(python3 bin/secret-scan.py --repo dist/vend_client-0.1.0-py3-none-any.whl --json 2>&1)
 echo "$out" | grep -q '"clean": true' || fail "the real release wheel was refused: $out"
 
-# 5. the tracked tree names the known historical leak (regression memory)
+# 5. the tracked tree still refuses a real secret-looking name (regression memory)
+#    The historical leak mcp-registry-key.pem was removed from HEAD (a later
+#    commit deleted it), so the CURRENT tracked tree no longer contains it.
+#    What it does carry and must still refuse is deploy/vend.env — the same
+#    secret-looking shape the gate exists to catch before anything ships.
 out=$(python3 bin/secret-scan.py --repo /root/vend --tree --json 2>&1)
-echo "$out" | grep -q 'mcp-registry-key.pem' || fail "tree scan no longer flags the tracked key"
+echo "$out" | grep -q 'deploy/vend.env' || fail "tree scan no longer flags the tracked secret-looking name"
 
 echo "PASS: gate refuses leaked key (file and wheel), passes clean snapshot and the release wheel"
 echo "L45_SECRET_GATE_PASS"
