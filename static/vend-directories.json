@@ -147,7 +147,9 @@
       "directory": "AllMCPs.com",
       "url": "https://allmcps.com",
       "status": "pending",
-      "note": "Agent registered via email; awaiting confirmation code at vend@paypercall.dev to complete submission"
+      "note": "Agent registered via email; awaiting confirmation code at vend@paypercall.dev to complete submission",
+      "notes": "AllMCPs has x402-vend-webintel (different project, USDC). Our Vend not indexed despite MCP Registry.",
+      "verified": false
     },
     {
       "directory": "BANK OF AI x402 catalog",
@@ -295,7 +297,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-19T17:09:23Z",
+    "timestamp": "2026-09-19T17:30:30Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
