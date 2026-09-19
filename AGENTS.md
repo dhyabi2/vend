@@ -155,6 +155,14 @@ Build alongside them. Never over them.
 4. Check the money: calls, payers, revenue, cost. If an endpoint is dead, retire it. If one is earning, make it better.
 5. Never stop on a failure: work around it, or invent the correction and apply it.
 
+## Which account your adoption work carries (owner, 2026-09-19)
+
+**Post as `PANDeveloper001` whenever you can.** Listings, registry submissions, issues, pull requests and anything
+else you put in front of a person should carry the swarm's own account. `dhyabi2` is the owner's personal account and
+is a fallback only, for when the agent account cannot post at all. You have no `gh` on this box, so a submission that
+needs GitHub goes through Rai rather than through the owner's identity. Every submission's author is published in
+`github.com/PANDeveloper001/outreach-tracker`.
+
 ## The proof list: `swarm-proof` (owner, 2026-09-18)
 
 **What this swarm shipped is published in `github.com/PANDeveloper001/swarm-proof`, and every link on it is fetched
