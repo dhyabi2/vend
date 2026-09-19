@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Retire a mis-authored law and record it as a receipt-chained event.
+
+Why this exists
+---------------
+``MAX_AMENDS`` (2) freezes a law after two corrections, and ``split`` only runs
+on a block whose retry budget is spent.  L11 was minted with two authoring
+defects that neither remedy can reach:
+
+  * ``scope`` is ``server.py`` although the law is about ``domain_info.py`` —
+    so every piece of evidence handed to the judge comes from the wrong file
+    and the domain-info claims are never actually inspected;
+  * ``expect`` is ``L10_DOMAININFO_PASS`` while its oracle prints
+    ``L11_MODULE_PASS`` — so a correct oracle is recorded as a failure.
+
+Retiring is the honest repair for a law that is wrong about what it governs:
+the replacement law is minted with the correct scope and expectation, and the
+old one is marked retired with a reason and an event, so the ledger shows what
+happened instead of hiding it.
+"""
+import os
+import sys
+
+sys.path.insert(0, "/root/invent-stack/bin")
+import ledger_receipts as R  # noqa: E402
+import ledger_store as S  # noqa: E402
+
+REPO = "/root/vend"
+
+
+def main():
+    law_id, reason = sys.argv[1], sys.argv[2]
+    with S.locked(REPO):
+        data = S.load(REPO)
+        law = next((l for l in data["laws"] if l["id"] == law_id), None)
+        if not law:
+            raise SystemExit(f"no law {law_id}")
+        if law.get("retired"):
+            print(f"{law_id} already retired")
+            return
+        law["retired"] = {"at": S.now(), "reason": reason}
+        S.event(data, "retire", {"id": law_id, "reason": reason})
+        S.save(REPO, data)
+    print(f"retired {law_id}: {reason}")
+    print(R.chain_ok(S.load(REPO))[1])
+
+
+if __name__ == "__main__":
+    main()

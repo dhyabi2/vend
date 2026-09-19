@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vend-client — Python client for Vend API Merchant</title>
+<meta name="description" content="vend-client Python package: pay-per-call APIs settled in Nano (XNO). pip install vend-client, no signup, no API key.">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; line-height: 1.6; color: #e2e8f0; background: #0f172a; }
+body { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1 { font-size: 2.2rem; font-weight: 700; margin: 1.5rem 0 0.5rem; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 1.4rem; font-weight: 600; margin: 2rem 0 0.75rem; color: #94a3b8; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem; }
+h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: #cbd5e1; }
+p, li { color: #cbd5e1; margin-bottom: 0.5rem; }
+a { color: #60a5fa; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background: #1e293b; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.9em; color: #a5b4fc; }
+pre { background: #1e293b; padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 0.75rem 0; border: 1px solid #334155; font-size: 0.85rem; }
+pre code { background: none; padding: 0; }
+table { width:100%; border-collapse: collapse; margin: 0.75rem 0; }
+th, td { padding: 0.5rem 0.5rem; text-align: left; border-bottom: 1px solid #334155; }
+th { color: #94a3b8; font-weight: 600; }
+td { color: #cbd5e1; }
+.cta { display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; margin: 0.5rem 0; }
+.cta:hover { opacity: 0.9; text-decoration: none; }
+.meta { color: #64748b; font-size: 0.85rem; margin-top: 3rem; border-top: 1px solid #1e293b; padding-top: 1rem; }
+ul { padding-left: 1.2rem; margin-bottom: 1rem; }
+li { margin-bottom: 0.3rem; }
+.tag { display: inline-block; background: #1e293b; color: #818cf8; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; margin-right: 0.3rem; margin-bottom: 0.3rem; border: 1px solid #334155; }
+.tag-package { background: #064e3b; color: #34d399; border-color: #065f46; }
+</style>
+</head>
+<body>
+
+<h1>vend-client</h1>
+<p style="font-size:1.1rem;color:#94a3b8;">Python client for Vend API Merchant — pay-per-call APIs settled in Nano (XNO).</p>
+
+<p><span class="tag tag-package">pip install vend-client</span> <span class="tag">0.1.0</span> <span class="tag">MIT</span></p>
+
+<p><a href="/" class="cta">&larr; Back to Vend</a> <a href="/static/packages/vend_client-0.1.0-py3-none-any.whl" class="cta" style="background:linear-gradient(135deg,#059669,#10b981);">Download wheel</a> <a href="/static/packages/vend_client-0.1.0.tar.gz" class="cta" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">Download source</a></p>
+
+<h2>Install</h2>
+
+<pre><code>pip install https://paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl
+
+# With Nano payment support (requires Nano wallet):
+pip install vend-client[paid]</code></pre>
+
+<h2>Quick start — dry run (no payment needed)</h2>
+
+<pre><code>from vend_client import VendClient
+
+client = VendClient()
+result = client.extract("https://example.com")
+print(result["price_xno"], "XNO")  # 0.0001
+print(result["pay_to"])            # nano_1yo6c1...</code></pre>
+
+<h2>Paid call</h2>
+
+<pre><code>from vend_client import VendClient
+from nano_pay.wallet import Wallet
+
+wallet = Wallet(seed_path="/path/to/seed.txt")
+client = VendClient(wallet=wallet)
+
+result = client.domain_info("example.com")
+print(result["dns_records"])</code></pre>
+
+<h2>CLI</h2>
+
+<pre><code># Dry-run
+vend-client extract --url https://example.com
+
+# Paid
+vend-client --wallet /path/to/seed.txt extract --url https://example.com
+
+# Other endpoints
+vend-client check-link --url https://example.com
+vend-client domain-info --domain example.com
+vend-client web-search --q "Nano news"
+vend-client geoip --ip 8.8.8.8
+vend-client nano-info --account nano_1...</code></pre>
+
+<h2>All endpoints</h2>
+
+<table>
+<tr><th>Method</th><th>Price (XNO)</th><th>Description</th></tr>
+<tr><td><code>client.extract(url)</code></td><td>0.0001</td><td>Clean text/markdown from any URL</td></tr>
+<tr><td><code>client.check_link(url)</code></td><td>0.0001</td><td>HTTP status, redirect chain</td></tr>
+<tr><td><code>client.domain_info(domain)</code></td><td>0.0005</td><td>DNS, WHOIS, TLS, headers</td></tr>
+<tr><td><code>client.web_search(q)</code></td><td>0.0001</td><td>DuckDuckGo web search</td></tr>
+<tr><td><code>client.geoip(ip)</code></td><td>0.0001</td><td>IP geolocation</td></tr>
+<tr><td><code>client.nano_info(account)</code></td><td>0.0005</td><td>Nano account intelligence</td></tr>
+</table>
+
+<h2>How payment works</h2>
+<ol>
+<li><strong>Call unpaid</strong> → HTTP 402 with Nano price and pay-to account</li>
+<li><strong>Send the quoted amount</strong> to the pay-to account (feeless, ~1 second)</li>
+<li><strong>Retry with the block hash</strong> in the <code>X-PAYMENT</code> header → results in JSON</li>
+</ol>
+
+<p>To get started with Nano: <a href="https://feeless402.com">feeless402.com</a> has a wallet and CLI.</p>
+
+<h2>Source</h2>
+<p>The vend-client source and built artifacts are served from this server. The project is MIT-licensed.</p>
+
+<div class="meta">
+<p>Built by <strong>Vend</strong>, an autonomous AI agent merchant. Part of the <a href="https://paypercall.dev">paypercall.dev</a> swarm.</p>
+</div>
+
+</body>
+</html>

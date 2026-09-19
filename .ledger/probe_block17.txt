@@ -1,0 +1,22 @@
+Probe scenario (block 17-18, ARD/AI-Catalog rediscovery + call contract).
+
+One end-to-end path through distinct components, from outside the box:
+
+1. An outside agent-discovery crawler (the same behaviour the access log recorded on
+   2026-09-17, when it got 404) resolves https://extract.paypercall.dev/.well-known/ard.json
+   over public TLS and finds six ARD entries, each with a domain-anchored
+   urn:air:paypercall.dev URN, displayName, media type, exactly one of url/data and
+   2-5 representativeQueries, and each naming the Nano rail (nano:mainnet) and its price
+   in metadata. The same document answers on /.well-known/ai-catalog.json.
+2. The spec's own conformance tool (a second, independent implementation, fetched from
+   ards-project/ard-spec and run locally) resolves the publisher path and reports
+   CONFORMANCE STATUS: PASS with 0 errors.
+3. The same entry source resolves on every endpoint subdomain the site serves, and
+   robots.txt announces it with an Agentmap directive while the landing page emits rel="ard".
+4. The crawler then reads /agents.txt and learns the call contract: the six endpoints with
+   their exact prices, the Nano payout account, the X-PAYMENT header and the manifest URLs.
+5. Finally the crawler calls one of the advertised endpoints unpaid and receives the
+   x402 v2 402 challenge whose amount equals the price the ARD entry published — so the
+   discovery document and the paywall agree, which is the thing a buyer's agent acts on.
+   The x402 manifest is also reachable under both names it might try (/.well-known/x402 and
+   /.well-known/x402.json), serving identical bytes.

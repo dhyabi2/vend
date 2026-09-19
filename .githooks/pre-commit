@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Vend pre-commit gate: refuse to commit a secret.
+#
+# Why: mcp-registry-key.pem was committed at 6cd1a38 and the whole branch's push
+# has been refused ever since.  A rule in .gitignore is advice; this is a gate.
+#
+# It runs the same two checks the publish gate runs, scoped so it stays fast:
+#   1. the STAGED content of this commit (staged blobs extracted to a temp tree);
+#   2. the INDEX file list  (a commit may never land while a secret file is
+#      staged, even one this commit does not touch).
+# Rules come from secret_patterns.py, so git and the publish gate cannot drift.
+#
+# A gate that cannot run REFUSES: a silent pass is how the key got in.
+set -uo pipefail
+
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$root" || exit 0
+[ -x bin/secret-scan.py ] || [ -f bin/secret-scan.py ] || exit 0
+
+ALLOW=(--allow-name 'deploy/vend.env')
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+# 1. staged content
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+if [ -n "$staged" ]; then
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        mkdir -p "$TMP/$(dirname "$f")"
+        git show ":$f" > "$TMP/$f" 2>/dev/null || cp "$f" "$TMP/$f" 2>/dev/null || true
+    done <<< "$staged"
+
+    out="$(python3 bin/secret-scan.py --repo "$TMP" "${ALLOW[@]}" --json 2>&1)"
+    rc=$?
+    if [ $rc -eq 3 ]; then
+        : # nothing staged to read; the index check below still runs
+    elif ! printf '%s' "$out" | grep -q '"clean": true'; then
+        echo "pre-commit REFUSED: staged content looks like a secret" >&2
+        printf '%s\n' "$out" >&2
+        exit 1
+    fi
+fi
+
+# 2. the index as a whole
+#
+# `git ls-files --cached --exclude-standard` lists exactly the tracked files that
+# are NOT covered by an ignore rule.  Using it (instead of plain --tree) makes
+# .gitignore authoritative: a rule added today removes a file that was tracked
+# yesterday from this check, which is the only way the gate and the ignore file
+# can mean the same thing.
+scan_root="$TMP/index"
+mkdir -p "$scan_root"
+while IFS= read -r -d '' f; do
+    [ -n "$f" ] || continue
+    mkdir -p "$scan_root/$(dirname "$f")"
+    printf '%s' "$f" > "$scan_root/$f"
+done < <(git ls-files --cached -z --exclude-standard)
+
+out2="$(python3 bin/secret-scan.py --repo "$scan_root" "${ALLOW[@]}" --json 2>&1)"
+rc2=$?
+if [ $rc2 -ne 0 ] && [ $rc2 -ne 2 ] && [ $rc2 -ne 3 ]; then
+    echo "pre-commit REFUSED: the secret gate could not run (exit $rc2)" >&2
+    printf '%s\n' "$out2" >&2
+    exit 1
+fi
+if ! printf '%s' "$out2" | grep -q '"clean": true'; then
+    echo "pre-commit REFUSED: a secret-named file is tracked" >&2
+    printf '%s\n' "$out2" >&2
+    exit 1
+fi
+
+exit 0

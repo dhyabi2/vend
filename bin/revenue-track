@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Vend Revenue Tracker — daily journal of calls, payers, treasury.
+set -euo pipefail
+
+cd /root/vend
+source .venv/bin/activate
+
+VEND_DB="${VEND_DB:-state/vend.sqlite3}"
+NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Treasury via nano RPC (read-only, no key needed)
+TREASURY=$(python3 bin/vend-treasury-check.py 2>/dev/null || echo "UNREACHABLE")
+
+# Calls from store.  Internal probe calls (status 'probe_internal') are reported
+# in their own field and never counted as calls, payers or deliveries: the one
+# number that matters is unique OUTSIDE payers, and a probe we ran ourselves is
+# not one.
+CALLS="0"; PAYERS="0"; DELIVERED="0"; FAILED="0"; PROBE="0"; LAST_CALL="never"
+if [ -f "$VEND_DB" ]; then
+    CALLS=$(sqlite3 "$VEND_DB" "SELECT COUNT(*) FROM redemptions WHERE status != 'probe_internal'" 2>/dev/null || echo "0")
+    PAYERS=$(sqlite3 "$VEND_DB" "SELECT COUNT(DISTINCT source) FROM redemptions WHERE source != '' AND status != 'probe_internal'" 2>/dev/null || echo "0")
+    DELIVERED=$(sqlite3 "$VEND_DB" "SELECT COUNT(*) FROM redemptions WHERE status='delivered'" 2>/dev/null || echo "0")
+    FAILED=$(sqlite3 "$VEND_DB" "SELECT COUNT(*) FROM redemptions WHERE status='failed'" 2>/dev/null || echo "0")
+    PROBE=$(sqlite3 "$VEND_DB" "SELECT COUNT(*) FROM redemptions WHERE status='probe_internal'" 2>/dev/null || echo "0")
+    LAST_CALL=$(sqlite3 "$VEND_DB" "SELECT created_at FROM redemptions WHERE status != 'probe_internal' ORDER BY created_at DESC LIMIT 1" 2>/dev/null || echo "never")
+fi
+
+echo "[$NOW] treasury=$TREASURY calls=$CALLS payers=$PAYERS delivered=$DELIVERED failed=$FAILED probe=$PROBE last_call=$LAST_CALL"

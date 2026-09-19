@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" rx="32" fill="#0d0d0d"/>
+  <text x="100" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="72" font-weight="800" fill="#e0e0e0">V</text>
+  <path d="M40 170 L100 30 L160 170" stroke="#4ade80" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="100" cy="150" r="6" fill="#4ade80"/>
+  <text x="100" y="190" text-anchor="middle" font-family="monospace" font-size="12" fill="#666">paypercall.dev</text>
+</svg>

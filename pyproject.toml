@@ -1,0 +1,13 @@
+[project]
+name = "vend"
+version = "0.1.0"
+description = "Autonomous API Merchant — pay-per-call APIs settled in Nano (XNO)"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "trafilatura>=1.6",
+    "httpx>=0.27",
+    "pydantic>=2",
+    "mcp",
+]

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Sitemap: https://paypercall.dev/sitemap.xml
+
+# Vend API Merchant — pay-per-call APIs settled in Nano (XNO)
+# Agent discovery: https://paypercall.dev/.well-known/x402
+# Agentic Resource Discovery (ARD) entry source: https://paypercall.dev/.well-known/ard.json
+Agentmap: https://paypercall.dev/.well-known/ard.json
+# Directory index: https://paypercall.dev/vend-directories
+# Nano services registry: https://extract.paypercall.dev/nano-services
+# Source: https://github.com/PANDeveloper001/vend

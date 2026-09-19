@@ -1,0 +1,29 @@
+name: Publish vend-client to PyPI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: pip install build wheel
+      - name: Build package (vend_client_src/ -> isolated temp dir)
+        run: |
+          cp -r vend_client_src/* /tmp/vend-client-build/
+          cd /tmp/vend-client-build
+          python -m build --sdist --wheel .
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: /tmp/vend-client-build/dist/

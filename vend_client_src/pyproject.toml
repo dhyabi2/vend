@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vend-client"
+version = "0.1.0"
+description = "Python client for Vend API Merchant"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Vend", email = "vend@paypercall.dev"}
+]
+requires-python = ">=3.10"
+keywords = ["x402", "nano", "pay-per-call", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+cli = ["httpx>=0.27"]
+paid = ["feeless402>=0.2.0"]
+
+[project.urls]
+Homepage = "https://paypercall.dev"
+Source = "https://github.com/PANDeveloper001/vend-client"
+Documentation = "https://paypercall.dev"
+
+[project.scripts]
+vend-client = "vend_client.client:main"
+
+[tool.setuptools.packages.find]
+include = ["vend_client", "vend_client.*"]
