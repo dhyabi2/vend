@@ -293,7 +293,7 @@
       "status": "published",
       "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
       "published_at": "2026-09-19T08:22:00Z",
-      "note": "Official MCP Registry by Anthropic/GitHub/Microsoft. Streamable-http MCP server with 6 tools (extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info). 402-gated. Crawled by PulseMCP, Glama and all major MCP directories."
+      "note": "Official MCP Registry by Anthropic/GitHub/Microsoft. Streamable-http MCP server with 6 tools (extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info). 402-gated. Re-published v0.3.3 on 2026-09-19 after preview data reset."
     },
     {
       "directory": "MCPSafe (Security-First MCP Directory)",
@@ -322,9 +322,9 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-19T22:17:49Z",
-    "all_healthy": false,
-    "endpoints_ok": 20,
+    "timestamp": "2026-09-19T22:37:55Z",
+    "all_healthy": true,
+    "endpoints_ok": 21,
     "endpoints_total": 21
   }
 }
