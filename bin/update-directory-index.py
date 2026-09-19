@@ -55,8 +55,15 @@ PROBES = {
     ],
 }
 
-def probe_url(url, timeout=15):
+def probe_url(url, timeout=15, label=None):
     """Return (status, http_code, time_ms, error)."""
+    # Our own /health and paid-endpoint probes legitimately take ~10s each
+    # (every /health call does a live Nano RPC ping, ip-api, and a real search
+    # backend call; paid endpoints build a payment challenge against RPC), and
+    # the probe loop runs them back-to-back so upstream calls queue. A 15s
+    # budget mislabels a slow-but-correct response as an error.
+    if label in ("own_health", "own_402", "discovery"):
+        timeout = 30
     t0 = time.time()
     try:
         req = urllib.request.Request(url, method="GET",
@@ -101,7 +108,7 @@ def main():
     for group, endpoints in PROBES.items():
         group_results = []
         for label, url in endpoints:
-            status, http, ms, err = probe_url(url)
+            status, http, ms, err = probe_url(url, label=group)
             r = {"url": url, "status": status, "http": http, "time_ms": ms}
             if err:
                 r["error"] = err
