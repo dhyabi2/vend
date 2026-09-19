@@ -637,7 +637,7 @@ async def health():
     upstreams = {}
     start = _time_tracker.time()
     try:
-        probe = web_search("nano cryptocurrency 2026", max_results=1)
+        probe = web_search("python web framework comparison 2026", max_results=1)
         elapsed_ms = int((_time_tracker.time() - start) * 1000)
         if probe.get("error"):
             upstreams["search"] = {"status": "error", "response_time_ms": elapsed_ms,
