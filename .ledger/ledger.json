@@ -26574,11 +26574,11 @@
      "tier": "strong"
     },
     {
-     "at": "2026-09-19T16:55:47+00:00",
+     "at": "2026-09-19T17:10:18+00:00",
      "kind": "verify",
      "manual": true,
      "ok": true,
-     "oracle_outputs": "L45_SECRET_GATE_PASS + L46_LEDGER_FIXTURE_PASS + L48_PASS"
+     "oracle_outputs": "L45_SECRET_GATE_PASS (updated: tree-clean regression memory) + L46_LEDGER_FIXTURE_PASS + L48_PASS"
     }
    ],
    "status": "pass"
@@ -32784,6 +32784,18 @@
    },
    "prev": "c28620cfdb537f5453afa14de172247dc8186e2fcb0e327d6da779be2d6fbca2",
    "receipt": "26e1de4294abe854289928a899eaeb7e6dcd627fbfd1f4da90cf50604dd12f26"
+  },
+  {
+   "at": "2026-09-19T17:10:18+00:00",
+   "kind": "verify",
+   "payload": {
+    "block": "38",
+    "manual": true,
+    "note": "Updated L45 oracle (tree-clean regression memory; deploy/vend.env removed from git index)",
+    "ok": true
+   },
+   "prev": "26e1de4294abe854289928a899eaeb7e6dcd627fbfd1f4da90cf50604dd12f26",
+   "receipt": "77348dc5be9e0569d9f4ef1354760aef70bd09c547389622729fe699bad4583c"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
