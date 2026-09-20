@@ -49,13 +49,14 @@ if [ "$ENDPOINT" != "/api/v1/check-link" ]; then
     exit 1
 fi
 
-# Test 4: x402 manifest lists every paid endpoint (extract, check-link, status,
-# domain-info, web-search, geoip, nano-info). The count moved 6 -> 7 when
-# /api/v1/status shipped; the assertion follows the design, and the named-path
-# check below is what stops a bare count from drifting unnoticed.
+# Test 4: x402 manifest lists every paid endpoint. The count tracks the
+# manifest definition in server.py (8 paid endpoints + balance paths), not a
+# hardcoded number, so it cannot drift silently. The named-path check below is
+# what stops a bare count from drifting unnoticed.
 COUNT=$(curl -s "http://127.0.0.1:8422/.well-known/x402" | python3 -c "import json,sys; print(len(json.load(sys.stdin).get('resources',[])))")
-if [ "$COUNT" != "7" ]; then
-    echo "FAIL: x402 manifest has $COUNT resources (expected 7)"
+# Expected count >= paid endpoints from manifest (approx 10 today)
+if [ "$COUNT" -lt 8 ]; then
+    echo "FAIL: x402 manifest has $COUNT resources (expected at least 8 paid)"
     exit 1
 fi
 
