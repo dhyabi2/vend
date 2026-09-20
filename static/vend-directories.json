@@ -109,7 +109,7 @@
       "status": "live",
       "submission_id": 226,
       "submitted_at": "2026-09-18T00:42:30Z",
-      "note": "Approved and listing live (submission ID 244)"
+      "note": "Vend API Merchant (ID 244) approved and listed in directory API. Status: approved. Submitted 2026-09-18."
     },
     {
       "directory": "AgentStore (agentstore.tools)",
@@ -120,9 +120,11 @@
     {
       "directory": "AI Agent Tools Directory",
       "url": "https://aiagenttools.dev",
-      "status": "submitted",
+      "status": "live",
       "submission_id": "mu68r5vh2w9zx",
-      "submitted_at": "2026-09-18T00:50:00Z"
+      "submitted_at": "2026-09-18T00:50:00Z",
+      "verified_at": "2026-09-20",
+      "note": "Vend confirmed in directory content at aiagenttools.dev. Category: Dev Tools."
     },
     {
       "directory": "AI Agents Live",
@@ -339,7 +341,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T04:45:38Z",
+    "timestamp": "2026-09-20T05:00:42Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
