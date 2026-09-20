@@ -29,6 +29,9 @@ import sys
 import contextvars
 import threading
 
+from typing import Annotated
+from pydantic import Field
+
 # Use httpx2 (MCP 2.x's bundled HTTP client) to avoid event-loop conflicts
 import httpx2 as httpx
 
@@ -166,6 +169,7 @@ async def call_vend_endpoint(endpoint_path: str, params: dict) -> dict:
 def create_server():
     """Create the MCPServer with all Vend endpoints as tools."""
     from mcp.server.mcpserver import MCPServer
+    from mcp.types import ToolAnnotations
 
     server = MCPServer(
         name="vend",
@@ -179,40 +183,81 @@ def create_server():
         version="0.1.0",
     )
 
+    # All Vend tools are read-only queries against the pay-per-call API. Declaring
+    # the annotations explicitly (rather than letting MCP clients assume the
+    # destructive/open-world worst case) is what CheckMCP's compliance pillar checks.
+    readonly_annotations = ToolAnnotations(
+        read_only_hint=True,
+        destructive_hint=False,
+        idempotent_hint=True,
+        open_world_hint=False,
+    )
+
     # Register each endpoint as a tool via the decorator
 
-    @server.tool(description=ENDPOINTS["extract_url"]["description"])
-    async def extract_url(url: str) -> str:
+    @server.tool(
+        description=ENDPOINTS["extract_url"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def extract_url(
+        url: Annotated[str, Field(description="Full http(s) URL of the web page to extract clean text/markdown from.")]
+    ) -> str:
         """Extract clean text from a URL. Returns title, text and markdown."""
         result = await call_vend_endpoint(ENDPOINTS["extract_url"]["path"], {"url": url})
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["check_link"]["description"])
-    async def check_link(url: str) -> str:
+    @server.tool(
+        description=ENDPOINTS["check_link"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def check_link(
+        url: Annotated[str, Field(description="Full http(s) URL whose HTTP status, response time and redirect chain to check.")]
+    ) -> str:
         """Check HTTP status of a URL. Returns status code, response time, redirect chain."""
         result = await call_vend_endpoint(ENDPOINTS["check_link"]["path"], {"url": url})
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["domain_info"]["description"])
-    async def domain_info(domain: str) -> str:
+    @server.tool(
+        description=ENDPOINTS["domain_info"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def domain_info(
+        domain: Annotated[str, Field(description="Domain name (e.g. example.com) to look up DNS, WHOIS, SSL/TLS and headers for.")]
+    ) -> str:
         """Look up domain intelligence. Returns DNS records, WHOIS, SSL/TLS, headers."""
         result = await call_vend_endpoint(ENDPOINTS["domain_info"]["path"], {"domain": domain})
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["web_search"]["description"])
-    async def web_search(q: str) -> str:
+    @server.tool(
+        description=ENDPOINTS["web_search"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def web_search(
+        q: Annotated[str, Field(description="Search query string to run through the web search backend.")]
+    ) -> str:
         """Search the web via DuckDuckGo. Returns titles, URLs, snippets."""
         result = await call_vend_endpoint(ENDPOINTS["web_search"]["path"], {"q": q})
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["geoip_lookup"]["description"])
-    async def geoip_lookup(ip: str) -> str:
+    @server.tool(
+        description=ENDPOINTS["geoip_lookup"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def geoip_lookup(
+        ip: Annotated[str, Field(description="IPv4/IPv6 address to geolocate, or the literal 'myip' to use the caller's own IP.")]
+    ) -> str:
         """Look up IP geolocation. Returns country, city, ISP, ASN, coordinates."""
         result = await call_vend_endpoint(ENDPOINTS["geoip_lookup"]["path"], {"ip": ip})
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["check_url_status"]["description"])
-    async def check_url_status(url: str, previous_hash: str = "") -> str:
+    @server.tool(
+        description=ENDPOINTS["check_url_status"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def check_url_status(
+        url: Annotated[str, Field(description="Full http(s) URL whose status, redirect chain, TLS validity and content to check.")],
+        previous_hash: Annotated[str, Field(description="Optional hash of the body from a previous call, used to detect content drift.")] = "",
+    ) -> str:
         """Check a URL's status. Returns HTTP status, redirects, TLS expiry, content drift."""
         params = {"url": url}
         if previous_hash:
@@ -220,14 +265,25 @@ def create_server():
         result = await call_vend_endpoint(ENDPOINTS["check_url_status"]["path"], params)
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["nano_account_info"]["description"])
-    async def nano_account_info(account: str) -> str:
+    @server.tool(
+        description=ENDPOINTS["nano_account_info"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def nano_account_info(
+        account: Annotated[str, Field(description="Nano account address (nano_... or xrb_...) to look up balance, representative, block count, frontier, weight, pending.")]
+    ) -> str:
         """Look up Nano account info. Returns balance, representative, block count."""
         result = await call_vend_endpoint(ENDPOINTS["nano_account_info"]["path"], {"account": account})
         return json.dumps(result)
 
-    @server.tool(description=ENDPOINTS["youtube_transcript"]["description"])
-    async def youtube_transcript(url: str, language: str = "en") -> str:
+    @server.tool(
+        description=ENDPOINTS["youtube_transcript"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def youtube_transcript(
+        url: Annotated[str, Field(description="YouTube video URL (watch, youtu.be, embed or shorts format).")],
+        language: Annotated[str, Field(description="Language code for the transcript (default 'en').")] = "en",
+    ) -> str:
         """Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks."""
         result = await call_vend_endpoint(
             ENDPOINTS["youtube_transcript"]["path"], {"url": url, "language": language}
