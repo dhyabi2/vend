@@ -590,6 +590,16 @@ async def nano_services():
     )
 
 
+@app.get("/rails")
+async def rails_comparison():
+    """Measured comparison of x402 settlement rails (Nano vs Base USDC)."""
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "x402-rail-comparison.md"),
+        media_type="text/markdown; charset=utf-8",
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
 # Mount static/packages for downloadable artifacts (wheels, sdists).
