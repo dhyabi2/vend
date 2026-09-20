@@ -265,20 +265,22 @@
     {
       "directory": "x402hub.ai",
       "url": "https://x402hub.ai",
-      "status": "unverified",
-      "note": "x402 Hub with agent registration API (POST /api/agents/register, gasless). Needs probe whether it accepts Nano."
+      "status": "unreachable",
+      "verified_at": "2026-09-20",
+      "note": "SSL certificate verify failed \u2014 server not reachable. Not viable. Do not retry."
     },
     {
       "directory": "x402register.com",
       "url": "https://x402register.com",
       "status": "unverified",
-      "note": "Open x402 register with free read-only MCP endpoint. Needs probe whether self-register accepts Nano."
+      "note": "Open x402 register with free read-only MCP endpoint. Auto-catalog, no self-register path found. May auto-index from agent-tools.cloud or agent402.tools. No self-submit path exists."
     },
     {
       "directory": "x402scan.com",
       "url": "https://x402scan.com/resources/register",
-      "status": "unverified",
-      "note": "Keyless URL registration, auto-probes live 402. Candidates: self-register via URL paste. x402scan is the most active permissionless x402 directory."
+      "status": "blocked",
+      "verified_at": "2026-09-20",
+      "note": "Keyless URL registration, auto-probes live 402. Not accepted: supported settlement networks are [base, solana] only. Nano:mainnet endpoints return 'No supported networks. Got: [nano:mainnet]'. Blocked until hybrid USDC rail goes live."
     },
     {
       "directory": "zPlatform.ai",
@@ -329,9 +331,9 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T00:26:22Z",
-    "all_healthy": true,
-    "endpoints_ok": 21,
+    "timestamp": "2026-09-20T00:37:28Z",
+    "all_healthy": false,
+    "endpoints_ok": 20,
     "endpoints_total": 21
   }
 }
