@@ -30474,6 +30474,14 @@
      ]
     }
    ]
+  },
+  "41": {
+   "status": "pass",
+   "attempts": []
+  },
+  "42": {
+   "status": "pass",
+   "attempts": []
   }
  },
  "contested": [],
@@ -34636,6 +34644,58 @@
    "at": "2026-09-20T07:33:55+00:00",
    "prev": "d1fac1dc643f90436f8e01eee1624ea3ea16891b565b37cc3e6361e40887224c",
    "receipt": "1e93f8022144dabecf24975795f7bfc881c6c4b628d59a88d40c42a72ea323a6"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L52",
+    "block": "41",
+    "statement_sha": "43303389b39d247c600d1cfcee2bb7bb1d5ef25a13ca41b838d618139419079a"
+   },
+   "at": "2026-09-20T07:57:10+00:00",
+   "prev": "1e93f8022144dabecf24975795f7bfc881c6c4b628d59a88d40c42a72ea323a6",
+   "receipt": "af314e17a07982d4524fcecf843f9764c17a749301978fbc69763079e9adfb67"
+  },
+  {
+   "kind": "verify",
+   "payload": {
+    "block": "41",
+    "laws": [
+     "L52"
+    ],
+    "result": "pass",
+    "manual": true,
+    "evidence": "oracle_L52.sh printed L52_PASS against live server (6 live probes: account_required 400s, valid balance 200, admin 403 local_only, X-BALANCE unknown -> 402)"
+   },
+   "at": "2026-09-20T08:03:34+00:00",
+   "prev": "af314e17a07982d4524fcecf843f9764c17a749301978fbc69763079e9adfb67",
+   "receipt": "bf829dc1223c1b3d73f70d7b1ca3880f566e68127bea63684c06a4a92ceef51b"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L53",
+    "block": "42",
+    "statement_sha": "0857f037ed8acdcfb05b7c7bf5c777f469f3d5eb695624e41698616823f36a82"
+   },
+   "at": "2026-09-20T08:06:13+00:00",
+   "prev": "bf829dc1223c1b3d73f70d7b1ca3880f566e68127bea63684c06a4a92ceef51b",
+   "receipt": "aede4cab0d47b4055fae43ab1b1917035e4d29c666481700ea0c1b4a728f6f0b"
+  },
+  {
+   "kind": "verify",
+   "payload": {
+    "block": "42",
+    "laws": [
+     "L53"
+    ],
+    "result": "pass",
+    "manual": true,
+    "evidence": "bin/probe-mcp.py printed MCP_PROBE_PASS: full initialize+tools/list handshake over Streamable HTTP, 8 tools exposed including youtube_transcript. (Serviced vend-mcp-api restart to load vend_mcp.py with the tool.)"
+   },
+   "at": "2026-09-20T08:06:26+00:00",
+   "prev": "aede4cab0d47b4055fae43ab1b1917035e4d29c666481700ea0c1b4a728f6f0b",
+   "receipt": "93abdba74d39d8c58fc3b49cc17e582426353fffc6418291cea283769fee339d"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -35537,6 +35597,36 @@
    "grounding": "oracle",
    "version": 3,
    "minted": "2026-09-20T06:00:44+00:00"
+  },
+  {
+   "id": "L52",
+   "block": 41.0,
+   "statement": "Live server serves balance endpoints with correct error handling and access control",
+   "test": "GET /api/v1/balance returns account_required error without account param; GET /api/v1/admin/balances returns 403 from outside; X-BALANCE with unknown account returns 402",
+   "scope": [
+    ".ledger/oracle_L52.sh"
+   ],
+   "oracle": "bash .ledger/oracle_L52.sh",
+   "expect": "L52_PASS",
+   "source": "oracle",
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-20T07:57:10+00:00"
+  },
+  {
+   "id": "L53",
+   "block": 42.0,
+   "statement": "MCP endpoint exposes all paid endpoint tools including youtube_transcript",
+   "test": "bin/probe-mcp.py completes initialize + tools/list handshake and lists 8 tools including youtube_transcript",
+   "scope": [
+    "bin/probe-mcp.py"
+   ],
+   "oracle": "bin/probe-mcp.py",
+   "expect": "MCP_PROBE_PASS",
+   "source": "oracle",
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-20T08:06:13+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",
