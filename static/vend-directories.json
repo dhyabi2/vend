@@ -41,6 +41,11 @@
       "name": "check-url-status",
       "url": "https://extract.paypercall.dev",
       "price_xno": 0.0001
+    },
+    {
+      "name": "youtube-transcript",
+      "url": "https://extract.paypercall.dev",
+      "price_xno": 0.0005
     }
   ],
   "listings": [
@@ -415,10 +420,16 @@
       "status": "submitted",
       "submitted_at": "2026-09-20T13:40:00Z",
       "note": "MCP Directory (mcptrove.com). Free listing, reviewed before live. 'Thanks \u2014 submitted! We'll review your server and add it to the directory shortly.' Transport HTTP remote."
+    },
+    {
+      "directory": "Agent Almanac",
+      "url": "https://agentalmanac.org/mcp",
+      "status": "auto-discovery",
+      "note": "Auto-indexed Vend's MCP Registry entry 'dev.paypercall.extract/vend-api-merchant' (reverse-DNS of extract.paypercall.dev) on /mcp 'Recently updated MCP servers' (updated 2026-09-19). Third-party catalog outside the Nano world. JS-rendered page; rai-scope could not curl-verify, so not counted as a listing milestone."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T21:41:36Z",
+    "timestamp": "2026-09-20T22:11:43Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
