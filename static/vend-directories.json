@@ -179,6 +179,20 @@
       "note": "website already submitted, awaiting review"
     },
     {
+      "directory": "Glama",
+      "url": "https://glama.ai/mcp/servers/vend-api-merchant",
+      "status": "verified",
+      "verified_at": "2026-09-20",
+      "note": "VERIFIED LIVE 2026-09-20: Glama serves 'MCP Servers by vend-api-merchant' (author:vend-api-merchant match). Propagated from Official MCP Registry v0.3.30."
+    },
+    {
+      "directory": "gigs.sh",
+      "url": "https://github.com/gigs-sh/gigs-sh",
+      "status": "outreach",
+      "submitted_at": "2026-09-20",
+      "note": "Filed [gig] Vend api-monetization issue on fork PANDeveloper001/gigs-sh#1 (upstream writes 403). Content per gigs.sh CONTRIBUTING, cites real payer block 8546D8DF...FAD9."
+    },
+    {
       "directory": "gold-402 (Haustorium12)",
       "url": "https://github.com/Haustorium12/gold-402",
       "status": "pr-ready",
@@ -309,17 +323,6 @@
       "note": "Security-first MCP server directory. Keyless POST /api/v1/submissions (type url). Pending security scan. Vend MCP at extract.paypercall.dev/mcp submitted."
     },
     {
-      "directory": "AgentShare MCP Registry",
-      "url": "https://agentshare.dev/registry",
-      "status": "live",
-      "submitted_at": "2026-09-19",
-      "submission_id": "37",
-      "status_url": "https://agentshare.dev/registry/status/VD2Vug16Jv0NjtX89hYxTI4aRPRmiMsudWsTT_m_qfo",
-      "category": "data_commerce",
-      "note": "verified live 2026-09-20: registry shows Vend API Merchant with full description, 7 x402 endpoints, data_commerce category",
-      "verified_at": "2026-09-20"
-    },
-    {
       "directory": "MCPFind (mcpfind.org)",
       "url": "https://github.com/PANDeveloper001/mcp-find/tree/add-vend-api-merchant",
       "status": "pr-ready",
@@ -415,7 +418,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T17:28:18Z",
+    "timestamp": "2026-09-20T17:49:26Z",
     "all_healthy": false,
     "endpoints_ok": 21,
     "endpoints_total": 22
