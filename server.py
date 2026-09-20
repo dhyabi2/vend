@@ -1556,7 +1556,7 @@ async def well_known_agent_tools():
                     "method": "GET",
                     "description": "Prepaid balance check. Accepts ?account=nano_... or X-BALANCE header. Free (no payment required).",
                     "price_xno": 0,
-                    "free": true
+                    "free": True
                 },
                 {
                     "path": "/api/v1/balance/top-up",
@@ -1564,7 +1564,7 @@ async def well_known_agent_tools():
                     "method": "POST",
                     "description": "Fund a prepaid balance from a Nano send to the treasury. Requires X-PAYMENT header.",
                     "price_xno": 0,
-                    "free": false,
+                    "free": False,
                     "requires": "X-PAYMENT"
                 }
             ]
