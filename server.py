@@ -1748,6 +1748,7 @@ async def openapi_spec():
             "search": SEARCH_BASE,
             "geoip": GEO_BASE,
             "nano": NANO_BASE,
+            "youtube": EXTRACT_BASE,
         },
         {
             "extract": PRICE_XNO,
@@ -1755,6 +1756,7 @@ async def openapi_spec():
             "websearch": PRICE_WEBSEARCH_XNO,
             "geoip": PRICE_GEO_XNO,
             "nano": PRICE_NANO_XNO,
+            "youtube": PRICE_YT_XNO,
         },
     )
 

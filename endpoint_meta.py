@@ -130,6 +130,24 @@ INPUT_SPECS = {
             "example": {"account": "nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3"},
         },
     },
+    "/api/v1/youtube-transcript": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string",
+                            "description": "YouTube video URL to extract a transcript from"},
+                    "language": {"type": "string",
+                                 "description": "Language code for captions (default: en)"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "language": "en"},
+        },
+    },
 }
 
 
@@ -156,11 +174,13 @@ def build_openapi_spec(bases, prices):
     SEARCH_BASE = bases["search"]
     GEO_BASE = bases["geoip"]
     NANO_BASE = bases["nano"]
+    YT_BASE = bases["youtube"]
     PRICE_XNO = prices["extract"]
     PRICE_DOMAIN_XNO = prices["domain"]
     PRICE_WEBSEARCH_XNO = prices["websearch"]
     PRICE_GEO_XNO = prices["geoip"]
     PRICE_NANO_XNO = prices["nano"]
+    PRICE_YT_XNO = prices["youtube"]
 
     price_usd = f"{PRICE_XNO:.6f}"
     return {
@@ -190,6 +210,7 @@ def build_openapi_spec(bases, prices):
             {"url": SEARCH_BASE, "description": "Web Search API"},
             {"url": GEO_BASE, "description": "IP Geolocation API"},
             {"url": NANO_BASE, "description": "Nano Account Info API"},
+            {"url": YT_BASE, "description": "YouTube Transcript API"},
         ],
         "paths": {
             "/api/v1/extract": {
@@ -498,6 +519,44 @@ def build_openapi_spec(bases, prices):
                     "responses": {
                         "200": {
                             "description": "Successful Nano account info lookup",
+                        },
+                        "402": {
+                            "description": "Payment Required",
+                        },
+                    },
+                }
+            },
+            "/api/v1/youtube-transcript": {
+                "get": {
+                    "operationId": "youtubeTranscript",
+                    "summary": "Extract captions/transcript from a YouTube video",
+                    "x-payment-info": {
+                        "price": {
+                            "mode": "fixed",
+                            "currency": "USD",
+                            "amount": f"{PRICE_YT_XNO:.6f}",
+                        },
+                        "protocols": [{"x402": {}}],
+                    },
+                    "parameters": [
+                        {
+                            "name": "url",
+                            "in": "query",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "description": "YouTube video URL to extract a transcript from",
+                        },
+                        {
+                            "name": "language",
+                            "in": "query",
+                            "required": False,
+                            "schema": {"type": "string"},
+                            "description": "Language code for captions (default: en)",
+                        },
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Successful transcript extraction",
                         },
                         "402": {
                             "description": "Payment Required",

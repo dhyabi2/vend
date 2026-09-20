@@ -12,6 +12,7 @@ How to call any Vend endpoint and pay in Nano (XNO).
 
 **Payment destination (all endpoints):** `nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7`
 
+
 ## Step-by-step
 
 ### Step 1: Probe an endpoint
@@ -104,8 +105,10 @@ URLS = {
     "search": "https://search.paypercall.dev/api/v1/web-search",
     "domain": "https://domain.paypercall.dev/api/v1/domain-info",
     "check": "https://check.paypercall.dev/api/v1/check-link",
+    "status": "https://extract.paypercall.dev/api/v1/status",
     "geoip": "https://geoip.paypercall.dev/api/v1/geoip",
     "nano-info": "https://extract.paypercall.dev/api/v1/nano-info",
+    "youtube-transcript": "https://extract.paypercall.dev/api/v1/youtube-transcript",
 }
 PAY_TO = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
 
@@ -156,9 +159,11 @@ Failed or duplicate payments are never charged — the endpoint returns 402 with
 |----------|-------------|---------------------|
 | extract    | 0.0001 | $0.00045 |
 | check-link | 0.0001 | $0.00045 |
+| status     | 0.0001 | $0.00045 |
 | web-search | 0.0001 | $0.00045 |
 | geoip      | 0.0001 | $0.00045 |
 | domain-info| 0.0005 | $0.00225 |
 | nano-info  | 0.0005 | $0.00225 |
+| youtube-transcript | 0.0005 | $0.00225 |
 
 All settlement costs (Nano tx fee) = exactly 0 XNO.

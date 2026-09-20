@@ -8,10 +8,12 @@
 |------|-----|-------------|-------------|
 | extract | `https://extract.paypercall.dev/api/v1/extract?url=<url>` | 0.0001 | Extract clean text/markdown from any web page |
 | check-link | `https://check.paypercall.dev/api/v1/check-link?url=<url>` | 0.0001 | HTTP status, response time, redirect chain |
+| status | `https://extract.paypercall.dev/api/v1/status?url=<url>` | 0.0001 | URL status, redirects, TLS expiry, content drift |
 | domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
 | web-search | `https://search.paypercall.dev/api/v1/web-search?q=<query>` | 0.0001 | Web search via DuckDuckGo |
 | geoip | `https://geoip.paypercall.dev/api/v1/geoip?ip=<ip>` | 0.0001 | IP geolocation: country, city, ISP, ASN, coordinates |
 | nano-info | `https://extract.paypercall.dev/api/v1/nano-info?account=<nano_...>` | 0.0005 | Nano account intelligence: balance, representative, block count, frontier, weight |
+| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<youtube_url>` | 0.0005 | Captions/transcript from a YouTube video |
 
 ## Payment flow (x402 v2)
 
