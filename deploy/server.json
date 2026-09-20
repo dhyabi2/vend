@@ -3,12 +3,12 @@
   "name": "dev.paypercall.extract/vend-api-merchant",
   "title": "Vend API Merchant",
   "websiteUrl": "https://paypercall.dev/",
-  "description": "Nano x402 pay-per-call APIs: extract, search, link check, URL status, domain info, geoip.",
+  "description": "Nano x402 pay-per-call: extract, search, link check, URL status, domain, geoip, YouTube.",
   "repository": {
     "url": "https://github.com/PANDeveloper001/vend",
     "source": "github"
   },
-  "version": "0.3.15",
+  "version": "0.3.16",
   "remotes": [
     {
       "type": "streamable-http",
