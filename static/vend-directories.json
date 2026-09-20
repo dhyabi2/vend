@@ -415,7 +415,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T13:36:16Z",
+    "timestamp": "2026-09-20T14:04:23Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21

@@ -288,19 +288,15 @@ def main():
                     else:
                         client_ip = forwarded_str.strip()
                 else:
-                    # Fall back to direct connection. The ASGI scope has
-                    # 'client' = (host, port) or None.
-                    client_info = scope.get("client")
-                    if client_info:
-                        client_ip = client_info[0]
+                    # Try X-Real-IP (Caddy sets this for the /mcp* route),
+                    # then fall back to the direct connection IP.
+                    real_ip_bytes = headers.get(b"x-real-ip", b"")
+                    if real_ip_bytes:
+                        client_ip = real_ip_bytes.decode("utf-8", errors="replace").strip()
+                    elif scope.get("client") and scope["client"][0]:
+                        client_ip = scope["client"][0]
                     else:
-                        # Also check x-real-ip among the headers
-                        real_ip_bytes = headers.get(b"x-real-ip", b"")
-                        client_ip = (
-                            real_ip_bytes.decode("utf-8", errors="replace")
-                            if real_ip_bytes
-                            else "unknown"
-                        )
+                        client_ip = "unknown"
                 _mcp_client_ip.set(client_ip)
             await inner_app(scope, receive, send)
 
