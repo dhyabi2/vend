@@ -298,7 +298,7 @@
       "status": "published",
       "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
       "published_at": "2026-09-20",
-      "note": "Official MCP Registry by Anthropic/GitHub/Microsoft. Streamable-http MCP server, 402-gated on nano:mainnet. Re-published v0.3.17 on 2026-09-20 after a preview data reset emptied the namespace; also fixed dead websiteUrl (paypercall.dev 404 -> extract.paypercall.dev). Propagates to Glama, mcp.directory, PulseMCP (24-48h)."
+      "note": "v0.3.21 published 2026-09-20 after another preview data reset. Propagating to Glama, mcp.directory, PulseMCP (24-48h)."
     },
     {
       "directory": "MCPSafe (Security-First MCP Directory)",
@@ -415,7 +415,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T14:04:23Z",
+    "timestamp": "2026-09-20T14:11:25Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
