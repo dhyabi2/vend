@@ -4,6 +4,10 @@ Each tool is a thin adapter: it calls the corresponding Vend REST endpoint and
 returns the result — or, if the endpoint returns 402 Payment Required, it returns
 the payment challenge so the MCP client can settle the Nano payment and retry.
 
+The MCP server now forwards the original MCP client's IP to the REST backend as
+X-Forwarded-For, so the trial tracker sees the real caller (not 127.0.0.1).
+This is the key conversion fix: MCP callers now get free trial calls.
+
 Usage:
   python vend_mcp.py                        # stdio (Claude Desktop, Cursor)
   python vend_mcp.py --transport streamable-http  # HTTP (Streamable HTTP)
@@ -22,14 +26,24 @@ Tools (all require Nano payment via x402):
 import json
 import os
 import sys
+import contextvars
+import threading
 
 # Use httpx2 (MCP 2.x's bundled HTTP client) to avoid event-loop conflicts
 import httpx2 as httpx
 
-# --- Config ---
+# ── Context variable for the MCP client's real IP ─────────────────────
+# Set by ASGI middleware before each request; read by call_vend_endpoint
+# so the REST backend sees the real caller via X-Forwarded-For.
+_mcp_client_ip: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "mcp_client_ip", default=""
+)
+
+# ── Config ───────────────────────────────────────────────────────────
 TRANSPORT = os.environ.get("VEND_MCP_TRANSPORT", "stdio")
 HTTP_HOST = os.environ.get("VEND_MCP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.environ.get("VEND_MCP_PORT", "8403"))
+VEND_API_PORT = int(os.environ.get("VEND_API_PORT", "8402"))
 
 # Override transport from CLI args
 if "--transport" in sys.argv:
@@ -37,38 +51,42 @@ if "--transport" in sys.argv:
     if idx + 1 < len(sys.argv):
         TRANSPORT = sys.argv[idx + 1]
 
-# Endpoint configuration
+# Internal base URL — call the REST API directly (127.0.0.1) rather than
+# going through Caddy.  This avoids the extra TLS hop and lets us control
+# the X-Forwarded-For header our own trial tracker needs.
+_VEND_INTERNAL_BASE = f"http://127.0.0.1:{VEND_API_PORT}"
+
 ENDPOINTS = {
     "extract_url": {
-        "url": "https://extract.paypercall.dev/api/v1/extract",
+        "path": "/api/v1/extract",
         "description": "Extract clean text and markdown from a web page URL. Charges 0.0001 XNO in Nano via x402 protocol.",
     },
     "check_link": {
-        "url": "https://check.paypercall.dev/api/v1/check-link",
+        "path": "/api/v1/check-link",
         "description": "Check HTTP status, response time and redirect chain for any URL. Charges 0.0001 XNO in Nano via x402.",
     },
     "domain_info": {
-        "url": "https://domain.paypercall.dev/api/v1/domain-info",
+        "path": "/api/v1/domain-info",
         "description": "Full domain intelligence: DNS records, WHOIS registration, SSL/TLS certificate, HTTP headers. Charges 0.0005 XNO in Nano via x402.",
     },
     "web_search": {
-        "url": "https://search.paypercall.dev/api/v1/web-search",
+        "path": "/api/v1/web-search",
         "description": "Web search via DuckDuckGo. Returns structured results with titles, URLs, and snippets. Charges 0.0001 XNO in Nano via x402.",
     },
     "geoip_lookup": {
-        "url": "https://geoip.paypercall.dev/api/v1/geoip",
+        "path": "/api/v1/geoip",
         "description": "IP geolocation lookup: country, city, coordinates, ISP, ASN, timezone. Use 'myip' for the caller's own IP. Charges 0.0001 XNO in Nano via x402.",
     },
     "check_url_status": {
-        "url": "https://extract.paypercall.dev/api/v1/status",
+        "path": "/api/v1/status",
         "description": "One-call URL status check: final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and whether the body changed since a previous call (pass previous_hash). Charges 0.0001 XNO in Nano via x402.",
     },
     "nano_account_info": {
-        "url": "https://extract.paypercall.dev/api/v1/nano-info",
+        "path": "/api/v1/nano-info",
         "description": "Nano account intelligence: balance, representative, block count, frontier, weight, pending transactions. Charges 0.0005 XNO in Nano via x402.",
     },
     "youtube_transcript": {
-        "url": "https://extract.paypercall.dev/api/v1/youtube-transcript",
+        "path": "/api/v1/youtube-transcript",
         "description": "Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks with deep-linked citations. Charges 0.0005 XNO in Nano via x402.",
     },
 }
@@ -76,11 +94,26 @@ ENDPOINTS = {
 CLIENT_TIMEOUT = 60.0
 
 
-async def call_vend_endpoint(endpoint_url: str, params: dict) -> dict:
-    """Call a Vend REST endpoint and return the response."""
+async def call_vend_endpoint(endpoint_path: str, params: dict) -> dict:
+    """Call a Vend REST endpoint directly and return the response.
+
+    Forwards the real MCP client IP as X-Forwarded-For so the trial tracker
+    on the REST side sees the original caller (not 127.0.0.1).
+    """
+    url = f"{_VEND_INTERNAL_BASE}{endpoint_path}"
+    headers = {}
+
+    # Forward the real client IP from the MCP request context (if available)
+    client_ip = _mcp_client_ip.get()
+    if client_ip:
+        headers["X-Forwarded-For"] = client_ip
+        headers["X-Real-IP"] = client_ip
+
     async with httpx.AsyncClient(timeout=CLIENT_TIMEOUT) as client:
         try:
-            resp = await client.get(endpoint_url, params=params, follow_redirects=False)
+            resp = await client.get(
+                url, params=params, headers=headers, follow_redirects=False
+            )
         except httpx.TimeoutException:
             return {"error": f"Request timed out (limit: {CLIENT_TIMEOUT}s)"}
         except httpx.RequestError as e:
@@ -93,14 +126,22 @@ async def call_vend_endpoint(endpoint_url: str, params: dict) -> dict:
             except (json.JSONDecodeError, ValueError):
                 body = {"error": "payment_required", "detail": resp.text[:500]}
 
-            payment_header = resp.headers.get("payment-required") or resp.headers.get("PAYMENT-REQUIRED") or ""
+            payment_header = (
+                resp.headers.get("payment-required")
+                or resp.headers.get("PAYMENT-REQUIRED")
+                or ""
+            )
             return {
                 "status": "payment_required",
                 "error": "payment_required",
-                "message": "Nano (XNO) payment required. Send the stated amount to the specified account, then retry this tool call with the block hash in X-PAYMENT header.",
+                "message": (
+                    "Nano (XNO) payment required. Send the stated amount to "
+                    "the specified account, then retry this tool call with "
+                    "the block hash in X-PAYMENT header."
+                ),
                 "payment_challenge": body,
                 "payment_header_b64": payment_header,
-                "endpoint": endpoint_url,
+                "endpoint": url,
             }
 
         # Success
@@ -129,7 +170,12 @@ def create_server():
     server = MCPServer(
         name="vend",
         title="Vend API Merchant",
-        description="Pay-per-call API tools settled in Nano (XNO). Extract web content, search the web, check links, check URL status (TLS expiry and content drift), domain intelligence, IP geolocation, Nano account info, and YouTube transcript extraction. No signup, no API keys — pay per call in Nano.",
+        description=(
+            "Pay-per-call API tools settled in Nano (XNO). Extract web content, "
+            "search the web, check links, check URL status (TLS expiry and content "
+            "drift), domain intelligence, IP geolocation, Nano account info, and "
+            "YouTube transcript extraction. No signup, no API keys — pay per call in Nano."
+        ),
         version="0.1.0",
     )
 
@@ -138,31 +184,31 @@ def create_server():
     @server.tool(description=ENDPOINTS["extract_url"]["description"])
     async def extract_url(url: str) -> str:
         """Extract clean text from a URL. Returns title, text and markdown."""
-        result = await call_vend_endpoint(ENDPOINTS["extract_url"]["url"], {"url": url})
+        result = await call_vend_endpoint(ENDPOINTS["extract_url"]["path"], {"url": url})
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["check_link"]["description"])
     async def check_link(url: str) -> str:
         """Check HTTP status of a URL. Returns status code, response time, redirect chain."""
-        result = await call_vend_endpoint(ENDPOINTS["check_link"]["url"], {"url": url})
+        result = await call_vend_endpoint(ENDPOINTS["check_link"]["path"], {"url": url})
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["domain_info"]["description"])
     async def domain_info(domain: str) -> str:
         """Look up domain intelligence. Returns DNS records, WHOIS, SSL/TLS, headers."""
-        result = await call_vend_endpoint(ENDPOINTS["domain_info"]["url"], {"domain": domain})
+        result = await call_vend_endpoint(ENDPOINTS["domain_info"]["path"], {"domain": domain})
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["web_search"]["description"])
     async def web_search(q: str) -> str:
         """Search the web via DuckDuckGo. Returns titles, URLs, snippets."""
-        result = await call_vend_endpoint(ENDPOINTS["web_search"]["url"], {"q": q})
+        result = await call_vend_endpoint(ENDPOINTS["web_search"]["path"], {"q": q})
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["geoip_lookup"]["description"])
     async def geoip_lookup(ip: str) -> str:
         """Look up IP geolocation. Returns country, city, ISP, ASN, coordinates."""
-        result = await call_vend_endpoint(ENDPOINTS["geoip_lookup"]["url"], {"ip": ip})
+        result = await call_vend_endpoint(ENDPOINTS["geoip_lookup"]["path"], {"ip": ip})
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["check_url_status"]["description"])
@@ -171,19 +217,21 @@ def create_server():
         params = {"url": url}
         if previous_hash:
             params["previous_hash"] = previous_hash
-        result = await call_vend_endpoint(ENDPOINTS["check_url_status"]["url"], params)
+        result = await call_vend_endpoint(ENDPOINTS["check_url_status"]["path"], params)
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["nano_account_info"]["description"])
     async def nano_account_info(account: str) -> str:
         """Look up Nano account info. Returns balance, representative, block count."""
-        result = await call_vend_endpoint(ENDPOINTS["nano_account_info"]["url"], {"account": account})
+        result = await call_vend_endpoint(ENDPOINTS["nano_account_info"]["path"], {"account": account})
         return json.dumps(result)
 
     @server.tool(description=ENDPOINTS["youtube_transcript"]["description"])
     async def youtube_transcript(url: str, language: str = "en") -> str:
         """Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks."""
-        result = await call_vend_endpoint(ENDPOINTS["youtube_transcript"]["url"], {"url": url, "language": language})
+        result = await call_vend_endpoint(
+            ENDPOINTS["youtube_transcript"]["path"], {"url": url, "language": language}
+        )
         return json.dumps(result)
 
     return server
@@ -196,7 +244,9 @@ def main():
         print(f"Vend MCP server starting (stdio) with {len(ENDPOINTS)} tools.", file=sys.stderr)
         server.run(transport="stdio")
     elif TRANSPORT == "streamable-http":
+        import uvicorn
         from mcp.server.transport_security import TransportSecuritySettings
+
         vend_domain = os.environ.get("VEND_DOMAIN", "extract.paypercall.dev")
         http_port = os.environ.get("VEND_MCP_PORT", "8403")
         transport_security = TransportSecuritySettings(
@@ -210,13 +260,66 @@ def main():
                 "localhost",
             ],
         )
-        print(f"Vend MCP server starting (Streamable HTTP) on http://{HTTP_HOST}:{HTTP_PORT}", file=sys.stderr)
-        server.run(
-            transport="streamable-http",
+
+        # Build the Starlette app the standard way
+        inner_app = server.streamable_http_app(
+            streamable_http_path="/mcp",
+            json_response=False,
+            stateless_http=False,
+            transport_security=transport_security,
+            host=HTTP_HOST,
+        )
+
+        # Wrap at the ASGI level to capture the real client IP before the
+        # MCP server processes the request.  The IP is stored in a
+        # contextvar so call_vend_endpoint can forward it to the REST
+        # backend, giving MCP callers their own trial budget.
+        async def client_ip_asgi_app(scope, receive, send):
+            """ASGI wrapper that captures client IP before passing to the MCP app."""
+            if scope["type"] == "http":
+                # Extract client IP from the ASGI scope headers
+                headers = dict(scope.get("headers", []))
+                # headers are bytes: key-value pairs
+                forwarded_bytes = headers.get(b"x-forwarded-for", b"")
+                if forwarded_bytes:
+                    forwarded_str = forwarded_bytes.decode("utf-8", errors="replace")
+                    if "," in forwarded_str:
+                        client_ip = forwarded_str.split(",")[0].strip()
+                    else:
+                        client_ip = forwarded_str.strip()
+                else:
+                    # Fall back to direct connection. The ASGI scope has
+                    # 'client' = (host, port) or None.
+                    client_info = scope.get("client")
+                    if client_info:
+                        client_ip = client_info[0]
+                    else:
+                        # Also check x-real-ip among the headers
+                        real_ip_bytes = headers.get(b"x-real-ip", b"")
+                        client_ip = (
+                            real_ip_bytes.decode("utf-8", errors="replace")
+                            if real_ip_bytes
+                            else "unknown"
+                        )
+                _mcp_client_ip.set(client_ip)
+            await inner_app(scope, receive, send)
+
+        print(
+            f"Vend MCP server starting (Streamable HTTP) on "
+            f"http://{HTTP_HOST}:{HTTP_PORT} with client-IP forwarding",
+            file=sys.stderr,
+        )
+
+        config = uvicorn.Config(
+            client_ip_asgi_app,
             host=HTTP_HOST,
             port=HTTP_PORT,
-            transport_security=transport_security,
+            log_level="info",
         )
+        server_uv = uvicorn.Server(config)
+        import anyio
+        anyio.run(server_uv.serve)
+
     else:
         print(f"Unknown transport: {TRANSPORT}. Use 'stdio' or 'streamable-http'.", file=sys.stderr)
         sys.exit(1)
