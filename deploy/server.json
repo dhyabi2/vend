@@ -8,7 +8,7 @@
     "url": "https://github.com/PANDeveloper001/vend",
     "source": "github"
   },
-  "version": "0.3.24",
+  "version": "0.3.25",
   "remotes": [
     {
       "type": "streamable-http",
