@@ -3,3 +3,4 @@
 [2026-09-19T06:00:49Z] treasury=balance_raw=30499800000000000000000000000000 pending_raw=2800100000000000000000000000000 balance_xno=30.499800 pending_xno=2.800100 calls=1 payers=1 delivered=1 failed=0 probe=0 last_call=2026-09-19T04:00:28Z
 [2026-09-19T06:48:00Z] treasury=balance_raw=30499800000000000000000000000000 pending_raw=2800100000000000000000000000000 balance_xno=30.499800 pending_xno=2.800100 calls=1 payers=1 delivered=1 failed=0 probe=0 last_call=2026-09-19T04:00:28Z
 [2026-09-19T06:54:34Z] treasury=balance_raw=30499800000000000000000000000000 pending_raw=2800100000000000000000000000000 balance_xno=30.499800 pending_xno=2.800100 calls=1 payers=1 delivered=1 failed=0 probe=0 last_call=2026-09-19T04:00:28Z
+[2026-09-20T06:00:01Z] treasury=balance_raw=45616200000000000000000000000000 pending_raw=0 balance_xno=45.616200 pending_xno=0.000000 calls=1 payers=1 delivered=1 failed=0 probe=0 last_call=2026-09-19T04:00:28Z
