@@ -47,8 +47,8 @@
     {
       "directory": "401agents.xyz",
       "url": "https://www.402agents.xyz/",
-      "status": "unverified",
-      "note": "x402 Agent Registry. API not documented; needs browser probe."
+      "status": "no-match",
+      "note": "x402 Agent Registry \u2014 lists AI AGENTS, not API merchants. All entries are crypto/DeFi agents (Solana/Base). Vend API merchant does not fit."
     },
     {
       "directory": "A2A Registry",
@@ -272,8 +272,8 @@
     {
       "directory": "x402register.com",
       "url": "https://x402register.com",
-      "status": "unverified",
-      "note": "Open x402 register with free read-only MCP endpoint. Auto-catalog, no self-register path found. May auto-index from agent-tools.cloud or agent402.tools. No self-submit path exists."
+      "status": "auto-discovery",
+      "note": "Read-only auto-discovery (2,054 services rated, crawled from public x402 catalog). Vend not yet picked up \u2014 no submission available. Will populate as catalog grows."
     },
     {
       "directory": "x402scan.com",
@@ -338,9 +338,9 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T01:39:45Z",
-    "all_healthy": false,
-    "endpoints_ok": 20,
+    "timestamp": "2026-09-20T01:44:47Z",
+    "all_healthy": true,
+    "endpoints_ok": 21,
     "endpoints_total": 21
   }
 }
