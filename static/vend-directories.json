@@ -91,10 +91,10 @@
     },
     {
       "directory": "AgentNDX",
-      "url": "https://agentndx.ai/server/vend",
+      "url": "https://agentndx.ai/submit",
       "status": "submitted",
-      "submitted_at": "2026-09-18",
-      "note": "Submitted MCP server (Vend MCP Server) via web form. GitHub URL + 6 tools + x402 protocol. Review within 48 hours. Submission received confirmation."
+      "submitted_at": "2026-09-20T00:16:00Z",
+      "note": "Submitted via main web form (2026-09-20). 'Submission received within 48h'. Curated MCP/A2A/x402 directory (1336 servers). MCP+x402 protocols."
     },
     {
       "directory": "AgentRank",
@@ -329,7 +329,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T00:06:17Z",
+    "timestamp": "2026-09-20T00:26:22Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
