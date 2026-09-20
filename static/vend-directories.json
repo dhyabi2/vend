@@ -114,17 +114,17 @@
     {
       "directory": "AgentStore (agentstore.tools)",
       "url": "https://agentstore.tools/agent/vend-api-merchant.vend-api-merchant",
-      "status": "live",
-      "note": "Published as vend-api-merchant.vend-api-merchant, no auth needed, live immediately"
+      "status": "removed",
+      "note": "CORRECTED 2026-09-20: Page HTTP 200 but body empty (0 chars). JS-rendered SPA that doesn't show Vend content. Unverifiable listing."
     },
     {
       "directory": "AI Agent Tools Directory",
       "url": "https://aiagenttools.dev",
-      "status": "live",
+      "status": "removed",
       "submission_id": "mu68r5vh2w9zx",
       "submitted_at": "2026-09-18T00:50:00Z",
       "verified_at": "2026-09-20",
-      "note": "Vend confirmed in directory content at aiagenttools.dev. Category: Dev Tools."
+      "note": "CORRECTED 2026-09-20: Vend NOT found on homepage or /search?q=vend (515 tools listed). Previous 'confirmed' was a false positive. Resubmit or move to side."
     },
     {
       "directory": "AI Agents Live",
@@ -355,7 +355,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T09:09:56Z",
+    "timestamp": "2026-09-20T09:18:59Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
