@@ -1,69 +1,52 @@
 #!/usr/bin/env bash
-# L44 oracle: a health report may not be green while the payment store is unreadable.
+# Oracle L47 — Prepaid balance credits from Nano send (top-up, store-level).
 #
-# Origin: on 2026-09-19 the live server answered 500 on every paid call
-# (sqlite3.OperationalError: unable to open database file) while /health said
-# `status: ok`. The health endpoint probed upstreams and modules but never its
-# own store, so a green light hid a red rail.
+# Law: "Prepaid balance credits from Nano send."
+# Scope: store.py
+# Test: A top-up using a verified replica Nano block_hash credits the sender's
+# account and the block cannot be replayed.
 set -uo pipefail
 cd /root/vend
-
 W=$(mktemp -d)
 trap 'rm -rf "$W"' EXIT
-fail() { echo "FAIL: $1"; exit 1; }
+FAIL=0
 
-# 1. the store probe exists and reports on a healthy store
-python3 - <<'PY' || exit 1
-import sys
-sys.path.insert(0, "/root/vend")
-import store_health
-ok, detail = store_health.check()
-if not ok:
-    print(f"FAIL: store_health.check() says unhealthy on a working store: {detail}")
-    raise SystemExit(1)
-print(f"PASS: healthy store reported ok ({detail})")
-PY
-
-# 2. an unreadable store must be reported AS unreadable (not silently ok)
-python3 - "$W" <<'PY' || exit 1
-import os, sys, shutil, importlib
+.venv/bin/python3 - "$W" <<'PY' || { echo "L47_FAIL: python oracle failed"; FAIL=1; }
+import os, sys, tempfile
 W = sys.argv[1]
-sys.path.insert(0, "/root/vend")
-import store_health
-# point the module at a path whose parent is a file, so sqlite cannot create it
-blocked = os.path.join(W, "blocked-file")
-open(blocked, "w").close()
-os.environ["VEND_DB"] = os.path.join(blocked, "vend.sqlite3")
-importlib.reload(store_health)
-ok, detail = store_health.check()
-if ok:
-    print("FAIL: an unopenable store was reported healthy")
-    raise SystemExit(1)
-if "error" not in detail.lower() and "unable" not in detail.lower():
-    print(f"FAIL: unhealthy store detail does not explain why: {detail!r}")
-    raise SystemExit(1)
-print(f"PASS: unopenable store reported unhealthy ({detail})")
-PY
 
-# 3. /health wires that probe in: the field must exist and the status must be a
-#    function of it, not a constant
-python3 - <<'PY' || exit 1
-import re, sys
-src = open("/root/vend/server.py").read()
-if "store_health" not in src:
-    print("FAIL: server.py never consults store_health"); raise SystemExit(1)
-# the /health block's status field, not the first "error"/"status" string in the file
-# the health response's own status line: the one assigned from store_ok
-matches = re.findall(r'"status":\s*(.+?),\n', src)
-exprs = [m for m in matches if "store_ok" in m or "store" in m]
-if not exprs:
-    if '"status": "ok",' in src:
-        print('FAIL: /health status is still a constant "ok" — it cannot report a store failure')
-    else:
-        print("FAIL: /health status does not account for the store (looked for a store_ok expression)")
-    raise SystemExit(1)
-expr = exprs[0]
-print(f"PASS: /health status is computed from the store: {expr.strip()}")
-PY
+# Fresh DB for each run
+db = os.path.join(W, "vend.sqlite3")
+os.environ["VEND_DB"] = db
+for m in list(sys.modules.keys()):
+    if "store" in m and m not in ("store_health",):
+        del sys.modules[m]
 
-echo "L44_STORE_HEALTH_PASS"
+import store
+store.init()
+
+# 1. Top-up credits the account
+assert store.top_up("A" * 64, "nano_test1", "1000000000000000000000000") is True
+bal = store.balance_of("nano_test1")
+assert bal == 1000000000000000000000000, f"Expected 1 XNO, got {bal}"
+print("PASS: top-up credits account")
+
+# 2. Second top-up adds to existing balance
+assert store.top_up("B" * 64, "nano_test1", "500000000000000000000000") is True
+bal = store.balance_of("nano_test1")
+assert bal == 1500000000000000000000000, f"Expected 1.5 XNO, got {bal}"
+print("PASS: consecutive top-ups sum")
+
+# 3. Same block cannot top-up twice (replay protection)
+assert store.top_up("C" * 64, "nano_test1", "1000000000000000000000000") is True
+assert store.top_up("C" * 64, "nano_test2", "1000000000000000000000000") is False
+print("PASS: duplicate block_hash rejected (replay protection)")
+
+# 4. Unknown account reports 0 balance
+assert store.balance_of("nano_unknown") == 0
+print("PASS: unknown account balance is 0")
+
+print("L47_PASS")
+PY
+[ $FAIL -eq 0 ] && echo "L47_PASS" || echo "L47_FAIL"
+exit $FAIL
