@@ -15,6 +15,7 @@ journal/journal.db
 dist/
 *.whl
 *.tar.gz
+*.egg-info/
 
 # --- secret names: keep in sync with secret_patterns.NAME_PATTERNS ---
 # mcp-registry-key.pem entered the tree at 6cd1a38 and is still in the history;

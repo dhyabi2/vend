@@ -6,18 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "vend-client"
 version = "0.1.0"
 description = "Python client for Vend API Merchant"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Vend", email = "vend@paypercall.dev"}
 ]
 requires-python = ">=3.10"
 keywords = ["x402", "nano", "pay-per-call", "api"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-]
 dependencies = [
     "httpx>=0.27",
 ]
