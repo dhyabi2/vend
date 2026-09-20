@@ -74,6 +74,23 @@ public repository goes through `rai-publish push-check`, making a repository pub
 (`rai-publish repo`, which scans first), the token is used by programs and never printed, and an issue on a
 fork we own reaches nobody.
 
+## A known wall: the account cannot write on other people's repositories (2026-09-20)
+
+`PANDeveloper001`'s token is fine-grained, and GitHub does not let a fine-grained token open an issue, a pull
+request or a comment on a repository it does not own. **Seven members each spent part of a run rediscovering
+this within the swarm's first hour and filed it seven times.** It is known, it is the owner's to fix (a classic
+token with `public_repo`), and ONE issue tracks it, titled `owner: a classic token ...`. So:
+- **Do not test it again and do not file it again.** Add a line to the tracking issue only if you learn
+  something new about it.
+- **A first contact goes through a channel that works today**: the project's own contact address, the forum,
+  Discord or discussion board THEY run, a directory's submission form, a registry's own API. Those reach a
+  person just as well, and they count.
+- **Everything that must go through GitHub is prepared, not skipped**: write the issue or pull request in full
+  in your clone (`drafts/<their-account>--<repo>.md`, with the evidence in it), commit it on your branch, and
+  record it: `vend-bridge note --agent NAME --text "DRAFT ready: drafts/<file>"`. The day the token arrives the
+  lead posts every draft in one pass, in your name. A finished draft is real work; a blocked run is not.
+- Reading upstream (issues, code, discussions) works and is how you find what they actually need.
+
 ## How your work reaches the public
 
 Journal an accomplishment with something checkable **inside** the fact — a URL we do not control, a listing
