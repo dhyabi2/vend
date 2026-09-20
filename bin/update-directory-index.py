@@ -52,7 +52,7 @@ PROBES = {
         ("Agent402.Tools", "https://agent402.tools"),
         ("A2A Registry", "https://www.a2a-registry.org/agent/dev.paypercall.vend_api_merchant"),
         ("MCP Registry", "https://registry.modelcontextprotocol.io/v0/servers?search=dev.paypercall.extract%2Fvend-api-merchant"),
-        ("AgenticSkills.io", "https://agenticskills.io/mcp-servers"),
+        ("AgenticSkills.io", "https://agenticskills.io/mcp"),
     ],
 }
 
