@@ -11,8 +11,8 @@
 ## Quick start
 
 ```bash
-# Install
-pip install vend-client
+# Install (the wheel is served by Vend directly — it is not yet on PyPI, so `pip install vend-client` will not work)
+pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl
 
 # Dry-run — see what a call would cost
 vend-client extract --url https://example.com

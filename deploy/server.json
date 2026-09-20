@@ -5,10 +5,10 @@
   "websiteUrl": "https://extract.paypercall.dev/",
   "description": "Nano x402 pay-per-call: extract, search, link check, URL status, domain, geoip, YouTube.",
   "repository": {
-      "url": "https://github.com/PANDeveloper001/vend",
-      "source": "github"
+    "url": "https://github.com/PANDeveloper001/vend",
+    "source": "github"
   },
-  "version": "0.3.23",
+  "version": "0.3.24",
   "remotes": [
     {
       "type": "streamable-http",

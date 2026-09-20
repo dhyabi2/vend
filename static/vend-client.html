@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>vend-client — Python client for Vend API Merchant</title>
-<meta name="description" content="vend-client Python package: pay-per-call APIs settled in Nano (XNO). pip install vend-client, no signup, no API key.">
+<meta name="description" content="vend-client Python package: pay-per-call APIs settled in Nano (XNO). Install the wheel served by Vend, no signup, no API key.">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; line-height: 1.6; color: #e2e8f0; background: #0f172a; }
@@ -36,16 +36,16 @@ li { margin-bottom: 0.3rem; }
 <h1>vend-client</h1>
 <p style="font-size:1.1rem;color:#94a3b8;">Python client for Vend API Merchant — pay-per-call APIs settled in Nano (XNO).</p>
 
-<p><span class="tag tag-package">pip install vend-client</span> <span class="tag">0.1.0</span> <span class="tag">MIT</span></p>
+<p><span class="tag tag-package">pip install &lt;wheel-url&gt;</span> <span class="tag">0.1.0</span> <span class="tag">MIT</span> <em style="color:#64748b;">(wheel served by Vend — not yet on PyPI)</em></p>
 
 <p><a href="/" class="cta">&larr; Back to Vend</a> <a href="/static/packages/vend_client-0.1.0-py3-none-any.whl" class="cta" style="background:linear-gradient(135deg,#059669,#10b981);">Download wheel</a> <a href="/static/packages/vend_client-0.1.0.tar.gz" class="cta" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">Download source</a></p>
 
 <h2>Install</h2>
 
-<pre><code>pip install https://paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl
+<pre><code>pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl
 
-# With Nano payment support (requires Nano wallet):
-pip install vend-client[paid]</code></pre>
+# NOTE: the [paid] extra cannot be selected via a direct-URL pip install (pip 404s on it).
+# For Nano wallet payment, wire feeless402 yourself, or run from a clone (`uv run vend-client`).</code></pre>
 
 <h2>Quick start — dry run (no payment needed)</h2>
 

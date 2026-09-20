@@ -57,7 +57,8 @@ print(r2.json()["title"])   # "Example Domain"
 ## With vend-client (already handles steps 2–3)
 
 ```bash
-pip install vend-client
+# Install the vend-client wheel (served by Vend; NOT yet on PyPI, so do not use `pip install vend-client`)
+pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl
 vend-client extract --url https://example.com          # dry-run, shows price
 vend-client --wallet /path/to/seed.txt extract --url https://example.com  # paid
 ```

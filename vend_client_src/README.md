@@ -4,18 +4,15 @@ Python client for [Vend API Merchant](https://paypercall.dev) — pay-per-call A
 
 ## Install
 
-```bash
-pip install vend-client  # (public release pending; use the source install below until it answers)
-```
-
-## Install from source (verified today, works before the PyPI page exists)
+The wheel is served directly by Vend (it is not on PyPI yet, so `pip install vend-client` will not work):
 
 ```bash
-pip install "git+https://github.com/PANDeveloper001/vend.git#subdirectory=vend_client_src"
+pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl
 ```
 
-Default branch install is NOT a substitute for a release: it follows `main`, so it can change
-without a version bump. `pip install vend-client` starts working once the release workflow has run.
+Note: pip cannot select the `[paid]` extra from a direct-URL install (it 404s), so the base wheel installs
+the CLI and dry-run support. For the Nano-wallet paid path, install `feeless402` yourself, or run from a
+clone of this repo (`uv run vend-client`).
 
 ## Quick start (dry-run — see prices without paying)
 
@@ -30,7 +27,7 @@ print(quote["price_xno"])  # 0.0001
 ## Quick start (paid)
 
 ```bash
-pip install vend-client  # (public release pending; use the source install below until it answers)[paid]
+pip install feeless402  # Nano wallet/payment support for the paid path
 ```
 
 ```python

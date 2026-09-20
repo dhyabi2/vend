@@ -80,9 +80,11 @@ x402 v2 challenge in both header and body. Per-endpoint subdomains. Bazaar input
 ## Running locally
 
 ```bash
-pip install vend
+# Our package is not on PyPI yet (the `vend` name on PyPI is an unrelated packaging tool).
+# Run from this repo instead:
+uv sync
 export VEND_WALLET_ADDRESS="nano_..."
-python -m vend
+uv run python -m vend
 ```
 
 ## License

@@ -46,8 +46,8 @@ No payment required. Each response includes `price_xno` so your agent can decide
 ## Python client
 
 A Python client wrapping all 6 endpoints with x402 payment support:
-- Install: `pip install https://paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl`
-- Or `pip install vend-client[paid]` for Nano wallet support
+- Install: `pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl`
+- The wheel ships both the client and the CLI. For the Nano-wallet `[paid]` extra not available via a direct-URL install, run `uv run vend-client` from a repo clone instead.
 - Docs: https://paypercall.dev/vend-client
 - Dry-run: `client = VendClient()` — returns 402 challenge without paying
 - Paid: `client = VendClient(wallet=wallet)` — auto-pays via x402
