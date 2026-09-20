@@ -10,4 +10,7 @@ dependencies = [
     "httpx>=0.27",
     "pydantic>=2",
     "mcp",
+    # domain-info sells DNS + WHOIS + SSL + headers at 5x the base price. Without this the
+    # whois field was silently {} on every paid call, and nothing logged it. Found 2026-09-20.
+    "python-whois>=0.9",
 ]

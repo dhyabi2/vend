@@ -368,10 +368,26 @@
       "verified_at": "2026-09-20",
       "submission_id": "sub_1789903140790_wfzm8414k",
       "note": "VERIFIED LIVE 2026-09-20: AMP v0.3 compliant manifest served at /.well-known/agent-manifest.json. Vend is the first Nano-only AMP-listed API with payment-ready badge. 6 endpoints (extract, check-link, domain-info, web-search, geoip, nano-info) listed with per_request x-XNO payment, real_time settlement via Nano. Also serves /amp/onboard endpoint. 94 total APIs in registry."
+    },
+    {
+      "directory": "AgentShare MCP Registry",
+      "url": "https://agentshare.dev/registry",
+      "status": "live",
+      "verified_at": "2026-09-20",
+      "submission_id": "37",
+      "note": "VERIFIED LIVE 2026-09-20: Curated registry listing under Data & Commerce. Detail page shows 'reviewed' badge with 3 opens (1 MCP, 1 Website, 1 GitHub). Description: 'Pay-per-call API marketplace settled in Nano (XNO). 7 x402 endpoints.'"
+    },
+    {
+      "directory": "mcpagents.ai (MCP Agent Directory)",
+      "url": "https://mcpagents.ai/agents/vend-api-merchant",
+      "status": "live",
+      "api_id": 1125,
+      "verified_at": "2026-09-20",
+      "note": "Keyless POST /api/agents \u2014 instant API listing (ID 1125). Listed in public GET /api/agents. Dedicated page at /agents/vend-api-merchant returns HTTP 200; frontend SPA may show 404 (client-side routing). Discoverable via API search."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T11:20:36Z",
+    "timestamp": "2026-09-20T11:41:42Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
