@@ -204,7 +204,7 @@
       "directory": "MCP Registry (vend-mcp)",
       "url": "https://extract.paypercall.dev/mcp",
       "status": "live",
-      "note": "v0.3.13 published 2026-09-20. Propagating to downstream directories Glama, mcp.directory, PulseMCP, AllMCPs (24-48h)."
+      "note": "v0.3.17 published 2026-09-20. Propagating to downstream directories Glama, mcp.directory, PulseMCP, AllMCPs (24-48h)."
     },
     {
       "directory": "MCP.Directory",
@@ -297,8 +297,8 @@
       "mcp_url": "https://extract.paypercall.dev/mcp",
       "status": "published",
       "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
-      "published_at": "2026-09-19T08:22:00Z",
-      "note": "Official MCP Registry by Anthropic/GitHub/Microsoft. Streamable-http MCP server with 6 tools (extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info). 402-gated. Re-published v0.3.3 on 2026-09-19 after preview data reset."
+      "published_at": "2026-09-20",
+      "note": "Official MCP Registry by Anthropic/GitHub/Microsoft. Streamable-http MCP server, 402-gated on nano:mainnet. Re-published v0.3.17 on 2026-09-20 after a preview data reset emptied the namespace; also fixed dead websiteUrl (paypercall.dev 404 -> extract.paypercall.dev). Propagates to Glama, mcp.directory, PulseMCP (24-48h)."
     },
     {
       "directory": "MCPSafe (Security-First MCP Directory)",
@@ -370,7 +370,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T10:24:19Z",
+    "timestamp": "2026-09-20T10:35:23Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21

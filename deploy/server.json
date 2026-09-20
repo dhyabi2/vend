@@ -2,13 +2,13 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "dev.paypercall.extract/vend-api-merchant",
   "title": "Vend API Merchant",
-  "websiteUrl": "https://paypercall.dev/",
+  "websiteUrl": "https://extract.paypercall.dev/",
   "description": "Nano x402 pay-per-call: extract, search, link check, URL status, domain, geoip, YouTube.",
   "repository": {
-    "url": "https://github.com/PANDeveloper001/vend",
-    "source": "github"
+      "url": "https://github.com/PANDeveloper001/vend",
+      "source": "github"
   },
-  "version": "0.3.16",
+  "version": "0.3.17",
   "remotes": [
     {
       "type": "streamable-http",
