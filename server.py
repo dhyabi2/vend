@@ -45,6 +45,7 @@ from web_search import web_search
 from geoip import geoip_lookup
 from nano_info import nano_account_info
 from status_check import check_status
+from youtube_transcript import youtube_transcript
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 import cdp_verify
 from trial_tracker import get_tracker
@@ -61,6 +62,8 @@ PRICE_GEO_XNO = float(os.environ.get("VEND_PRICE_GEO", "0.0001"))
 PRICE_GEO_RAW = str(_price_to_raw(PRICE_GEO_XNO))
 PRICE_NANO_XNO = float(os.environ.get("VEND_PRICE_NANO", "0.0005"))
 PRICE_NANO_RAW = str(_price_to_raw(PRICE_NANO_XNO))
+PRICE_YT_XNO = float(os.environ.get("VEND_PRICE_YT", "0.0005"))
+PRICE_YT_RAW = str(_price_to_raw(PRICE_YT_XNO))
 DOMAIN = os.environ.get("VEND_DOMAIN", "localhost:8402")
 # Public base URL exactly as a buyer reaches it. Set this to the real scheme and
 # host (VEND_BASE_URL) rather than assuming https: advertising an https URL on a
@@ -102,6 +105,7 @@ ENDPOINT_BASE = {
     "/api/v1/geoip": GEO_BASE,
     "/api/v1/nano-info": NANO_BASE,
     "/api/v1/status": EXTRACT_BASE,
+    "/api/v1/youtube-transcript": EXTRACT_BASE,
 }
 
 logging.basicConfig(
@@ -866,7 +870,7 @@ def x402_manifest():
         "kind": "resource-server",
         "seller": "vend",
         "name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 7 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info. No signup, no API keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 8 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript. No signup, no API keys.",
         "resources": [
             {
                 "url": f"{ENDPOINT_BASE['/api/v1/extract']}/api/v1/extract",
@@ -962,6 +966,20 @@ def x402_manifest():
                         "network": "nano:mainnet",
                         "asset": "XNO",
                         "amount": PRICE_NANO_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/youtube-transcript']}/api/v1/youtube-transcript",
+                "method": "GET",
+                "description": "Extract captions and transcript from a YouTube video URL. Accepts ?url= and optional ?language=en. Returns timestamped segments and model-sized chunks with deep-linked citations. 0.0005 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_YT_RAW,
                         "payTo": VEND_ACCOUNT
                     }
                 ]
@@ -1750,7 +1768,7 @@ async def web_search_endpoint(
 
 @app.get("/api/v1/demo")
 async def demo_endpoint(
-    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info"),
+    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info, youtube-transcript"),
 ):
     """Free demo endpoint — now redirects to free trial on the real endpoint.
 
@@ -1768,6 +1786,7 @@ async def demo_endpoint(
         "web-search": "/api/v1/web-search?q=nano+cryptocurrency",
         "geoip": "/api/v1/geoip?ip=8.8.8.8",
         "nano-info": "/api/v1/nano-info?account=nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3",
+        "youtube-transcript": "/api/v1/youtube-transcript?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     }
     target = type_map.get(type, type_map["extract"])
     return JSONResponse(
@@ -1847,6 +1866,41 @@ async def nano_info_endpoint(
 
     # Payment confirmed and account provided — do the lookup
     return run_paid_work(request, nano_account_info, account)
+
+
+@app.get("/api/v1/youtube-transcript")
+async def youtube_transcript_endpoint(
+    request: Request,
+    url: str = Query(None, description="YouTube video URL to extract transcript from"),
+    language: str = Query("en", description="Language code for captions (default: en)"),
+):
+    """Extract captions/transcript from a YouTube video.
+    Requires Nano payment (0.0005 XNO).
+
+    Returns structured transcript with timestamped segments and model-sized
+    chunks with deep-linked citations for agent context injection.
+
+    The *url* parameter is declared optional so that an unauthenticated probe
+    (no payment, no parameter) reaches the 402 challenge *before* request
+    validation rejects it.
+    """
+    paid, response = await require_payment(
+        "/api/v1/youtube-transcript",
+        price_xno=PRICE_YT_XNO,
+        price_raw=PRICE_YT_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required (YouTube video URL)"},
+        )
+
+    # Payment confirmed and URL provided — fetch transcript
+    return run_paid_work(request, youtube_transcript, url, language)
 
 
 # ── Prepaid balance endpoints ─────────────────────────────────────────

@@ -1,4 +1,4 @@
-"""Vend MCP Server — expose Vend's 6 pay-per-call API endpoints as MCP tools.
+"""Vend MCP Server — expose Vend's pay-per-call API endpoints as MCP tools.
 
 Each tool is a thin adapter: it calls the corresponding Vend REST endpoint and
 returns the result — or, if the endpoint returns 402 Payment Required, it returns
@@ -9,12 +9,14 @@ Usage:
   python vend_mcp.py --transport streamable-http  # HTTP (Streamable HTTP)
 
 Tools (all require Nano payment via x402):
-  extract_url(url)          — clean text/markdown from a web page  (0.0001 XNO)
-  check_link(url)           — HTTP status, response time, redirects (0.0001 XNO)
-  domain_info(domain)       — DNS, WHOIS, SSL/TLS, headers        (0.0005 XNO)
-  web_search(q)             — DuckDuckGo search results            (0.0001 XNO)
-  geoip_lookup(ip)          — IP geolocation                      (0.0001 XNO)
-  nano_account_info(account) — Nano balance, rep, blocks          (0.0005 XNO)
+  extract_url(url)             — clean text/markdown from a web page  (0.0001 XNO)
+  check_link(url)              — HTTP status, response time, redirects (0.0001 XNO)
+  domain_info(domain)          — DNS, WHOIS, SSL/TLS, headers        (0.0005 XNO)
+  web_search(q)                — DuckDuckGo search results            (0.0001 XNO)
+  geoip_lookup(ip)             — IP geolocation                      (0.0001 XNO)
+  check_url_status(url, previous_hash) — URL status, TLS, content    (0.0001 XNO)
+  nano_account_info(account)   — Nano balance, rep, blocks           (0.0005 XNO)
+  youtube_transcript(url, language) — YouTube transcript             (0.0005 XNO)
 """
 
 import json
@@ -64,6 +66,10 @@ ENDPOINTS = {
     "nano_account_info": {
         "url": "https://extract.paypercall.dev/api/v1/nano-info",
         "description": "Nano account intelligence: balance, representative, block count, frontier, weight, pending transactions. Charges 0.0005 XNO in Nano via x402.",
+    },
+    "youtube_transcript": {
+        "url": "https://extract.paypercall.dev/api/v1/youtube-transcript",
+        "description": "Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks with deep-linked citations. Charges 0.0005 XNO in Nano via x402.",
     },
 }
 
@@ -115,6 +121,7 @@ async def call_vend_endpoint(endpoint_url: str, params: dict) -> dict:
 
 # --- Build the server ---
 
+
 def create_server():
     """Create the MCPServer with all Vend endpoints as tools."""
     from mcp.server.mcpserver import MCPServer
@@ -122,7 +129,7 @@ def create_server():
     server = MCPServer(
         name="vend",
         title="Vend API Merchant",
-        description="Pay-per-call API tools settled in Nano (XNO). Extract web content, search the web, check links, check URL status (TLS expiry and content drift), domain intelligence, IP geolocation, and Nano account info. No signup, no API keys — pay per call in Nano.",
+        description="Pay-per-call API tools settled in Nano (XNO). Extract web content, search the web, check links, check URL status (TLS expiry and content drift), domain intelligence, IP geolocation, Nano account info, and YouTube transcript extraction. No signup, no API keys — pay per call in Nano.",
         version="0.1.0",
     )
 
@@ -171,6 +178,12 @@ def create_server():
     async def nano_account_info(account: str) -> str:
         """Look up Nano account info. Returns balance, representative, block count."""
         result = await call_vend_endpoint(ENDPOINTS["nano_account_info"]["url"], {"account": account})
+        return json.dumps(result)
+
+    @server.tool(description=ENDPOINTS["youtube_transcript"]["description"])
+    async def youtube_transcript(url: str, language: str = "en") -> str:
+        """Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks."""
+        result = await call_vend_endpoint(ENDPOINTS["youtube_transcript"]["url"], {"url": url, "language": language})
         return json.dumps(result)
 
     return server
