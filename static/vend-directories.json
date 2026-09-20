@@ -181,9 +181,9 @@
     {
       "directory": "gold-402 (Haustorium12)",
       "url": "https://github.com/Haustorium12/gold-402",
-      "status": "submitted",
+      "status": "pr-ready",
       "submitted_at": "2026-09-18T07:19:00Z",
-      "note": "Branch pushed, fork issue filed. One-click PR: https://github.com/Haustorium12/gold-402/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1"
+      "note": "Branch REBUILT on current upstream main (was behind 11). add-vend-api-merchant-rebuilt: ahead 1 / behind 0, fork page 200, gate passed (service mode, ENDPOINT answers 402). One-click PR VERIFIED 200: https://github.com/Haustorium12/gold-402/compare/main...PANDeveloper001:add-vend-api-merchant-rebuilt?expand=1"
     },
     {
       "directory": "MadeWithStack",
@@ -322,9 +322,9 @@
     {
       "directory": "MCPFind (mcpfind.org)",
       "url": "https://github.com/PANDeveloper001/mcp-find/tree/add-vend-api-merchant",
-      "status": "submitted",
+      "status": "pr-ready",
       "submitted_at": "2026-09-19T22:10:00Z",
-      "note": "Submission branch pushed to fork. One-click PR: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1"
+      "note": "Submission branch add-vend-api-merchant on fork: ahead 1 / behind 0, fork page 200. One-click PR VERIFIED 200: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1. PR create attempted but fine-grained token lacks createPullRequest (needs Rai/signed-in human)."
     },
     {
       "directory": "mcpub.dev",
@@ -338,10 +338,24 @@
       "url": "https://aiagentslisting.com/submit",
       "status": "human-gated",
       "note": "SPA directory launched Sep 2026. Agent-first MCP endpoint for search/submit. Submit requires Google or email sign-in. Not yet submitted."
+    },
+    {
+      "name": "x402scan.com",
+      "url": "https://x402scan.com/resources/register",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T08:25:00Z",
+      "note": "Keyless URL registration. Scanner found Vend, recognized Nano settlement. 0 valid resources (scanner rejects Nano-only x402). Discoverable."
+    },
+    {
+      "name": "Vibedonalds",
+      "url": "https://vibedonalds.com/submit",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T08:30:00Z",
+      "note": "Open keyless directory for AI-made things. Free review 3-7 days. Category: ai-agents-general, kind: tool."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T08:13:39Z",
+    "timestamp": "2026-09-20T08:48:49Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
