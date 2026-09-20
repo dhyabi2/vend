@@ -180,7 +180,7 @@
     },
     {
       "directory": "Glama",
-      "url": "https://glama.ai/mcp/servers/vend-api-merchant",
+      "url": "https://glama.ai/mcp/servers?query=author%3Avend-api-merchant",
       "status": "verified",
       "verified_at": "2026-09-20",
       "note": "VERIFIED LIVE 2026-09-20: Glama serves 'MCP Servers by vend-api-merchant' (author:vend-api-merchant match). Propagated from Official MCP Registry v0.3.30."
@@ -418,7 +418,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T20:48:16Z",
+    "timestamp": "2026-09-20T21:11:28Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
