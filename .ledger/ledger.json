@@ -28867,6 +28867,18 @@
     }
    ],
    "status": "pass"
+  },
+  "39": {
+   "status": "pending",
+   "attempts": []
+  },
+  "39.1": {
+   "status": "pending",
+   "attempts": []
+  },
+  "39.2": {
+   "status": "pending",
+   "attempts": []
   }
  },
  "contested": [],
@@ -32807,6 +32819,39 @@
    "at": "2026-09-19T18:42:07+00:00",
    "prev": "77348dc5be9e0569d9f4ef1354760aef70bd09c547389622729fe699bad4583c",
    "receipt": "646b033812b3b9e171bbf258c3f2424d079b0f36ef185358d1bfe61532bb53e0"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L47",
+    "block": "39",
+    "statement_sha": "97926cb55185a6f93da02e23744fd16c39763a37e5aa402bd45915e075852b28"
+   },
+   "at": "2026-09-20T02:54:43+00:00",
+   "prev": "646b033812b3b9e171bbf258c3f2424d079b0f36ef185358d1bfe61532bb53e0",
+   "receipt": "50355ab45f1aeb0ed2a5241832c545fa022b2612fe8972766645058a9a4e0538"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L48",
+    "block": "39.1",
+    "statement_sha": "d929f68b0ee93d8b240243caae85ebf1ada2ad42b33a756bc24a8f134a9ee01e"
+   },
+   "at": "2026-09-20T02:54:53+00:00",
+   "prev": "50355ab45f1aeb0ed2a5241832c545fa022b2612fe8972766645058a9a4e0538",
+   "receipt": "599c17ff2ce8f7badbb600666b141b3afd83fbae35108fea7d9a9ff58c68eb6d"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L49",
+    "block": "39.2",
+    "statement_sha": "2908cb2370e0b0cb8871f1d7569bccf93fd5a69831298e92b237333891440fb2"
+   },
+   "at": "2026-09-20T02:55:02+00:00",
+   "prev": "599c17ff2ce8f7badbb600666b141b3afd83fbae35108fea7d9a9ff58c68eb6d",
+   "receipt": "1c7ed207ca154290803f502f73b4d08d9755cdc6c430fb0ffe07d1213dd3a62c"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -33628,6 +33673,51 @@
    "statement": "A staged secret name is refused before it enters a commit, and a clean commit still lands.",
    "test": "bash .ledger/oracle_L49.sh prints L49_PASS (refuses .env, lands clean.py, two controls)",
    "version": 2
+  },
+  {
+   "id": "L47",
+   "block": 39.0,
+   "statement": "Prepaid balance credits from Nano send",
+   "test": "A top-up using a verified Nano block_hash credits the sender's account and the block cannot be replayed",
+   "scope": [
+    "store.py"
+   ],
+   "oracle": null,
+   "expect": null,
+   "source": null,
+   "grounding": "none",
+   "version": 1,
+   "minted": "2026-09-20T02:54:43+00:00"
+  },
+  {
+   "id": "L48",
+   "block": 39.1,
+   "statement": "Balance deduction needs no on-chain RPC",
+   "test": "Calling deduct_balance on a funded account succeeds and returns True; calling on an unfunded or depleted account returns False",
+   "scope": [
+    "store.py"
+   ],
+   "oracle": null,
+   "expect": null,
+   "source": null,
+   "grounding": "none",
+   "version": 1,
+   "minted": "2026-09-20T02:54:53+00:00"
+  },
+  {
+   "id": "L49",
+   "block": 39.2,
+   "statement": "X-BALANCE header bypasses on-chain payment",
+   "test": "A request with X-BALANCE: nano_... and sufficient funds is treated as paid without hitting the Nano RPC; a response with used_balance includes X-Balance-Remaining",
+   "scope": [
+    "server.py"
+   ],
+   "oracle": null,
+   "expect": null,
+   "source": null,
+   "grounding": "none",
+   "version": 1,
+   "minted": "2026-09-20T02:55:02+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",
