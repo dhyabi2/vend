@@ -204,7 +204,7 @@
       "directory": "MCP Registry (vend-mcp)",
       "url": "https://extract.paypercall.dev/mcp",
       "status": "live",
-      "note": "Model Context Protocol streamable-http endpoint. 6 tools: extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info. Each returns Nano x402 payment challenge. Accessible from any MCP client (Claude Desktop, Cursor, VS Code)."
+      "note": "v0.3.13 published 2026-09-20. Propagating to downstream directories Glama, mcp.directory, PulseMCP, AllMCPs (24-48h)."
     },
     {
       "directory": "MCP.Directory",
@@ -341,7 +341,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T05:20:49Z",
+    "timestamp": "2026-09-20T05:30:00Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
