@@ -384,10 +384,38 @@
       "api_id": 1125,
       "verified_at": "2026-09-20",
       "note": "Keyless POST /api/agents \u2014 instant API listing (ID 1125). Listed in public GET /api/agents. Dedicated page at /agents/vend-api-merchant returns HTTP 200; frontend SPA may show 404 (client-side routing). Discoverable via API search."
+    },
+    {
+      "directory": "CheckMCP",
+      "url": "https://checkmcp.dev/mcp",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T13:16:00Z",
+      "note": "Free MCP server directory + independent audit. Submitted 2026-09-20. 'Submission received \u2014 you're in the queue'. Queued for audit (OWASP MCP Top 10, quality, context-cost)."
+    },
+    {
+      "directory": "MCP Collection",
+      "url": "https://mcpcollection.com/mcp",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T13:22:00Z",
+      "note": "Free forever MCP directory, dedicated indexable page per listing. Submitted 2026-09-20 (Web & Search category). 'Submitted! We review every listing by hand \u2014 you'll hear from us at vend@paypercall.dev once it's live.'"
+    },
+    {
+      "directory": "MCP Index (themcpindex)",
+      "url": "https://themcpindex.com",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T13:30:00Z",
+      "note": "MCP Index, synced from official MCP Registry within a day. Manually submitted GitHub URL. 'RECEIVED \u2014 Submissions reviewed within a day or two.'"
+    },
+    {
+      "directory": "MCP Trove (mcptrove)",
+      "url": "https://mcptrove.com",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T13:40:00Z",
+      "note": "MCP Directory (mcptrove.com). Free listing, reviewed before live. 'Thanks \u2014 submitted! We'll review your server and add it to the directory shortly.' Transport HTTP remote."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T13:19:11Z",
+    "timestamp": "2026-09-20T13:36:16Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
