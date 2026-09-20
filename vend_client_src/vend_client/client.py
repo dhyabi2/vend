@@ -1,4 +1,4 @@
-"""VendClient — call Vend API Merchant endpoints via x402.
+"""VendClient — call Vend API Merchant endpoints via x402 or prepaid balance.
 
 Usage:
     client = VendClient()                          # dry-run (read prices)
@@ -10,6 +10,11 @@ Usage:
     result = client.geoip("8.8.8.8")
     result = client.nano_info("nano_1...")
 
+    # Prepaid balance
+    client = VendClient(balance_account="nano_1...")  # draw from prepaid balance
+    client.balance()                                   # check remaining
+    client.top_up("nano_block_hash_...")               # top up
+
 CLI:
     vend-client extract --url https://example.com
     vend-client check-link --url https://example.com
@@ -17,6 +22,8 @@ CLI:
     vend-client web-search --q "search query"
     vend-client geoip --ip 8.8.8.8
     vend-client nano-info --account nano_1...
+    vend-client balance                              # check prepaid balance
+    vend-client top-up --tx-block <hash>              # top up with an on-chain block
 """
 
 import json
@@ -50,15 +57,27 @@ DEFAULT_ENDPOINTS = {
     "web_search": "https://search.paypercall.dev/api/v1/web-search",
     "geoip": "https://geoip.paypercall.dev/api/v1/geoip",
     "nano_info": "https://extract.paypercall.dev/api/v1/nano-info",
+    "balance": "https://extract.paypercall.dev/api/v1/balance",
+    "top_up": "https://extract.paypercall.dev/api/v1/balance/top-up",
 }
 
 
 class VendClient:
     """Client for Vend's pay-per-call APIs.
 
+    Supports three modes:
+    1. Dry-run (no wallet, no balance account) — shows prices only.
+    2. Per-call x402 payment (wallet=...) — each call pays via Nano on-chain.
+    3. Prepaid balance (balance_account=...) — draw from a prepaid balance;
+       the X-BALANCE header is sent with each call and the server deducts
+       from the account's balance. No per-call on-chain transaction needed.
+
     Args:
-        wallet: A nano_pay Wallet instance. If None, the client runs in dry-run
-            mode: it fetches the 402 challenge to show prices, but cannot pay.
+        wallet: A nano_pay Wallet instance. If None and balance_account is
+            None, the client runs in dry-run mode.
+        balance_account: A nano_... or xrb_... account with a prepaid
+            balance on the Vend server. When set, the X-BALANCE header is
+            sent on every call and the server deducts from the balance.
         endpoints: Optional dict mapping service names to base URLs.
             Defaults to the live Vend endpoints.
         timeout: HTTP request timeout in seconds.
@@ -67,6 +86,7 @@ class VendClient:
     def __init__(
         self,
         wallet: Optional["Wallet"] = None,
+        balance_account: Optional[str] = None,
         endpoints: Optional[dict[str, str]] = None,
         timeout: float = 30.0,
     ):
@@ -74,6 +94,7 @@ class VendClient:
             raise VendError("httpx is required: pip install vend-client[cli]")
 
         self._wallet = wallet
+        self._balance_account = balance_account
         self._endpoints = endpoints or dict(DEFAULT_ENDPOINTS)
         self._timeout = timeout
         self._client = httpx.Client(timeout=timeout, follow_redirects=False)
@@ -81,13 +102,19 @@ class VendClient:
     # --- Convenience properties (readable from dry-run or paid) ---
 
     def _call(self, service: str, params: dict[str, str]) -> dict:
-        """Call a Vend endpoint with optional x402 payment."""
+        """Call a Vend endpoint with optional x402 payment or X-BALANCE deduction."""
         url = self._endpoints.get(service)
         if not url:
             raise VendError(f"Unknown service: {service}")
 
-        if self._wallet is not None and request_with_payment is not None:
-            # Paid call — use nano_pay's x402 flow
+        # Determine auth headers from balance account or wallet
+        headers = {}
+
+        if self._balance_account:
+            headers["X-BALANCE"] = self._balance_account
+
+        if self._wallet is not None and request_with_payment is not None and not self._balance_account:
+            # Paid call via per-call x402 — use nano_pay's x402 flow
             try:
                 result = request_with_payment(
                     url,
@@ -101,11 +128,15 @@ class VendClient:
             except Exception as e:
                 raise VendError(f"Paid call to {service} failed: {e}") from e
         else:
-            # Dry-run: get the 402 quote to see the price
-            resp = self._client.get(url, params=params)
+            # Balance mode or dry-run: GET with optional headers
+            resp = self._client.get(url, params=params, headers=headers)
+
             if resp.status_code == 402:
                 quote = self._parse_402_body(resp)
-                quote["_dry_run"] = True
+                if self._balance_account:
+                    quote["_balance_insufficient"] = True
+                else:
+                    quote["_dry_run"] = True
                 return quote
             if resp.status_code == 200:
                 return resp.json()
@@ -147,6 +178,67 @@ class VendClient:
         """Nano account intelligence: balance, rep, blocks."""
         return self._call("nano_info", {"account": account})
 
+    def balance(self) -> dict:
+        """Check the prepaid balance for the configured balance_account.
+
+        Returns:
+            Dict with account, balance_raw, balance_xno, total_topup_raw
+            if the account has a balance, or payment_required error.
+        """
+        if not self._balance_account:
+            raise VendError(
+                "balance_account was not set at client creation. "
+                "Pass balance_account='nano_...' to VendClient()."
+            )
+        url = self._endpoints.get("balance")
+        if not url:
+            raise VendError("Balance endpoint not configured")
+        resp = self._client.get(url, headers={"X-BALANCE": self._balance_account})
+        if resp.status_code == 200:
+            return resp.json()
+        if resp.status_code == 402:
+            return self._parse_402_body(resp)
+        raise VendError(
+            f"balance returned HTTP {resp.status_code}: {resp.text[:200]}"
+        )
+
+    def top_up(self, block_hash: str) -> dict:
+        """Top up the prepaid balance by sending XNO to the treasury.
+
+        The XNO must first be sent via a real Nano transaction to the
+        Vend treasury address. The block_hash of that transaction is then
+        submitted here to credit your balance.
+
+        Args:
+            block_hash: The Nano block hash of a send transaction to
+                Vend's payment address.
+
+        Returns:
+            Dict confirming the top-up with new balance info.
+        """
+        if not self._balance_account:
+            raise VendError(
+                "balance_account was not set at client creation. "
+                "Pass balance_account='nano_...' to VendClient()."
+            )
+        url = self._endpoints.get("top_up")
+        if not url:
+            raise VendError("Top-up endpoint not configured")
+        payload = {
+            "account": self._balance_account,
+            "block_hash": block_hash,
+        }
+        resp = self._client.post(url, json=payload)
+        if resp.status_code == 200:
+            return resp.json()
+        if resp.status_code == 402:
+            return self._parse_402_body(resp)
+        if resp.status_code == 409:
+            return {"error": "duplicate_topup", "message": resp.json().get("message", "This block hash was already used")}
+        raise VendError(
+            f"top-up returned HTTP {resp.status_code}: {resp.text[:200]}"
+        )
+
     def close(self):
         """Close the underlying HTTP client."""
         self._client.close()
@@ -169,6 +261,10 @@ def main():
         description="vend-client: call Vend API Merchant from the command line"
     )
     parser.add_argument("--wallet", help="Path to nano_pay wallet seed file")
+    parser.add_argument(
+        "--balance-account",
+        help="nano_... account for prepaid balance (X-BALANCE header)",
+    )
 
     subparsers = parser.add_subparsers(dest="service", required=True)
 
@@ -182,6 +278,14 @@ def main():
     ]:
         sp = subparsers.add_parser(service, help=f"Call {service} endpoint")
         sp.add_argument(f"--{param_name}", required=True, help=param_name)
+
+    # Balance subcommands
+    balance_sp = subparsers.add_parser("balance", help="Check prepaid balance")
+    topup_sp = subparsers.add_parser("top-up", help="Top up prepaid balance")
+    topup_sp.add_argument(
+        "--tx-block", required=True,
+        help="Nano block hash of a send transaction to Vend's payment address"
+    )
 
     args = parser.parse_args()
 
@@ -207,14 +311,23 @@ def main():
     if args.wallet and Wallet is not None and request_with_payment is not None:
         wallet = Wallet(seed_path=args.wallet)
 
-    service_name = args.service
-    method_name = service_map[service_name]
-    param_name = param_map[service_name]
-    param_value = getattr(args, param_name)
+    balance_account = getattr(args, "balance_account", None)
 
-    client = VendClient(wallet=wallet)
+    client = VendClient(
+        wallet=wallet,
+        balance_account=balance_account,
+    )
     try:
-        result = getattr(client, method_name)(param_value)
+        if args.service == "balance":
+            result = client.balance()
+        elif args.service == "top-up":
+            result = client.top_up(args.tx_block)
+        else:
+            service_name = args.service
+            method_name = service_map[service_name]
+            param_name = param_map[service_name]
+            param_value = getattr(args, param_name)
+            result = getattr(client, method_name)(param_value)
     except VendError as e:
         print(json.dumps({"error": str(e)}, indent=2))
         sys.exit(1)

@@ -28933,6 +28933,29 @@
           ]
         }
       ]
+    },
+    "40": {
+      "status": "pass",
+      "attempts": [
+        {
+          "kind": "verify",
+          "ok": true,
+          "at": "2026-09-20T03:52:13.006752+00:00",
+          "manual": true,
+          "oracles_passed": [
+            "L50"
+          ],
+          "oracle_evidence": "bash .ledger/oracle_L50.sh -> L50_ORACLE_PASS (11 passed)",
+          "results": [
+            {
+              "id": "L50",
+              "oracle_ok": true,
+              "pass": true,
+              "manual": true
+            }
+          ]
+        }
+      ]
     }
   },
   "contested": [],
@@ -32945,6 +32968,17 @@
       "at": "2026-09-20T03:21:10+00:00",
       "prev": "37e7c0c016a24743804ed8025a2a5dad5940b477a3ebea1867ef03bb1a3a8ff5",
       "receipt": "6587023f387527c5e335df7b8af7408a81ff0f47eb8acf5f46487732e2c221a5"
+    },
+    {
+      "kind": "mint",
+      "payload": {
+        "id": "L50",
+        "block": "40",
+        "statement_sha": "ff0f9eae0ffd2bc32b682073975fe9d193496333765ec56c3f16059b0083b9c7"
+      },
+      "at": "2026-09-20T03:46:46+00:00",
+      "prev": "6587023f387527c5e335df7b8af7408a81ff0f47eb8acf5f46487732e2c221a5",
+      "receipt": "6159b392c7a8893857a5ad59bfd3afddc3a5633812226d629f5145326d8b0c3c"
     }
   ],
   "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -33811,6 +33845,25 @@
       "grounding": "oracle",
       "version": 1,
       "minted": "2026-09-20T02:55:02+00:00"
+    },
+    {
+      "id": "L50",
+      "block": 40.0,
+      "statement": "vend-client draws from prepaid balance: with balance_account set, X-BALANCE header is sent with every call and the server deducts from that account.",
+      "test": "bash .ledger/oracle_L50.sh runs 11 vend-client unit tests deterministically (mocked transport, no network, no funds) and prints L50_ORACLE_PASS",
+      "scope": [
+        "vend_client_src/vend_client/client.py",
+        "test_vend_client_balance.py",
+        ".ledger/oracle_L50.sh"
+      ],
+      "oracle": "bash .ledger/oracle_L50.sh",
+      "expect": "L50_ORACLE_PASS",
+      "source": "vend_client_src/vend_client/client.py:104",
+      "grounding": "oracle",
+      "version": 1,
+      "minted": "2026-09-20T03:46:46+00:00",
+      "status": "pass",
+      "verified_at": "2026-09-20T03:52:13.006752+00:00"
     }
   ],
   "ledger_id": "03a0d255c4073a69",
