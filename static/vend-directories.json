@@ -70,7 +70,8 @@
     {
       "directory": "Agent402.Tools",
       "url": "https://agent402.tools",
-      "status": "indexed"
+      "status": "verified",
+      "note": "Auto-indexed via x402 crawl. 9 tools, nano:mainnet, health=1.0, routable=true. Verified 2026-09-20."
     },
     {
       "directory": "AgentBoard",
@@ -338,7 +339,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T04:11:57Z",
+    "timestamp": "2026-09-20T04:18:29Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
