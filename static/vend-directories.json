@@ -362,15 +362,16 @@
     },
     {
       "directory": "AMP Registry (Agent Manifest)",
-      "url": "https://api.agent-manifest.com/listings",
-      "status": "failed",
-      "submitted_at": "2026-09-20T10:19:31Z",
-      "submission_id": "sub_1789899571256_pedz81xqn",
-      "note": "AMP (Agent Manifest Protocol) registry. URL submission accepted but validation failed: needs /.well-known/agent-manifest.json deployed on endpoint server. Cannot complete without server-side file. 93 APIs listed."
+      "url": "https://api.agent-manifest.com/listings/cmu9q46yz002kpjtcqyrgmyor",
+      "status": "live",
+      "listing_id": "cmu9q46yz002kpjtcqyrgmyor",
+      "verified_at": "2026-09-20",
+      "submission_id": "sub_1789903140790_wfzm8414k",
+      "note": "VERIFIED LIVE 2026-09-20: AMP v0.3 compliant manifest served at /.well-known/agent-manifest.json. Vend is the first Nano-only AMP-listed API with payment-ready badge. 6 endpoints (extract, check-link, domain-info, web-search, geoip, nano-info) listed with per_request x-XNO payment, real_time settlement via Nano. Also serves /amp/onboard endpoint. 94 total APIs in registry."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T10:40:24Z",
+    "timestamp": "2026-09-20T11:20:36Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21

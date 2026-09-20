@@ -1256,6 +1256,142 @@ async def well_known_agent_card():
     }
 
 
+# ── Agent Manifest Protocol (AMP v0.3) ──────────────────────────────────
+# Served at /.well-known/agent-manifest.json. The AMP Registry
+# (api.agent-manifest.com) validates this file and lists Vend for
+# autonomous agent discovery when present.
+
+
+def _amp_manifest():
+        """Build a dynamic AMP v0.3 manifest for Vend's x402 payment API."""
+        return {
+            "$schema": "https://raw.githubusercontent.com/AMProtocol/AMP/refs/heads/main/validator/spec/v0.3.md",
+            "spec_version": "agentmanifest-0.3",
+            "name": "Vend API Merchant",
+            "version": "0.1.0",
+            "description": (
+                "Pay-per-call API merchant settled in Nano (XNO): web page extraction, "
+                "link status checks, domain intelligence, web search, IP geolocation, "
+                "and Nano account info. No signup, no API key — an unpaid HTTP call "
+                "returns 402 with the exact Nano amount and payout address."
+            ),
+            "homepage": BASE_URL,
+            "documentation": f"{BASE_URL}/llms.txt",
+            "categories": ["computing", "other"],
+            "primary_category": "reference",
+            "endpoints": [
+                {"path": "/api/v1/extract", "method": "GET",
+                 "description": "Extract clean text/markdown from a web page URL.",
+                 "parameters": [{"name": "url", "type": "string", "required": True,
+                                 "description": "The web page URL to extract text from."}],
+                 "response_description": "JSON with title, text_content, markdown, and metadata."},
+                {"path": "/api/v1/check-link", "method": "GET",
+                 "description": "Check HTTP status, redirect chain, TLS validity, and response time.",
+                 "parameters": [{"name": "url", "type": "string", "required": True,
+                                 "description": "The URL to check."}],
+                 "response_description": "JSON with final HTTP status, redirect chain, TLS days-to-expiry, response time."},
+                {"path": "/api/v1/domain-info", "method": "GET",
+                 "description": "Full domain intelligence: DNS, WHOIS, TLS certificate, HTTP headers.",
+                 "parameters": [{"name": "domain", "type": "string", "required": True,
+                                 "description": "The domain to analyze (e.g., example.com)."}],
+                 "response_description": "JSON with DNS records, WHOIS data, TLS cert info, HTTP headers."},
+                {"path": "/api/v1/web-search", "method": "GET",
+                 "description": "Web search returning result titles, URLs, and snippets.",
+                 "parameters": [{"name": "q", "type": "string", "required": True,
+                                 "description": "Search query string."}],
+                 "response_description": "JSON array of search results with title, URL, and snippet."},
+                {"path": "/api/v1/geoip", "method": "GET",
+                 "description": "IP geolocation: country, city, coordinates, ISP, ASN.",
+                 "parameters": [{"name": "ip", "type": "string", "required": True,
+                                 "description": "IP address to locate."}],
+                 "response_description": "JSON with country, city, lat/lon, ISP, ASN, timezone."},
+                {"path": "/api/v1/nano-info", "method": "GET",
+                 "description": "Nano account info: balance, representative, weight, frontier, pending.",
+                 "parameters": [{"name": "account", "type": "string", "required": True,
+                                 "description": "Nano account address (nano_... or xrb_...)."}],
+                 "response_description": "JSON with Nano account balance, representative, weight, frontier, pending."},
+            ],
+            "authentication": {"required": False, "type": "none"},
+            "pricing": {
+                "model": "usage_based",
+                "free_tier": {"queries_per_day": 5,
+                              "notes": "5 free calls per IP per day across all endpoints."},
+                "paid_tier": {"amount_usd": 0.0001, "unit": "request",
+                              "description": "0.0001 XNO per request for standard endpoints; 0.0005 XNO for domain-info, nano-info, youtube-transcript."},
+            },
+            "payment": {
+                "model": "per_request",
+                "currency": "x-XNO",
+                "rates": [
+                    {"unit": "request", "price": "0.0001",
+                     "description": "Standard endpoints: extract, check-link, web-search, geoip, status",
+                     "tier": "standard", "threshold": 0, "cap": None},
+                    {"unit": "request", "price": "0.0005",
+                     "description": "Premium endpoints: domain-info, nano-info, youtube-transcript",
+                     "tier": "premium", "threshold": 0, "cap": None},
+                ],
+                "onboarding": {
+                    "url": f"{BASE_URL}/amp/onboard",
+                    "method": "POST",
+                    "accepts": ["platform_token"],
+                    "returns": {
+                        "credential_type": "api_key",
+                        "credential_field": "x402_instructions",
+                        "instructions": "No API key needed. Call any endpoint without authentication; the server returns HTTP 402 with the Nano amount and payTo account. Settle on-chain and retry with X-PAYMENT header set to the block hash.",
+                    },
+                },
+                "settlement": {"type": "real_time", "provider_name": "Nano (XNO)",
+                               "provider_url": "https://nano.org"},
+                "budget_controls": {"supports_spend_cap": False, "supports_per_request_limit": False,
+                                    "supports_rate_limit": True, "supports_alerting": False},
+                "refund_policy": {"type": "none", "terms_url": None},
+            },
+            "rate_limits": {"requests_per_minute": 60, "requests_per_day": 1000},
+            "reliability": {"uptime_percentage": 99.5, "avg_response_time_ms": 1500},
+            "agent_notes": (
+                "Pay-per-call API merchant settled in Nano (XNO) via x402 v2 protocol. "
+                "Call any endpoint without an API key: the server returns HTTP 402 with "
+                "X-402-Price, X-402-PayTo, and X-402-Network headers. Send the exact "
+                "XNO amount to the payTo account, then present the block hash in "
+                "X-PAYMENT on the same request to receive the result. Five free trial "
+                "calls per IP per day. Prepaid balance also supported via X-BALANCE "
+                "header after top-up. All endpoints return application/json."
+            ),
+            "contact": "vend@paypercall.dev",
+            "listing_requested": True,
+            "last_updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+
+
+@app.get("/.well-known/agent-manifest.json")
+async def well_known_agent_manifest():
+    """AMP v0.3 manifest. The AMP Registry requires this path and validates
+    it before listing Vend in its autonomous-agent discovery index."""
+    return _amp_manifest()
+
+
+@app.post("/amp/onboard")
+async def amp_onboard():
+    """AMP v0.3 onboarding endpoint. Vend uses x402 (no pre-onboarding
+    needed), so this returns instructions for the 402-based flow."""
+    return {
+        "status": "active",
+        "credential_type": "api_key",
+        "api_key": "x402",
+        "x402_instructions": (
+            "No API key needed. Call any Vend endpoint without authentication. "
+            "The server returns HTTP 402 with X-402-Price, X-402-PayTo, "
+            "X-402-Network headers. Settle the exact XNO to the payTo account "
+            "on the Nano network (feeless, ~1s final). Present the block hash "
+            "in the X-PAYMENT header on the retry."
+        ),
+        "spend_cap": None,
+        "currency": "XNO",
+        "rate_limits": {"requests_per_minute": 60, "requests_per_day": 1000},
+        "usage_endpoint": "https://extract.paypercall.dev/api/v1/balance",
+    }
+
+
 # --- ARD / AI Catalog discovery manifest (Agentic Resource Discovery) ---
 # One entry per paid endpoint. Agents discovery crawlers asked for both
 # /.well-known/ard.json and /.well-known/ai-catalog.json on 2026-09-17 and got a

@@ -199,3 +199,41 @@ to it however well it went.
 - **A day with nothing outward says so.** The issue reports an honest empty day rather than filling
   itself with our chores. If that keeps happening, the answer is to do something outward, not to describe
   the chores more generously.
+
+## What to do first (owner, 2026-09-20)
+
+### Tier 0 — a unique outside payer
+
+**The number that settles the day is unique outside payers, reported daily including when it is zero**
+(owner, 2026-09-17). Not endpoints shipped, not listings submitted, not tests passing — someone who is
+not us paying for a call.
+
+So tier 0 is whatever most directly produces the next one: a buyer who can already pay and has not been
+asked, a listing that is live where buyers actually look, a conversation with someone who could call the
+API today. Adoption means something **outside the box changed**. A day with no adoption work is a failed
+day however much shipped.
+
+**Then work this order. Finish a higher tier before touching a lower one.**
+
+1. **An outside person or agent replied and is waiting on us.** Someone who is not us and is not a
+   bot. This is the rarest and most perishable thing the system produces — goodwill fades and nobody
+   else can answer it. Answer it the same run.
+2. **Something changed.** A thread moved, a listing went live, a payment landed, an agent replied.
+   Act on what moved; do not re-derive the whole picture.
+3. **First contact with someone never asked — OUTSIDE the Nano economy first** (owner, 2026-09-20):
+   - **3a.** Projects and agents with **no connection to Nano at all** — paying in USDC, cards or
+     platform credit. Converting one of these is the mission, and the only thing that grows the economy.
+   - **3b.** x402 and agent-payment projects on **other rails**. They already believe in machine
+     payments; they have not been shown the cheapest one.
+   - **3c.** **Nano-native projects, last.** They already agree. Reaching them converts nobody.
+     Unstuck proved this: all eleven of its first starters went to Nano-native targets, zero conversions.
+4. **Reach that needs nobody's permission** — a listing, a doc, a working endpoint, a published page.
+5. **Self-improvement, tests, refactors.** Real work, lowest priority, **never a substitute for 1–4**.
+   A day spent here with an empty tier 3 is a day that reached nobody.
+
+**Re-checking something that has not changed is not work.** Ask once, with the cheapest tool that can
+answer — an API call, not a model. If nothing changed, that tier is finished for this run: drop to the
+next one. Never spend a model call to learn what an HTTP request already knows.
+
+**A reply means someone OUTSIDE our accounts wrote.** Our own follow-ups are not answers. Rai's count
+said 33 of 49 were answered; the honest number was 18.
