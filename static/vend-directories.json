@@ -308,12 +308,13 @@
     {
       "directory": "AgentShare MCP Registry",
       "url": "https://agentshare.dev/registry",
-      "status": "submitted",
+      "status": "live",
       "submitted_at": "2026-09-19",
       "submission_id": "37",
       "status_url": "https://agentshare.dev/registry/status/VD2Vug16Jv0NjtX89hYxTI4aRPRmiMsudWsTT_m_qfo",
       "category": "data_commerce",
-      "note": "Curated DeFi/data/commerce MCP registry, keyless POST /api/v1/registry/submit. Category data_commerce. Pending_review id 37. 7 x402 endpoints."
+      "note": "verified live 2026-09-20: registry shows Vend API Merchant with full description, 7 x402 endpoints, data_commerce category",
+      "verified_at": "2026-09-20"
     },
     {
       "directory": "MCPFind (mcpfind.org)",
@@ -328,10 +329,16 @@
       "status": "live",
       "verified_at": "2026-09-19",
       "note": "Keyless MCP directory (no account, no review). Registered via JSON-RPC tools/call submit. Requires /.well-known/mcp.json (now served by server.py). Confirmed in archive via get tool: source:archive, submitted_at 1789862061, status live."
+    },
+    {
+      "directory": "AI Agents Listing",
+      "url": "https://aiagentslisting.com/submit",
+      "status": "human-gated",
+      "note": "SPA directory launched Sep 2026. Agent-first MCP endpoint for search/submit. Submit requires Google or email sign-in. Not yet submitted."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-20T00:49:29Z",
+    "timestamp": "2026-09-20T01:06:35Z",
     "all_healthy": true,
     "endpoints_ok": 21,
     "endpoints_total": 21
