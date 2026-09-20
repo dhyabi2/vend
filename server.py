@@ -137,6 +137,22 @@ def extract_payment_block(request: Request) -> Optional[str]:
     return None
 
 
+def extract_balance_account(request: Request) -> Optional[str]:
+    """Extract a Nano account address from the X-BALANCE header.
+
+    The X-BALANCE header carries a nano_... account address that identifies
+    the caller for prepaid balance deduction.  Basic format validation only
+    (starts with ``nano_`` or ``xrb_``, reasonable length) -- the account
+    existence is checked at deduction time.
+    """
+    val = request.headers.get("x-balance", "").strip()
+    if val.startswith("nano_") and len(val) >= 60 and len(val) <= 65:
+        return val
+    if val.startswith("xrb_") and len(val) >= 60 and len(val) <= 65:
+        return val
+    return None
+
+
 def endpoint_public_base(endpoint_path: str) -> str:
     """The public base URL for one endpoint's own subdomain.
 
@@ -212,6 +228,41 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
 
         block_hash = extract_payment_block(request)
 
+        # ── Prepaid balance check ────────────────────────────────────
+        # A caller may pay once for a bucket and then draw calls from the
+        # balance via the X-BALANCE header (a nano_... account address)
+        # instead of paying a fresh block per call.  This is checkable with
+        # zero on-chain RPC, so it is faster and lower-friction for repeat
+        # callers.  The account must hold enough raw for this call's price;
+        # the deduction is atomic in the store.
+        if not block_hash:
+            balance_account = extract_balance_account(request)
+            if balance_account:
+                balance = store.balance_of(balance_account)
+                if balance >= int(price_raw):
+                    claimed = store.deduct_balance(balance_account, price_raw)
+                    if claimed:
+                        log.info(
+                            "BALANCE: %s drew %s raw on %s (left %s)",
+                            balance_account, price_raw, endpoint_path,
+                            store.balance_of(balance_account),
+                        )
+                        request.state.payment = {
+                            "valid": True,
+                            "amount_raw": price_raw,
+                            "block_hash": f"balance-{balance_account[:8]}-{int(time.time()*1000)}",
+                            "source": balance_account,
+                            "is_balance": True,
+                        }
+                        request.state.balance_info = {
+                            "balance_account": balance_account,
+                            "remaining_raw": str(store.balance_of(balance_account)),
+                            "used_balance": True,
+                        }
+                        return True, None
+                    # Insufficient funds — treat as unpaid (402 below)
+                # Unrecognised header or zero balance — fall through to 402
+                # with a hint about top-up. (402 below shares this.)
         if not block_hash:
             # No payment provided — return 402.
             #
@@ -237,7 +288,7 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
                 status_code=402,
                 content=json.dumps({
                     "error": "payment_required",
-                    "message": f"Pay {price_xno} XNO to {VEND_ACCOUNT[:15]}... and retry with X-PAYMENT header",
+                    "message": f"Pay {price_xno} XNO to {VEND_ACCOUNT[:15]}... and retry with X-PAYMENT header, or use X-BALANCE with a nano_ account that holds a prepaid balance",
                     "price_xno": price_xno,
                     "pay_to": VEND_ACCOUNT,
                     "endpoint": endpoint_path,
@@ -306,15 +357,20 @@ def paid_response(result: dict, request: Request) -> JSONResponse:
     with truncated identifiers, and returning a JSON 200/400 that does not crash
     when the module's success result has no 'error' key (the pre-.get() bug).
 
+    For balance-based calls (no per-call redemption row), skips the store
+    resolve and attaches the remaining balance instead.
+
     The caller must have already passed require_payment — this function reads
     ``request.state.payment`` which was set by a successful payment check.
     """
     payment = request.state.payment
 
-    store.resolve(
-        payment.get("block_hash", ""),
-        "delivered" if not result.get("error") else "failed",
-    )
+    if not payment.get("is_balance"):
+        # Per-call redemption: mark delivered/failed in the store
+        store.resolve(
+            payment.get("block_hash", ""),
+            "delivered" if not result.get("error") else "failed",
+        )
 
     result["payment"] = {
         "amount_xno": raw_to_xno(payment["amount_raw"]),
@@ -332,6 +388,14 @@ def paid_response(result: dict, request: Request) -> JSONResponse:
         result["payment"]["trial_limit"] = trial_info["trial_limit"]
         headers["X-Trial-Remaining"] = str(trial_info["trial_remaining"])
         headers["X-Trial-Limit"] = str(trial_info["trial_limit"])
+
+    # Flag balance-based calls and add balance-remaining header
+    balance_info = getattr(request.state, "balance_info", None)
+    if balance_info and isinstance(balance_info, dict):
+        result["payment"]["used_balance"] = True
+        result["payment"]["balance_remaining_raw"] = balance_info["remaining_raw"]
+        result["payment"]["balance_remaining_xno"] = raw_to_xno(balance_info["remaining_raw"])
+        headers["X-Balance-Remaining"] = balance_info["remaining_raw"]
 
     status_code = 200 if not result.get("error") else 400
     return JSONResponse(content=result, status_code=status_code, headers=headers or None)
@@ -901,7 +965,27 @@ def x402_manifest():
                         "payTo": VEND_ACCOUNT
                     }
                 ]
-            }
+            },
+            {   # Balance endpoint (free check)
+                "url": f"{BASE_URL}/api/v1/balance",
+                "method": "GET",
+                "description": "Prepaid balance check. Free (no payment required). Accepts ?account=nano_... or X-BALANCE header.",
+                "accepts": []
+            },
+            {   # Balance top-up endpoint
+                "url": f"{BASE_URL}/api/v1/balance/top-up",
+                "method": "POST",
+                "description": "Fund prepaid balance from Nano send to treasury. Requires X-PAYMENT header. Credits full send amount to sender's balance.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
         ],
         "contact": "vend@paypercall.dev",
         "docs": "https://paypercall.dev/",
@@ -1004,6 +1088,16 @@ async def well_known_agent_json():
                 "method": "GET",
                 "params": {"ip": {"type": "string", "description": "IP address to locate", "required": True}},
                 "price": PRICE_GEO_XNO,
+                "currency": "XNO",
+            },
+            {
+                "id": "balance-topup",
+                "name": "Top-up Prepaid Balance",
+                "description": "Deposit XNO to prepaid balance via X-PAYMENT header. Full amount credited to sender. Draw from balance on subsequent calls via X-BALANCE header.",
+                "endpoint": f"{BASE_URL}/api/v1/balance/top-up",
+                "method": "POST",
+                "params": {},
+                "price": 0,
                 "currency": "XNO",
             },
         ],
@@ -1454,6 +1548,24 @@ async def well_known_agent_tools():
                     "price_xno": PRICE_NANO_XNO,
                     "price_raw": PRICE_NANO_RAW,
                     "pay_to": VEND_ACCOUNT
+                },
+                # Prepaid balance endpoints (free to query, paid to fund)
+                {
+                    "path": "/api/v1/balance",
+                    "url": f"{BASE_URL}/api/v1/balance",
+                    "method": "GET",
+                    "description": "Prepaid balance check. Accepts ?account=nano_... or X-BALANCE header. Free (no payment required).",
+                    "price_xno": 0,
+                    "free": true
+                },
+                {
+                    "path": "/api/v1/balance/top-up",
+                    "url": f"{BASE_URL}/api/v1/balance/top-up",
+                    "method": "POST",
+                    "description": "Fund a prepaid balance from a Nano send to the treasury. Requires X-PAYMENT header.",
+                    "price_xno": 0,
+                    "free": false,
+                    "requires": "X-PAYMENT"
                 }
             ]
         },
@@ -1735,6 +1847,185 @@ async def nano_info_endpoint(
 
     # Payment confirmed and account provided — do the lookup
     return run_paid_work(request, nano_account_info, account)
+
+
+# ── Prepaid balance endpoints ─────────────────────────────────────────
+
+
+@app.post("/api/v1/balance/top-up")
+async def balance_topup(request: Request):
+    """Credit a prepaid balance from a confirmed Nano on-chain payment.
+
+    Accepts an X-PAYMENT header with a valid Nano block hash that has been
+    sent to the treasury (VEND_ACCOUNT).  The full amount of the send is
+    credited to the sender's account (the 'source' of the block).
+
+    The caller can then use X-BALANCE instead of X-PAYMENT on subsequent
+    calls to the regular paid endpoints, drawing from their balance.
+
+    Returns the credited account, amount, and new total balance.
+    """
+    block_hash = extract_payment_block(request)
+    if not block_hash:
+        return JSONResponse(
+            status_code=402,
+            content={
+                "error": "payment_required",
+                "message": "Provide a Nano block hash via X-PAYMENT header to fund your balance",
+            },
+        )
+
+    # Verify on-chain
+    # For top-ups, we accept ANY amount >= the smallest endpoint price
+    verification = verify_payment(block_hash, PRICE_RAW, VEND_ACCOUNT)
+    if not verification["valid"]:
+        return JSONResponse(
+            status_code=402,
+            content={
+                "error": "payment_invalid",
+                "message": verification["message"],
+                "block_hash": block_hash,
+            },
+        )
+
+    source = verification.get("source", "")
+    if not source:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "no_source",
+                "message": "Could not determine the sender account from this block",
+                "block_hash": block_hash,
+            },
+        )
+
+    amount_raw = verification.get("amount_raw", "0")
+
+    # Credit the balance (UNIQUE constraint on block_hash prevents replay)
+    credited = store.top_up(block_hash, source, amount_raw)
+    if not credited:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": "block_already_used",
+                "message": "This payment block has already been used for a top-up",
+                "block_hash": block_hash,
+            },
+        )
+
+    new_balance = store.balance_of(source)
+    log.info(
+        "TOPUP: account=%s amount=%s raw new_balance=%s raw block=%s",
+        source, amount_raw, new_balance, block_hash,
+    )
+
+    return JSONResponse(content={
+        "status": "credited",
+        "account": source,
+        "amount_xno": raw_to_xno(amount_raw),
+        "amount_raw": amount_raw,
+        "new_balance_xno": raw_to_xno(str(new_balance)),
+        "new_balance_raw": str(new_balance),
+        "block_hash": block_hash,
+        "note": "Use X-BALANCE header with your account address on subsequent calls to draw from this balance",
+    })
+
+
+@app.get("/api/v1/balance")
+async def balance_check(
+    request: Request,
+    account: str = Query(None, description="Nano account to check balance for (nano_...)"),
+):
+    """Check the prepaid balance for a Nano account.
+
+    If no *account* parameter is given, reads from the X-BALANCE header
+    instead.  Returns the current balance in raw and XNO.
+    """
+    bal_account = account
+    if not bal_account:
+        bal_account = extract_balance_account(request)
+
+    if not bal_account:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "account_required",
+                "message": "Provide ?account=nano_... or X-BALANCE header",
+            },
+        )
+
+    balance_raw = store.balance_of(bal_account)
+    topup_history = store.get_topup_history(bal_account, limit=5)
+
+    return JSONResponse(content={
+        "account": bal_account,
+        "balance_raw": str(balance_raw),
+        "balance_xno": raw_to_xno(str(balance_raw)) if balance_raw > 0 else "0",
+        "topup_count": len(topup_history),
+        "recent_topups": [
+            {
+                "amount_xno": raw_to_xno(t["amount_raw"]),
+                "amount_raw": t["amount_raw"],
+                "block_hash": f"{t['block_hash'][:12]}...",
+                "at": t["created_at"],
+            }
+            for t in topup_history
+        ] if topup_history else [],
+    })
+
+
+@app.get("/api/v1/balance/topups")
+async def balance_topups_list(
+    request: Request,
+    account: str = Query(None, description="Nano account to list topups for"),
+):
+    """List top-up transactions for a Nano account."""
+    bal_account = account
+    if not bal_account:
+        bal_account = extract_balance_account(request)
+    if not bal_account:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "account_required", "message": "Provide ?account=nano_..."},
+        )
+    topups = store.get_topup_history(bal_account, limit=50)
+    balance_raw = store.balance_of(bal_account)
+    return JSONResponse(content={
+        "account": bal_account,
+        "balance_raw": str(balance_raw),
+        "balance_xno": raw_to_xno(str(balance_raw)) if balance_raw > 0 else "0",
+        "topup_count": len(topups),
+        "topups": topups,
+    })
+
+
+# --- Admin / Monitor endpoints ---
+
+@app.get("/api/v1/admin/balances")
+async def admin_balances(request: Request):
+    """(Internal) List all accounts with non-zero prepaid balances.
+
+    No auth — accessible only via localhost for monitoring.  Returns a
+    live snapshot of the balances table.
+    """
+    if request.client and request.client.host:
+        # Only allow from loopback
+        if request.client.host not in ("127.0.0.1", "::1", "localhost"):
+            return JSONResponse(status_code=403, content={"error": "local_only"})
+    balances = store.get_all_balances()
+    return JSONResponse(content={
+        "total_accounts": len(balances),
+        "balances": [
+            {
+                "account": b["account"][:15] + "...",
+                "balance_xno": raw_to_xno(b["balance_raw"]),
+                "balance_raw": b["balance_raw"],
+                "total_topup_xno": raw_to_xno(b["total_topup_raw"]),
+                "updated_at": b["updated_at"],
+            }
+            for b in balances
+        ],
+    })
 
 
 # --- Run ---
