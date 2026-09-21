@@ -252,7 +252,8 @@
     {
       "directory": "nohumans.directory",
       "url": "https://nohumans.directory/l/614f2572-bd5",
-      "status": "verified"
+      "status": "verified",
+      "note": "ALL 5 Vend endpoints VERIFIED as of 2026-09-21: extract(614f2572-bd5), geoip(2a406239-a41), check-link(d7c5f05d-332), domain-info(f11a7489-f87), web-search(71b91915-047). Nano-capable x402 directory (chain: nano). Cleaned up a stale duplicate search listing (was /v1/search, 404) and re-verified the correct /api/v1/web-search is live+verified."
     },
     {
       "directory": "Satring",
