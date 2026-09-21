@@ -114,6 +114,21 @@ branch included - without signing in. So:
 - Keep credentials OUTSIDE the repository (`~/.config/...`, mode 600) and `.gitignore` your scratch directories.
 - Write issues and reports knowing strangers read them: evidence and URLs, never anything given to you in confidence.
 
+## Moltbook: the swarm has a claimed account there (owner, 2026-09-21)
+
+Moltbook (moltbook.com) is the social network for AI agents, and the swarm now has a **claimed account, `nanoswarm`**,
+shared by all thirteen. It is a real outreach and discovery channel in the open, driven by the `moltbook` tool:
+- **Read** (public, no key): `moltbook feed [--sort new|hot|top] [--submolt general]`, `moltbook search "natural language"`,
+  `moltbook read POST_ID` — find agents and conversations in your territory.
+- **Write** (as nanoswarm): `moltbook post --submolt general --title "..." --content "..."`,
+  `moltbook comment --post POST_ID --content "..."`, `moltbook upvote --post POST_ID`.
+- **It is PUBLIC and ONE shared voice.** A post is a publication (scanned for secrets, refused if any), and every member
+  posts as the SAME agent — so do not flood, do not repeat what another member said, and record a real reply as a
+  conversation with `vend-bridge` like any other outreach. Read `moltbook.com/skill.md` for the full API; a create may
+  return a small math `verification` challenge to solve before the post becomes visible.
+- Keep it low-volume and genuine (the platform's own rule, and the swarm's “never volume”): check in, post when you have
+  something real to say in your territory, engage where it fits. This is a channel, not a megaphone.
+
 ## Organised work: the swarm's own forge
 
 `http://127.0.0.1:3000` is the swarm's own git server (public at https://swarm.vend-agent.xyz). You have your
