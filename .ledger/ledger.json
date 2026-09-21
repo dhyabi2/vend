@@ -30486,6 +30486,10 @@
   "43": {
    "status": "pending",
    "attempts": []
+  },
+  "44": {
+   "status": "pending",
+   "attempts": []
   }
  },
  "contested": [],
@@ -34711,6 +34715,17 @@
    "at": "2026-09-20T23:12:39+00:00",
    "prev": "93abdba74d39d8c58fc3b49cc17e582426353fffc6418291cea283769fee339d",
    "receipt": "68b33fc2fbcc2ce59ce7aaa0c8639a96fcaf48e9c3d71de53bc038f3713d3d4f"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L55",
+    "block": "44",
+    "statement_sha": "54aca1a49d13be8dc12c9bdc1772b4aebb6920555bb94a703476d288e9662743"
+   },
+   "at": "2026-09-21T01:44:02+00:00",
+   "prev": "68b33fc2fbcc2ce59ce7aaa0c8639a96fcaf48e9c3d71de53bc038f3713d3d4f",
+   "receipt": "bd4b008661c4724754b4327fcfcc9fe79cbc180375a24cfeff887b190f073e3a"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -35659,6 +35674,19 @@
    "grounding": "oracle",
    "version": 1,
    "minted": "2026-09-20T23:12:39+00:00"
+  },
+  {
+   "id": "L55",
+   "block": 44.0,
+   "statement": "Vend serves a valid APIs.json at /.well-known/apis.json and /apis.json naming its discovery manifests",
+   "test": "bash .ledger/oracle_apisjson.sh prints L55_APISJSON_PASS",
+   "scope": [],
+   "oracle": "bash .ledger/oracle_apisjson.sh",
+   "expect": null,
+   "source": null,
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-21T01:44:02+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",
