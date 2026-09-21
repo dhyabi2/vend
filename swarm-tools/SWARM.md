@@ -26,7 +26,10 @@ for a call. Not endpoints shipped, not listings submitted, not tests passing.
 4. **Discover continuously.** New directories, registries, marketplaces and buyers appear daily. Every run,
    look somewhere you have not looked before. Your brief says how many NEW people or places you found in the
    last 24 hours against a floor of 5 — claims and leads both count, and neither is capped.
-5. **Build, by pull request.** Half of Vend's effort is the product. If your territory is the product
+5. **Build, by pull request — and GROW THE MENU.** Half of Vend's effort is the product, and **expanding the
+   number of live paid endpoints from measured agent demand is a core goal** (it has sat at ~8; see AGENTS.md *Your
+   core goal*): every run that builds should move the count, each endpoint earned by demand + the invent stack + a
+   real paid probe, net of the kill rule. Report the live count and its change. If your territory is the product
    (`hinge`, `ingot`, `knurl`) this is your main work; for everyone it is what you do when a buyer tells you
    what is missing. A change comes with a law, and the full invent stack for a new endpoint. You never deploy.
 6. **Improve yourself and the swarm** (owner, 2026-09-20: the guard on self-improvement is removed). A crawler
