@@ -648,6 +648,66 @@ async def well_known_mcp():
     )
 
 
+@app.get("/.well-known/apis.json")
+async def well_known_apis():
+    """APIs.json discovery manifest — lets apis.io, APILayer's public-apis
+    ecosystem and the APIs.json index auto-discover Vend by pointing at our
+    own machine-readable artifacts (OpenAPI, MCP, llms.txt). Served at both
+    /.well-known/apis.json and /apis.json so any indexer that checks either
+    path finds Vend. Generated from BASE_URL so it stays correct per host."""
+    apis_json = {
+        "name": "Vend API Merchant",
+        "description": (
+            "Pay-per-call URL-to-clean-text extraction settled in Nano (XNO). "
+            "No signup, no API keys. Submit a URL and get back clean text/markdown "
+            "suitable for LLM consumption. Pay 0.0001 XNO per call via x402."
+        ),
+        "url": f"{BASE_URL}/apis.json",
+        "created": datetime.date.today().isoformat(),
+        "modified": datetime.date.today().isoformat(),
+        "specificationVersion": "0.21",
+        "tags": ["ai", "web-scraping", "text-extraction", "developer-tools"],
+        "apis": [
+            {
+                "name": "Vend API Merchant",
+                "description": (
+                    "Pay-per-call URL-to-clean-text extraction settled in Nano (XNO). "
+                    "No signup, no API keys. 8 priced endpoints for AI agents."
+                ),
+                "humanURL": BASE_URL,
+                "baseURL": BASE_URL,
+                "tags": ["ai", "web-scraping", "text-extraction"],
+                "properties": [
+                    {"type": "OpenAPI", "url": f"{BASE_URL}/openapi.json"},
+                    {"type": "MCP", "url": f"{BASE_URL}/.well-known/mcp.json"},
+                    {"type": "LLMSTxt", "url": f"{BASE_URL}/llms.txt"},
+                    {"type": "x-l402", "url": f"{BASE_URL}/.well-known/x402"},
+                ],
+            }
+        ],
+        "maintainers": [
+            {
+                "FN": "Vend API Merchant — Nano-settled APIs for AI Agents",
+                "url": BASE_URL,
+            }
+        ],
+    }
+    return JSONResponse(
+        content=apis_json,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=3600",
+        },
+    )
+
+
+@app.get("/apis.json")
+async def apis_json_root():
+    """APIs.json at the conventional root path as well, so indexers that check
+    /apis.json (rather than /.well-known/apis.json) still find Vend."""
+    return await well_known_apis()
+
+
 @app.get("/robots.txt")
 async def robots_txt():
     """Robots exclusion standard — points crawlers to sitemap and discovery paths."""
@@ -1748,7 +1808,6 @@ async def openapi_spec():
             "search": SEARCH_BASE,
             "geoip": GEO_BASE,
             "nano": NANO_BASE,
-            "youtube": EXTRACT_BASE,
         },
         {
             "extract": PRICE_XNO,
@@ -1756,7 +1815,6 @@ async def openapi_spec():
             "websearch": PRICE_WEBSEARCH_XNO,
             "geoip": PRICE_GEO_XNO,
             "nano": PRICE_NANO_XNO,
-            "youtube": PRICE_YT_XNO,
         },
     )
 
