@@ -30482,6 +30482,10 @@
   "42": {
    "status": "pass",
    "attempts": []
+  },
+  "43": {
+   "status": "pending",
+   "attempts": []
   }
  },
  "contested": [],
@@ -34696,6 +34700,17 @@
    "at": "2026-09-20T08:06:26+00:00",
    "prev": "aede4cab0d47b4055fae43ab1b1917035e4d29c666481700ea0c1b4a728f6f0b",
    "receipt": "93abdba74d39d8c58fc3b49cc17e582426353fffc6418291cea283769fee339d"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L54",
+    "block": "43",
+    "statement_sha": "76ec392aa32325417620d2bbbc1eb27dc6a78a6f14d04830a3a33d926ee9f9b2"
+   },
+   "at": "2026-09-20T23:12:39+00:00",
+   "prev": "93abdba74d39d8c58fc3b49cc17e582426353fffc6418291cea283769fee339d",
+   "receipt": "68b33fc2fbcc2ce59ce7aaa0c8639a96fcaf48e9c3d71de53bc038f3713d3d4f"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -35627,6 +35642,23 @@
    "grounding": "oracle",
    "version": 1,
    "minted": "2026-09-20T08:06:13+00:00"
+  },
+  {
+   "id": "L54",
+   "block": 43.0,
+   "statement": "OpenAPI manifest lists all 8 paid API endpoints including youtube-transcript, each with a price and a 402 response.",
+   "test": "bash .ledger/oracle_L55.sh",
+   "scope": [
+    "endpoint_meta.py",
+    "server.py",
+    ".ledger/oracle_L55.sh"
+   ],
+   "oracle": "bash .ledger/oracle_L55.sh",
+   "expect": "L55_PASS",
+   "source": null,
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-20T23:12:39+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",

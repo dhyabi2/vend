@@ -10,10 +10,12 @@ Pay-per-call APIs settled in Nano (XNO). No signup, no API keys — just HTTP 40
 |---|---|---|
 | `GET /api/v1/extract?url=` | 0.0001 | Extract clean text/markdown from any web page |
 | `GET /api/v1/check-link?url=` | 0.0001 | Check HTTP status, response time, redirect chain |
+| `GET /api/v1/status?url=&previous_hash=` | 0.0001 | URL status, redirects, TLS expiry and content drift |
 | `GET /api/v1/domain-info?domain=` | 0.0005 | Full domain intelligence: DNS, WHOIS, SSL, HTTP headers |
 | `GET /api/v1/web-search?q=` | 0.0001 | Web search via DuckDuckGo — titles, URLs, snippets |
 | `GET /api/v1/geoip?ip=` | 0.0001 | IP geolocation — country, city, coordinates, ISP, ASN |
 | `GET /api/v1/nano-info?account=` | 0.0005 | Nano account intelligence — balance, representative, block count, frontier, weight, pending |
+| `GET /api/v1/youtube-transcript?url=` | 0.0005 | Captions/transcript from a YouTube video |
 
 ## Quick buyer guide
 

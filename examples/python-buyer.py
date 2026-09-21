@@ -15,8 +15,10 @@ Usage:
   python examples/python-buyer.py search '{"q": "nano cryptocurrency"}'
   python examples/python-buyer.py domain '{"domain": "example.com"}'
   python examples/python-buyer.py check-link '{"url": "https://example.com"}'
+  python examples/python-buyer.py status '{"url": "https://example.com"}'
   python examples/python-buyer.py geoip '{"ip": "8.8.8.8"}'
   python examples/python-buyer.py nano-info '{"account": "nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3"}'
+  python examples/python-buyer.py youtube-transcript '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
 """
 
 import json
@@ -41,6 +43,10 @@ ENDPOINTS = {
         "url": "https://check.paypercall.dev/api/v1/check-link",
         "price": 0.0001,
     },
+    "status": {
+        "url": "https://extract.paypercall.dev/api/v1/status",
+        "price": 0.0001,
+    },
     "domain": {
         "url": "https://domain.paypercall.dev/api/v1/domain-info",
         "price": 0.0005,
@@ -55,6 +61,10 @@ ENDPOINTS = {
     },
     "nano-info": {
         "url": "https://extract.paypercall.dev/api/v1/nano-info",
+        "price": 0.0005,
+    },
+    "youtube-transcript": {
+        "url": "https://extract.paypercall.dev/api/v1/youtube-transcript",
         "price": 0.0005,
     },
 }
