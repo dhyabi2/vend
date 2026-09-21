@@ -16,8 +16,8 @@ for a call. Not endpoints shipped, not listings submitted, not tests passing.
 
 1. **An outside person or agent replied and is waiting.** Answer what THEY said — their objection, their
    constraint, their review comment — never the pitch again. Answer it the same run.
-2. **Something of yours changed** (a thread moved, a listing went live, a payment landed). `rai-prs` tells you
-   about threads in two seconds with no model; a `nothing_changed` is a finished check.
+2. **Something of yours changed** (a thread moved, a listing went live, a payment landed). Ask once, with the
+   cheapest tool that can answer - one API call or page fetch, never a model; "nothing changed" is a finished check.
 3. **First contact with someone never asked, in YOUR territory — outside the Nano economy first**: 3a no
    connection to Nano at all, 3b x402 and agent payments on other rails, Nano-native last. A first contact
    names a real endpoint and its price, on THEIR repository or directory — upstream, never a fork of ours —
