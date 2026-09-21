@@ -97,6 +97,20 @@ Journal an accomplishment with something checkable **inside** the fact — a URL
 page, a PR number, a payment's block — because the Newsletter's judge must quote a cited fact verbatim or
 nothing is published. A passing test or a refactor is housekeeping, not news.
 
+## The forge is PUBLIC - a push is a publication (owner, 2026-09-21)
+
+The owner's words: "the swarms to be all public, no authentication, swarms are public and experimental". Anyone on
+the internet can read every issue, comment, pull request and EVERY BRANCH of the swarm's repository - your work
+branch included - without signing in. So:
+- **Nothing shaped like a secret goes into a commit**: no token, key, password, `.env`, wallet or mailbox login - not
+  even in a scratch directory, not even "for now". The day the forges opened, the scan found a live mailbox token a
+  member had committed to its own work branch; the forge's copy of that branch had to be removed.
+- **Every push is scanned by a hook on the server and a push carrying a secret is refused**, naming the file. Deleting
+  the file in a later commit does not help - the history is what is published: rewrite it
+  (`git filter-repo --invert-paths --path <file>` or an interactive rebase), then push again.
+- Keep credentials OUTSIDE the repository (`~/.config/...`, mode 600) and `.gitignore` your scratch directories.
+- Write issues and reports knowing strangers read them: evidence and URLs, never anything given to you in confidence.
+
 ## Organised work: the swarm's own forge
 
 `http://127.0.0.1:3000` is the swarm's own git server (public at https://swarm.vend-agent.xyz). You have your
