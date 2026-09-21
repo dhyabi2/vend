@@ -30490,6 +30490,10 @@
   "44": {
    "status": "pending",
    "attempts": []
+  },
+  "46": {
+   "status": "pending",
+   "attempts": []
   }
  },
  "contested": [],
@@ -34726,6 +34730,17 @@
    "at": "2026-09-21T01:44:02+00:00",
    "prev": "68b33fc2fbcc2ce59ce7aaa0c8639a96fcaf48e9c3d71de53bc038f3713d3d4f",
    "receipt": "bd4b008661c4724754b4327fcfcc9fe79cbc180375a24cfeff887b190f073e3a"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L56",
+    "block": "46",
+    "statement_sha": "6d8783f97dbf7aceca4bd0a4b1461eb14bb4f848280c4ec7f337d97246cafd61"
+   },
+   "at": "2026-09-21T01:55:24+00:00",
+   "prev": "bd4b008661c4724754b4327fcfcc9fe79cbc180375a24cfeff887b190f073e3a",
+   "receipt": "628af482341485fd0948878398ce7953361127c53e364c490782fed36c719729"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -35687,6 +35702,19 @@
    "grounding": "oracle",
    "version": 1,
    "minted": "2026-09-21T01:44:02+00:00"
+  },
+  {
+   "id": "L56",
+   "block": 46.0,
+   "statement": "Vend accepts PAYMENT-SIGNATURE: broadcasts and confirms the block then redeems like a self-broadcast",
+   "test": "bash .ledger/oracle_L56.sh prints L56_PASS",
+   "scope": [],
+   "oracle": "bash .ledger/oracle_L56.sh",
+   "expect": null,
+   "source": null,
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-21T01:55:24+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",

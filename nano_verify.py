@@ -19,6 +19,13 @@ NANO_RPC_URL = os.environ.get("NANO_RPC_URL", "https://rpc.nano.to")
 NANO_RPC_KEY = os.environ.get("NANO_RPC_KEY", "")
 VEND_ACCOUNT = os.environ.get("NANO_AGENT_ACCOUNT", "")
 
+# Seconds to wait for a broadcast send block to confirm before treating the
+# payment as not-settled.  Nano finality is sub-second but the public RPC can
+# lag, so give a confirmed block a short window; never wait forever on a fork
+# or a block that will never confirm.
+PAYMENT_CONFIRM_TIMEOUT_S = float(os.environ.get("VEND_CONFIRM_TIMEOUT", "8"))
+PAYMENT_CONFIRM_POLL_S = float(os.environ.get("VEND_CONFIRM_POLL", "0.5"))
+
 
 def _price_to_raw(price_xno: float) -> int:
     """Convert an XNO price to raw integers without float drift.
@@ -73,6 +80,243 @@ def raw_to_xno(raw: str) -> str:
         return f"{val / 1e30:.6f}"
     except (ValueError, TypeError):
         return "unknown"
+
+
+_ACCOUNT_RE = re.compile(r"^(?:nano|xrb)_[13][13-9a-km-uw-z]{59}$")
+
+
+def is_account(s: str) -> bool:
+    """True if *s* looks like a Nano account address (loose format check)."""
+    return isinstance(s, str) and bool(_ACCOUNT_RE.match(s))
+
+
+def _block_hash_of(block: dict) -> Optional[str]:
+    """Compute/recover the block hash for a send state block.
+
+    Uses Nano's ``block_hash`` RPC (it recomputes the hash from the block
+    contents using the spec's hashing rules), returning uppercase hex.
+    """
+    if not isinstance(block, dict):
+        return None
+    try:
+        resp = httpx.post(
+            NANO_RPC_URL,
+            json={"action": "block_hash", "json_block": "true", "block": block},
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            h = data.get("hash", "")
+            if _HEX64.match(h):
+                return h.upper()
+    except Exception:
+        pass
+    return None
+
+
+def parse_payment_signature(header_value: str) -> Optional[dict]:
+    """Parse a ``PAYMENT-SIGNATURE`` header into its PaymentPayload dict.
+
+    The header is a base64-encoded JSON PaymentPayload (x402 exact scheme):
+    ``{x402Version, resource, accepted, payload: {block: {...}}}``.  Returns
+    the parsed dict, or ``None`` if it is not a parseable PaymentPayload.
+
+    This is deliberately separate from ``parse_block_hash``: a PaymentPayload
+    is not a bare 64-hex hash and the old parser must keep accepting the
+    self-broadcast dialect (``X-PAYMENT: <hash>``) unchanged.
+    """
+    if not header_value:
+        return None
+    raw = header_value.strip()
+    if _HEX64.match(raw):
+        # A bare hash has no payload.block; not a PaymentPayload.
+        return None
+    try:
+        decoded = base64.b64decode(raw, validate=True).decode("utf-8", errors="replace")
+        payload = json.loads(decoded)
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError, TypeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    block = (payload.get("payload") or {}).get("block")
+    if not isinstance(block, dict) or not block:
+        return None
+    return payload
+
+
+def block_decrement_amount(block: dict) -> Optional[int]:
+    """The raw amount a send state block transfers = previous.balance - new.balance.
+
+    A send block's ``balance`` field is the *remaining* balance after the
+    transfer, so the amount sent is the previous block's balance minus the new
+    balance.  This matches the x402 exact scheme's verification step 2.  The
+    previous balance must be fetched on-ledger via ``block_info``.
+    """
+    previous = block.get("previous", "")
+    if not _HEX64.match(previous):
+        return None
+    try:
+        prev_info = check_block_exists(previous)
+    except Exception:
+        return None
+    if not prev_info or "contents" not in prev_info:
+        return None
+    contents = prev_info.get("contents", {})
+    if isinstance(contents, str):
+        try:
+            contents = json.loads(contents)
+        except json.JSONDecodeError:
+            return None
+    prev_balance = contents.get("balance")
+    new_balance = block.get("balance")
+    if prev_balance is None or new_balance is None:
+        return None
+    try:
+        return int(prev_balance) - int(new_balance)
+    except (ValueError, TypeError):
+        return None
+
+
+def broadcast_block(block: dict) -> dict:
+    """Broadcast a signed Nano state block via RPC ``process``.
+
+    Returns a dict mirroring the RPC response:
+      - on success: ``{"ok": True, "hash": <uppercase-hex>}``
+      - on rejection/error: ``{"ok": False, "error": <str>}``
+
+    Processing the block validates the signature, work and balance against the
+    ledger before it is accepted into the node, so an unsigned or forged block
+    cannot be paid-for: ``process`` rejects it.
+    """
+    try:
+        resp = httpx.post(
+            NANO_RPC_URL,
+            json={"action": "process", "json_block": "true",
+                  "subtype": "send", "block": block},
+            headers={"Authorization": f"Bearer {NANO_RPC_KEY}"} if NANO_RPC_KEY else {},
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            return {"ok": False, "error": f"process RPC HTTP {resp.status_code}"}
+        data = resp.json()
+        if "error" in data:
+            return {"ok": False, "error": str(data.get("error"))}
+        h = data.get("hash", "")
+        if not _HEX64.match(h):
+            return {"ok": False, "error": f"process returned no valid hash: {data!r}"}
+        return {"ok": True, "hash": h.upper()}
+    except Exception as e:  # network / timeout
+        return {"ok": False, "error": f"process RPC unreachable: {e}"}
+
+
+def wait_for_confirmation(block_hash: str, timeout_s: float = None,
+                          poll_s: float = None) -> dict:
+    """Poll ``block_info`` until *block_hash* is a confirmed, on-ledger block.
+
+    Returns a dict with ``confirmed`` (bool) and the ``block_info`` dict when
+    confirmed.  A block that is on-ledger (``block_info`` returns contents) is
+    treated as received; confirmation depth on a healthy Nano network for a
+    single-user send is effectively immediate.
+    """
+    if timeout_s is None:
+        timeout_s = PAYMENT_CONFIRM_TIMEOUT_S
+    if poll_s is None:
+        poll_s = PAYMENT_CONFIRM_POLL_S
+    import time
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        info = check_block_exists(block_hash)
+        if info and "contents" in info:
+            return {"confirmed": True, "block_info": info}
+        if info and "error" in info:
+            # Rejected outright (e.g. not in ledger); no point waiting.
+            return {"confirmed": False, "block_info": info,
+                    "error": str(info.get("error"))}
+        time.sleep(poll_s)
+    return {"confirmed": False, "error": "timed out waiting for confirmation"}
+
+
+def confirm_signature_payment(payload: dict, expected_price_raw: str = PRICE_RAW,
+                              expected_destination: str = "") -> dict:
+    """Verify, broadcast, confirm and verify a PAYMENT-SIGNATURE payment.
+
+    Implements the x402 ``exact`` PAYMENT-SIGNATURE flow with Vend acting as
+    its own facilitator (the resource server self-facilitates -- no external
+    facilitator, matching feeless402):
+
+    1. structural checks on ``payload.block`` (type, destination);
+    2. fast-fail on destination mismatch and on a bad decrement amount;
+    3. broadcast the signed block via RPC ``process`` (validates signature,
+       work and balance on-ledger);
+    4. wait for confirmation;
+    5. re-verify the now-on-ledger block with the existing ``verify_payment``
+       (amount >= price, destination == payTo) so the returned dict has the
+       same shape the X-PAYMENT path already trusts.
+
+    Returns a dict shaped exactly like ``verify_payment``'s result so the
+    caller (server.py) needs no branching: keys valid/amount_raw/source/
+    destination/message/block_hash/accepted(optional).
+    """
+    if not isinstance(payload, dict):
+        return {
+            "valid": False, "amount_raw": "0", "source": "", "destination": "",
+            "message": "Not a payment payload",
+        }
+    if not expected_destination:
+        expected_destination = VEND_ACCOUNT
+
+    def _fail(msg: str):
+        block = (payload.get("payload") or {}).get("block") or {}
+        return {
+            "valid": False, "amount_raw": "0",
+            "source": block.get("account", ""),
+            "destination": block.get("link_as_account") or block.get("link", ""),
+            "message": msg,
+        }
+
+    block = (payload.get("payload") or {}).get("block") or {}
+    if not isinstance(block, dict) or block.get("type") != "state":
+        return _fail("PAYMENT-SIGNATURE block is not a Nano state block")
+
+    # Fast destination check before spending an RPC call or broadcasting.
+    destination = block.get("link_as_account") or block.get("link", "")
+    if destination != expected_destination:
+        return _fail(
+            f"Payment sent to wrong address: {str(destination)[:15]}... "
+            f"(expected {str(expected_destination)[:15]}...)"
+        )
+
+    # Broadcast.  ``process`` validates signature/work/balance on-ledger and
+    # rejects a forged or unsigned block, so a bad block stops here honestly.
+    res = broadcast_block(block)
+    if not res.get("ok"):
+        return _fail(f"Payment could not be broadcast: {res.get('error', 'unknown')}")
+
+    block_hash = res["hash"]
+
+    # Wait for confirmation.
+    conf = wait_for_confirmation(block_hash)
+    if not conf.get("confirmed"):
+        return {
+            "valid": False, "amount_raw": "0",
+            "source": block.get("account", ""),
+            "destination": destination,
+            "message": f"Payment broadcast but not confirmed: {conf.get('error', 'unknown')}",
+            "block_hash": block_hash,
+        }
+
+    # Re-verify the now on-ledger block exactly like a self-broadcast payment.
+    verification = verify_payment(block_hash, expected_price_raw, expected_destination)
+    verification["block_hash"] = block_hash
+    verification["broadcast_marker"] = head_and_tail(block_hash)
+    return verification
+
+
+def head_and_tail(s: str, head: int = 8, tail: int = 8) -> str:
+    """Shorten a long identifier for display, e.g. 'ABCD1234...WXYZ5678'."""
+    if len(s) <= head + tail + 3:
+        return s
+    return f"{s[:head]}...{s[-tail:]}"
 
 
 def get_account_info(account: str) -> Optional[dict]:

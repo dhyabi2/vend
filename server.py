@@ -37,6 +37,9 @@ from nano_verify import (
     PRICE_RAW,
     raw_to_xno,
     NANO_RPC_URL,
+    parse_payment_signature,
+    confirm_signature_payment,
+    head_and_tail,
 )
 from extract import extract_url
 from check_link import check_link
@@ -131,6 +134,11 @@ def extract_payment_block(request: Request) -> Optional[str]:
 
     Uses ``parse_block_hash`` from ``nano_verify`` to validate the format before
     any RPC call -- malformed input never reaches the ledger.
+
+    NOTE: a spec-compliant ``PAYMENT-SIGNATURE`` header carrying an UNBROADCAST
+    signed block (``payload.block`` is a dict) is NOT handled here — that route
+    is taken by ``require_payment`` via ``settle_signed_payment``.  We only
+    extract a broadcast hash (a 64-hex string somewhere in the header value).
     """
     for header in ("x-payment", "payment", "x-payment-signature", "payment-signature"):
         val = request.headers.get(header)
@@ -139,6 +147,17 @@ def extract_payment_block(request: Request) -> Optional[str]:
             if parsed:
                 return parsed
     return None
+
+
+def has_signed_block(request: Request) -> bool:
+    """True when the request carries an unbroadcast signed block to settle."""
+    for header in ("x-payment-signature", "payment-signature"):
+        val = request.headers.get(header)
+        if val:
+            from signed_payment import extract_signed_block
+            if extract_signed_block(val) is not None:
+                return True
+    return False
 
 
 def extract_balance_account(request: Request) -> Optional[str]:
@@ -208,6 +227,7 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
             has_input
             and remaining > 0
             and not extract_payment_block(request)
+            and not has_signed_block(request)
         )
 
         if can_trial and trial.consume(client_ip):
@@ -231,6 +251,45 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
             return True, None
 
         block_hash = extract_payment_block(request)
+        signed_present = has_signed_block(request)
+
+        # ── PAYMENT-SIGNATURE (x402 exact / feeless402) acceptance ──
+        # A stock x402 ``exact`` client does not self-broadcast: it signs a
+        # send block and submits it base64-encoded in PAYMENT-SIGNATURE,
+        # expecting the resource server to broadcast and settle it.  When a
+        # PaymentPayload is present (instead of a bare X-PAYMENT hash), Vend
+        # acts as its own facilitator: structural checks, broadcast via RPC
+        # ``process`` (which validates signature/work/balance on-ledger), wait
+        # for confirmation, then let the existing verify/redeem path handle the
+        # now-on-ledger block exactly like a self-broadcast payment.
+        if not block_hash and not signed_present:
+            pay_sig = (request.headers.get("payment-signature")
+                       or request.headers.get("x-payment-signature"))
+            sig_payload = parse_payment_signature(pay_sig) if pay_sig else None
+            if sig_payload:
+                sig_verification = confirm_signature_payment(
+                    sig_payload, price_raw, VEND_ACCOUNT
+                )
+                if not sig_verification["valid"]:
+                    return False, JSONResponse(
+                        status_code=402,
+                        content={
+                            "error": "payment_invalid",
+                            "message": sig_verification["message"],
+                            "block_hash": sig_verification.get("block_hash", ""),
+                        },
+                        headers={
+                            "X-PAYMENT-RESULT": "invalid",
+                            "X-PAYMENT-MESSAGE": sig_verification["message"],
+                        },
+                    )
+                # Confirmed block — feed into the normal verify/redeem path.
+                block_hash = sig_verification["block_hash"]
+                request.state.signature_payment = sig_verification
+                log.info(
+                    "PAYMENT-SIGNATURE: confirmed %s on %s",
+                    head_and_tail(block_hash), endpoint_path,
+                )
 
         # ── Prepaid balance check ────────────────────────────────────
         # A caller may pay once for a bucket and then draw calls from the
@@ -239,7 +298,7 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
         # zero on-chain RPC, so it is faster and lower-friction for repeat
         # callers.  The account must hold enough raw for this call's price;
         # the deduction is atomic in the store.
-        if not block_hash:
+        if not block_hash and not signed_present:
             balance_account = extract_balance_account(request)
             if balance_account:
                 balance = store.balance_of(balance_account)
@@ -267,7 +326,7 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
                     # Insufficient funds — treat as unpaid (402 below)
                 # Unrecognised header or zero balance — fall through to 402
                 # with a hint about top-up. (402 below shares this.)
-        if not block_hash:
+        if not block_hash and not signed_present:
             # No payment provided — return 402.
             #
             # The challenge is emitted in BOTH places the x402 spec expects: the
@@ -310,7 +369,25 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
             )
 
         # Verify the payment on-ledger
-        verification = verify_payment(block_hash, price_raw, VEND_ACCOUNT)
+        #
+        # Two settlement modes, both guarded here:
+        #   * self-broadcast dialect (block already on-ledger; X-PAYMENT hash) —
+        #     verify_payment reads the ledger and confirms amount+destination.
+        #   * spec-compliant PAYMENT-SIGNATURE (unbroadcast signed block) —
+        #     settle_signed_payment validates destination/amount locally, has
+        #     the node broadcast the buyer's signed block (signature enforced
+        #     by the network at process time), confirms it, and only then
+        #     returns valid.  A forged/tampered block cannot move funds.
+        if signed_present:
+            from signed_payment import settle_signed_payment
+            verification = settle_signed_payment(
+                request.headers.get("x-payment-signature")
+                or request.headers.get("payment-signature", ""),
+                price_raw,
+                VEND_ACCOUNT,
+            )
+        else:
+            verification = verify_payment(block_hash, price_raw, VEND_ACCOUNT)
 
         if not verification["valid"]:
             # Payment invalid or insufficient
@@ -378,7 +455,10 @@ def paid_response(result: dict, request: Request) -> JSONResponse:
 
     result["payment"] = {
         "amount_xno": raw_to_xno(payment["amount_raw"]),
-        "block_hash": request.headers.get("x-payment", "")[:20] + "...",
+        "block_hash": (
+            request.headers.get("x-payment", "")
+            or payment.get("block_hash", "")
+        )[:20] + "...",
         "source": payment["source"][:15] + "...",
     }
     result["receipt"] = f"paid-by-{payment['source'][:10]}"
@@ -648,6 +728,19 @@ async def well_known_mcp():
     )
 
 
+@app.get("/robots.txt")
+async def robots_txt():
+    """Robots exclusion standard — points crawlers to sitemap and discovery paths."""
+    return FileResponse(
+        os.path.join(STATIC_DIR, "robots.txt"),
+        media_type="text/plain",
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=86400",
+        },
+    )
+
+
 @app.get("/.well-known/apis.json")
 async def well_known_apis():
     """APIs.json discovery manifest — lets apis.io, APILayer's public-apis
@@ -706,19 +799,6 @@ async def apis_json_root():
     """APIs.json at the conventional root path as well, so indexers that check
     /apis.json (rather than /.well-known/apis.json) still find Vend."""
     return await well_known_apis()
-
-
-@app.get("/robots.txt")
-async def robots_txt():
-    """Robots exclusion standard — points crawlers to sitemap and discovery paths."""
-    return FileResponse(
-        os.path.join(STATIC_DIR, "robots.txt"),
-        media_type="text/plain",
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "public, max-age=86400",
-        },
-    )
 
 
 @app.get("/.well-known/nohumans-claim")
@@ -1076,8 +1156,8 @@ def x402_manifest():
             },
         ],
         "contact": "vend@paypercall.dev",
-        "docs": "https://paypercall.dev/",
-        "discovery": "https://paypercall.dev/vend-directories",
+        "docs": BASE_URL,
+        "discovery": f"{BASE_URL}/vend-directories",
         "directories": [
             {"name": "nohumans.directory", "url": "https://nohumans.directory/l/614f2572-bd5", "status": "verified"},
             {"name": "agent-tools.cloud", "url": "https://agent-tools.cloud/services/extract-paypercall-dev-sub822", "status": "verified"},
@@ -1115,7 +1195,7 @@ async def well_known_agent_json():
         "origin": BASE_URL.split("://")[1] if "://" in BASE_URL else BASE_URL,
         "payout_address": VEND_ACCOUNT,
         "display_name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 7 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info. No signup, no api keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 8 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript. No signup, no api keys.",
         "intents": [
             {
                 "id": "extract-url",
@@ -1188,6 +1268,17 @@ async def well_known_agent_json():
                 "price": 0,
                 "currency": "XNO",
             },
+            {
+                "id": "youtube-transcript",
+                "name": "YouTube Transcript",
+                "description": "Extract captions and timestamped transcript from a YouTube video URL. Returns model-sized chunks with deep-linked citations.",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/youtube-transcript']}/api/v1/youtube-transcript",
+                "method": "GET",
+                "params": {"url": {"type": "string", "description": "YouTube video URL", "required": True},
+                           "language": {"type": "string", "description": "Language code (default en)", "required": False}},
+                "price": PRICE_YT_XNO,
+                "currency": "XNO",
+            },
         ],
         "x402": {
             "api_base": f"{BASE_URL}",
@@ -1196,7 +1287,7 @@ async def well_known_agent_json():
             "account": VEND_ACCOUNT,
         },
         "contact": "vend@paypercall.dev",
-        "docs_url": "https://paypercall.dev/",
+        "docs_url": BASE_URL,
         "updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
@@ -1217,8 +1308,9 @@ async def well_known_agent_card():
         "name": "Vend API Merchant",
         "description": (
             "Pay-per-call API merchant settled in Nano (XNO): web page extraction, "
-            "link status checks, domain intelligence, web search, IP geolocation, "
-            "and Nano account info. No signup and no API keys — an unpaid call "
+            "link status checks, URL status checks, domain intelligence, web search, "
+            "IP geolocation, Nano account info and YouTube transcript extraction. "
+            "No signup and no API keys — an unpaid call "
             "returns HTTP 402 with the exact Nano amount and payout account."
         ),
         "url": f"{BASE_URL}/mcp",
@@ -1254,6 +1346,8 @@ async def well_known_agent_card():
                     "web_search": PRICE_WEBSEARCH_XNO,
                     "geoip_lookup": PRICE_GEO_XNO,
                     "nano_account_info": PRICE_NANO_XNO,
+                    "check_url_status": PRICE_XNO,
+                    "youtube_transcript": PRICE_YT_XNO,
                 },
             }
         },
@@ -1313,6 +1407,24 @@ async def well_known_agent_card():
                 "inputModes": ["text/plain"],
                 "outputModes": ["application/json"],
             },
+            {
+                "id": "check_url_status",
+                "name": "URL status check",
+                "description": "Return final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and body change vs a previous hash.",
+                "tags": ["http", "monitoring", "tls", "drift"],
+                "examples": ["Has https://example.com changed since yesterday?"],
+                "inputModes": ["text/plain"],
+                "outputModes": ["application/json"],
+            },
+            {
+                "id": "youtube_transcript",
+                "name": "YouTube transcript",
+                "description": "Extract captions and timestamped transcript from a YouTube video URL.",
+                "tags": ["youtube", "transcript", "captions", "media"],
+                "examples": ["Get the transcript of https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
+                "inputModes": ["text/plain"],
+                "outputModes": ["application/json"],
+            },
         ],
         "x402": {
             "api_base": BASE_URL,
@@ -1342,7 +1454,8 @@ def _amp_manifest():
             "description": (
                 "Pay-per-call API merchant settled in Nano (XNO): web page extraction, "
                 "link status checks, domain intelligence, web search, IP geolocation, "
-                "and Nano account info. No signup, no API key — an unpaid HTTP call "
+                "URL status checks, Nano account info, and YouTube transcript extraction. "
+                "No signup, no API key — an unpaid HTTP call "
                 "returns 402 with the exact Nano amount and payout address."
             ),
             "homepage": BASE_URL,
@@ -1360,6 +1473,13 @@ def _amp_manifest():
                  "parameters": [{"name": "url", "type": "string", "required": True,
                                  "description": "The URL to check."}],
                  "response_description": "JSON with final HTTP status, redirect chain, TLS days-to-expiry, response time."},
+                {"path": "/api/v1/status", "method": "GET",
+                 "description": "One-call URL status: final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and body content-drift vs a previous hash.",
+                 "parameters": [{"name": "url", "type": "string", "required": True,
+                                 "description": "The URL to check."},
+                                {"name": "previous_hash", "type": "string", "required": False,
+                                 "description": "Hash of a previous body to detect content drift."}],
+                 "response_description": "JSON with final HTTP status, redirect chain, TLS days-to-expiry, response time, and whether the body changed."},
                 {"path": "/api/v1/domain-info", "method": "GET",
                  "description": "Full domain intelligence: DNS, WHOIS, TLS certificate, HTTP headers.",
                  "parameters": [{"name": "domain", "type": "string", "required": True,
@@ -1380,6 +1500,13 @@ def _amp_manifest():
                  "parameters": [{"name": "account", "type": "string", "required": True,
                                  "description": "Nano account address (nano_... or xrb_...)."}],
                  "response_description": "JSON with Nano account balance, representative, weight, frontier, pending."},
+                {"path": "/api/v1/youtube-transcript", "method": "GET",
+                 "description": "Extract captions and transcript from a YouTube video URL.",
+                 "parameters": [{"name": "url", "type": "string", "required": True,
+                                 "description": "YouTube video URL (watch, youtu.be, embed or shorts format)."},
+                                {"name": "language", "type": "string", "required": False,
+                                 "description": "Language code for the transcript (default 'en')."}],
+                 "response_description": "JSON with timestamped transcript segments and model-sized deep-linked chunks."},
             ],
             "authentication": {"required": False, "type": "none"},
             "pricing": {
@@ -1600,6 +1727,18 @@ ARD_RESOURCES = [
         ["data.enrichment", "nano", "x402"],
         ["NanoAccountTool"],
     ),
+    (
+        "youtube-transcript",
+        "/api/v1/youtube-transcript",
+        "Vend YouTube Transcript (x402, Nano)",
+        [
+            "get the transcript of a YouTube video",
+            "extract captions and timestamped segments from a youtube URL",
+            "summarize what a video says from its transcript",
+        ],
+        ["data.media", "youtube", "transcript", "x402", "nano"],
+        ["YoutubeTranscriptTool"],
+    ),
 ]
 
 
@@ -1617,6 +1756,7 @@ def ard_entries() -> list:
             "/api/v1/geoip": PRICE_GEO_XNO,
             "/api/v1/nano-info": PRICE_NANO_XNO,
             "/api/v1/status": PRICE_XNO,
+            "/api/v1/youtube-transcript": PRICE_YT_XNO,
         }[path]
         entries.append(
             {
@@ -1644,7 +1784,7 @@ def ard_entries() -> list:
                     "network": "nano:mainnet",
                     "asset": "XNO",
                     "pay_to": VEND_ACCOUNT,
-                    "docs": "https://paypercall.dev/",
+                    "docs": BASE_URL,
                 },
                 "representativeQueries": queries,
             }
@@ -1661,7 +1801,7 @@ def ard_manifest() -> dict:
         "host": {
             "displayName": "Vend API Merchant",
             "identifier": "paypercall.dev",
-            "documentationUrl": "https://paypercall.dev/",
+            "documentationUrl": BASE_URL,
             "trustManifest": {
                 "identity": "https://paypercall.dev",
                 "identityType": "https",
@@ -1773,6 +1913,15 @@ async def well_known_agent_tools():
                     "price_raw": PRICE_NANO_RAW,
                     "pay_to": VEND_ACCOUNT
                 },
+                {
+                    "path": "/api/v1/youtube-transcript",
+                    "url": f"{ENDPOINT_BASE['/api/v1/youtube-transcript']}/api/v1/youtube-transcript",
+                    "method": "GET",
+                    "description": "Extract captions and timestamped transcript from a YouTube video URL. Accepts ?url=...&language=en. Charges 0.0005 XNO per call.",
+                    "price_xno": PRICE_YT_XNO,
+                    "price_raw": PRICE_YT_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
                 # Prepaid balance endpoints (free to query, paid to fund)
                 {
                     "path": "/api/v1/balance",
@@ -1808,6 +1957,8 @@ async def openapi_spec():
             "search": SEARCH_BASE,
             "geoip": GEO_BASE,
             "nano": NANO_BASE,
+            "status": EXTRACT_BASE,
+            "youtube": EXTRACT_BASE,
         },
         {
             "extract": PRICE_XNO,
@@ -1815,6 +1966,8 @@ async def openapi_spec():
             "websearch": PRICE_WEBSEARCH_XNO,
             "geoip": PRICE_GEO_XNO,
             "nano": PRICE_NANO_XNO,
+            "status": PRICE_XNO,
+            "youtube": PRICE_YT_XNO,
         },
     )
 

@@ -146,7 +146,24 @@ const data = await res.json();
 console.log(data);
 ```
 
-> **Note:** Most x402 SDKs default to USDC on Base. To pay in Nano, use an x402 client configured for `nano:mainnet`, or send the Nano payment directly and attach the block hash as `X-PAYMENT`.
+> **Note:** Vend accepts two payment dialects — a self-broadcast block hash in `X-PAYMENT` (the manual flow above), **or** a signed-but-unbroadcast block in `PAYMENT-SIGNATURE` (what a stock x402 `exact` client sends). For the second, Vend acts as its own facilitator: it broadcasts your signed block, waits for confirmation, and serves the result. You never need a USDC/Base client.
+
+### Buying with a stock x402 `exact` client (PAYMENT-SIGNATURE)
+
+A spec-written x402 `exact` client on `nano:mainnet` needs no special handling — it signs a Nano send block and sends it base64-encoded in the `PAYMENT-SIGNATURE` header. Vend verifies the block, broadcasts it via the Nano network, waits for confirmation, then serves the result exactly like a self-broadcast payment.
+
+With `feeless402` (Python, `nano:mainnet`):
+
+```python
+from feeless402 import nano_pay, negotiate
+
+# Point it at any Vend endpoint; it handles 402 -> sign -> PAYMENT-SIGNATURE -> retry.
+client = nano_pay.Client(network="nano:mainnet")
+paid = client.pay_once("https://extract.paypercall.dev/api/v1/extract?url=https://example.com")
+print(paid.json())
+```
+
+With `@x402/fetch` (JavaScript) configured for the Nano `exact` scheme, the `wrapFetchWithPayment` flow below sends `PAYMENT-SIGNATURE` automatically. Vend answers 200 once your block confirms on-ledger.
 
 ## What you get
 

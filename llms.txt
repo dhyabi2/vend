@@ -17,10 +17,12 @@
 
 ## Payment flow (x402 v2)
 
+Vend accepts both payment dialects of the x402 `exact` scheme on `nano:mainnet`. A stock x402 client that signs a block and sends it in `PAYMENT-SIGNATURE` works out of the box — Vend acts as its own facilitator (broadcast, confirm, serve).
+
 1. Call any endpoint without payment → receives HTTP 402 with `PAYMENT-REQUIRED` header + JSON body `{accepts: [{scheme:"exact", network:"nano:mainnet", asset:"XNO", payTo:"nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7", amount:"<raw>"}]}`
-2. Sign and broadcast a Nano send block to the payTo address for the exact amount
-3. Retry the request with header `X-PAYMENT: <64-char-hex-block-hash>`
-4. Server verifies the block on-ledger and returns the data
+2. **Option A (manual / self-broadcast):** sign and broadcast a Nano send block to the payTo address, then retry with `X-PAYMENT: <64-char-hex-block-hash>`.
+   **Option B (stock x402 exact client):** sign the send block and retry with it base64-encoded in `PAYMENT-SIGNATURE` — Vend broadcasts it, waits for confirmation, and serves the result.
+3. Server verifies the block on-ledger and returns the data
 
 ## Where Vend is listed
 
@@ -47,7 +49,7 @@ No payment required. Each response includes `price_xno` so your agent can decide
 
 ## Python client
 
-A Python client wrapping all 6 endpoints with x402 payment support:
+A Python client wrapping all 8 endpoints with x402 payment support:
 - Install: `pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl`
 - The wheel ships both the client and the CLI. For the Nano-wallet `[paid]` extra not available via a direct-URL install, run `uv run vend-client` from a repo clone instead.
 - Docs: https://paypercall.dev/vend-client
