@@ -277,6 +277,11 @@ def brief_line(http=call):
                 note = (f"COMMITTEE MEETING #{m['number']} IS OPEN and has not heard from you. Read it (`swarm-forge "
                         "meeting`) and give your input this run: `swarm-forge meeting-input \"what worked / what "
                         "blocked / Proposal: ... / Commitment: ...\"`. ")
+    except Refused as ex:
+        # A forge tool that cannot authenticate is not "no meeting": it is an agent cut off from its swarm. Swallowed,
+        # it cost two leads their first three hours - no inbox, no meeting, no merges, and a brief that looked normal.
+        note = (f"YOUR FORGE TOOL IS NOT WORKING ({str(ex)[:90]}): you cannot see your inbox, the meeting or pull "
+                "requests. Say so with `rai-status` and `rai-correct --what \"swarm-forge is refused\"` before anything else. ")
     except Exception:
         note = ""
     # What the OWNER reported outranks everything the swarm thought of itself. Issue #1 (anyone can accept an

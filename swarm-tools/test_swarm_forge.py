@@ -125,6 +125,19 @@ def test_meeting():
           "and only with Decisions and Commitments, and concluding closes the issue")
 
 
+def test_a_broken_forge_tool_is_never_silent():
+    """Two leads had no token where the tool looks; every call was refused and the brief looked normal for three hours."""
+    def refused(method, path, body=None):
+        raise F.Refused("no forge token at /root/.hermes/forge.token")
+    line = F.brief_line(http=refused)
+    assert "YOUR FORGE TOOL IS NOT WORKING" in line and "no forge token" in line, line
+    def flaky(method, path, body=None):
+        raise TimeoutError("the forge did not answer")
+    assert "NOT WORKING" not in F.brief_line(http=flaky), "one slow answer is not a broken tool"
+    print("PASS forge tool: a refusal to authenticate is the first thing in the brief, a single timeout is not")
+
+
 if __name__ == "__main__":
     test()
     test_meeting()
+    test_a_broken_forge_tool_is_never_silent()
