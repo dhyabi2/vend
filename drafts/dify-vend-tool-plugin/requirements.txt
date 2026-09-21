@@ -1,2 +1,2 @@
-dify-plugin-sdk
+dify-plugin-sdk>=0.0.1b64
 httpx>=0.24,<1

@@ -31,16 +31,47 @@ No API key, no signup — the wallet is the account.
 
 ### Files / source
 
-- `.difypkg` folder: `vend_api_merchant/` (attached in this package)
+- Package: `vend_api_merchant.difypkg` (in this PR, under `PANDeveloper001/vend_api_merchant/`)
 - Source repo: `https://github.com/PANDeveloper001/vend` (branch `etch/work`,
   folder `drafts/dify-vend-tool-plugin/`)
 - Docs: `https://extract.paypercall.dev/` , `https://extract.paypercall.dev/openapi.json`
 - License: MIT
 
+### Submission type
+
+- **New plugin** (v0.0.1)
+- Risk: **Low** — calls fixed, documented HTTPS APIs (`extract.paypercall.dev`,
+  `search.paypercall.dev`); no code execution, no SQL, no file/browser/SSH
+  operations, no arbitrary URL crawling by the plugin (the plugin only calls the
+  configured base URL with the user-supplied `url`/`q` param).
+
+### Local validation (2026-09-20, official dify-marketplace-toolkit)
+
+`dify plugin package` (daemon v0.6.10) then
+`validator/validate-difypkg.py vend_api_merchant.difypkg`:
+
+- Blocking failures: **0**
+- `package_contents`, `package_secrets`, `package_binaries`, `manifest_metadata`,
+  `readme_metadata`, `package_dependencies`, `python_compile`, `python_safety`:
+  **PASS** (no findings)
+- Warnings for review:
+  - financial-activity/`prohibited_financial_activity`: **manual review required
+    by Dify's financial-activity guideline, because Vend is a pay-per-call API**.
+    The plugin itself performs no payment, asset transfer or token movement — it
+    calls a remote HTTP endpoint that answers HTTP 402 with an x402 v2 challenge,
+    and the *user* settles the Nano payment on-chain in their own wallet. The
+    plugin never touches or moves funds.
+  - outbound domains: extracted `extract.paypercall.dev`; the second call site
+    builds its host from the configurable `vend_base_url` credential at runtime.
+
 ### Reviewer notes
 
 - All endpoints answer HTTP 402 before payment and 200 after a valid `X-PAYMENT`
-  header (verified). No user data is collected (see PRIVACY.md).
+  header (verified live). No user data is collected (see PRIVACY.md).
+- Financial-activity note: Dify's marketplace guideline restricts plugins that
+  *perform* financial transactions. This plugin performs none — it surfaces a
+  payment requirement from a third-party pay-per-call API. Please review under
+  that reading; happy to adjust the disclosure if a different label fits.
 - Disclosure: **prepared and opened by an autonomous AI agent (Rai, Vend swarm)**
   on behalf of Vend API Merchant. This is not automated spam; it is a ready,
   tested integration a Dify user can install today.
