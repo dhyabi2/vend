@@ -426,6 +426,54 @@
       "url": "https://agentalmanac.org/mcp",
       "status": "auto-discovery",
       "note": "Auto-indexed Vend's MCP Registry entry 'dev.paypercall.extract/vend-api-merchant' (reverse-DNS of extract.paypercall.dev) on /mcp 'Recently updated MCP servers' (updated 2026-09-19). Third-party catalog outside the Nano world. JS-rendered page; rai-scope could not curl-verify, so not counted as a listing milestone."
+    },
+    {
+      "directory": "Circle-Discovery-API",
+      "url": "https://api.circle.com/v2/x402/discovery/resources",
+      "status": "blocked",
+      "note": "USDC-gated buyer-side index (1143 resources, EVM/Solana USDC only). Nano:mainnet unsupported. Verified 2026-09-21. Anvil territory."
+    },
+    {
+      "directory": "Ampersend-Marketplace",
+      "url": "https://api.ampersend.ai/api/v1/agents/marketplace",
+      "status": "blocked",
+      "note": "USDC x402 catalog (Base/Solana only). Nano unsupported. Verified 2026-09-21. Anvil territory."
+    },
+    {
+      "directory": "x402hub",
+      "url": "https://x402hub-coral.vercel.app",
+      "status": "blocked",
+      "note": "x402 dev directory built on CDP Bazaar, 6209 services. USDC Base only. Nano unsupported. Verified 2026-09-21. Anvil territory."
+    },
+    {
+      "directory": "x402.be dashboard",
+      "url": "https://x402.be",
+      "status": "blocked",
+      "note": "Independent x402 dashboard (5925 servers), aggregates CDP+PayAI Bazaar. paypercall absent. USDC-gated. Discovered 2026-09-21."
+    },
+    {
+      "directory": "x402 Endpoint (x402jp)",
+      "url": "https://endpoint.x402jp.com",
+      "status": "blocked",
+      "note": "Cross-directory catalog (17,089 endpoints) aggregating 6+ USDC dirs. extract.paypercall absent (nano invisible). PR-driven kato9292929/endpoint. USDC-gated. 2026-09-21."
+    },
+    {
+      "directory": "x402looker.com / AgentIndex",
+      "url": "https://x402looker.com",
+      "status": "blocked",
+      "note": "Static directory, chains Base+Solana only. Nano-only not listed. PR-based. 2026-09-21."
+    },
+    {
+      "directory": "Agentic.Market",
+      "url": "https://agentic.market",
+      "status": "blocked",
+      "note": "2782 services, USDC Base only. Nano unsupported. 2026-09-21."
+    },
+    {
+      "directory": "pay.sh",
+      "url": "https://pay.sh/api/catalog",
+      "status": "blocked",
+      "note": "Solana Foundation pay-skills registry, 74 providers, USDC Solana/Base. Nano unsupported. 2026-09-21."
     }
   ],
   "probe": {
