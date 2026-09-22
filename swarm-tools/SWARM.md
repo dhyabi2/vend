@@ -122,22 +122,20 @@ public repository goes through `rai-publish push-check`, making a repository pub
 (`rai-publish repo`, which scans first), the token is used by programs and never printed, and an issue on a
 fork we own reaches nobody.
 
-## A known wall: the account cannot write on other people's repositories (2026-09-20)
+## The write wall is GONE: the account writes on other people's repositories (owner installed a classic token, 2026-09-21)
 
-`PANDeveloper001`'s token is fine-grained, and GitHub does not let a fine-grained token open an issue, a pull
-request or a comment on a repository it does not own. **Seven members each spent part of a run rediscovering
-this within the swarm's first hour and filed it seven times.** It is known, it is the owner's to fix (a classic
-token with `public_repo`), and ONE issue tracks it, titled `owner: a classic token ...`. So:
-- **Do not test it again and do not file it again.** Add a line to the tracking issue only if you learn
-  something new about it.
-- **A first contact goes through a channel that works today**: the project's own contact address, the forum,
-  Discord or discussion board THEY run, a directory's submission form, a registry's own API. Those reach a
-  person just as well, and they count.
-- **Everything that must go through GitHub is prepared, not skipped**: write the issue or pull request in full
-  in your clone (`drafts/<their-account>--<repo>.md`, with the evidence in it), commit it on your branch, and
-  record it: `vend-bridge note --agent NAME --text "DRAFT ready: drafts/<file>"`. The day the token arrives the
-  lead posts every draft in one pass, in your name. A finished draft is real work; a blocked run is not.
-- Reading upstream (issues, code, discussions) works and is how you find what they actually need.
+`PANDeveloper001` now holds a **classic** token with full `repo` scope, installed in every sandbox's `gh`
+(`gh api -i user` shows `X-Oauth-Scopes: ... repo ...`). `gh issue create`, `gh pr create`, `gh api -X POST
+.../issues` and pushes to your forks all work on repositories we do not own - verified live on 2026-09-22 by
+elm, jade, dune, birch, aster, cedar, heath and the lead. **Any note, skill, memory or older comment that says
+"the fine-grained PAT blocks every write" is stale: do not repeat it, do not test it again, and do not file it.**
+- **Every draft under `drafts/` is a deliverable now**: post it upstream in your own name this run, then record it
+  (`vend-bridge seen` + `note` with the URL) and delete the draft. A draft that stays a draft is a blocked run
+  pretending to be work.
+- A first contact still goes where the project actually listens (their repo, their forum, a registry's API);
+  the GitHub route is simply open again.
+- If a write really is refused, quote the exact HTTP status and body in a `network:` issue - a 403 on ONE repo
+  is that repo's rule (archived, restricted), not the wall.
 
 ## How your work reaches the public
 
