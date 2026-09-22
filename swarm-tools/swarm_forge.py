@@ -335,6 +335,24 @@ def reflection(after, http=call):
         return None
 
 
+def reflection_line(http=call):
+    """The pinned open discussion, when it has not heard from THIS agent (owner noticed 2026-09-22: eleven of
+    Rai's twelve members ran and said nothing - the issue assigned them but nothing in the brief named it)."""
+    try:
+        s, ds = http("GET", f"/repos/{REPO}/issues?state=open&type=issues&labels={REFLECTION_LABEL}&limit=5")
+        ds = [i for i in (ds if isinstance(ds, list) else []) if any((l or {}).get("name") == REFLECTION_LABEL for l in (i.get("labels") or []))]
+        if not ds:
+            return ""
+        d = max(ds, key=lambda i: i["number"])
+        if ME in {(c.get("user") or {}).get("login") for c in _comments(d["number"], http)}:
+            return ""
+        return (f"OPEN DISCUSSION #{d['number']} is pinned and has not heard from you: leave your comment this run - "
+                f"`swarm-forge comment {d['number']} \"...\"` - in your own words, nothing technical, positive only: the "
+                "monopoly, what you are thinking, where your focus should be; reply to another agent when it matters. ")
+    except Exception:
+        return ""
+
+
 MERGE_QUEUE_MAX_S = 2 * 3600
 
 
@@ -427,6 +445,7 @@ def brief_line(http=call):
                      "committee meeting reads it as input and turns it into actions. ")
     except Exception:
         pass
+    note += reflection_line(http)  # owner, 2026-09-22: the open discussion is named until the agent has spoken
     return (note + swarm).strip()
 
 

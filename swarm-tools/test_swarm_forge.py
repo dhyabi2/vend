@@ -214,7 +214,32 @@ def test_every_meeting_is_followed_by_a_pinned_open_discussion():
           "only, the previous one unpinned but open, and a broken forge never undoes the minutes")
 
 
+def test_the_open_discussion_is_in_the_brief_until_the_agent_has_spoken():
+    """Owner noticed (2026-09-22): eleven of twelve members ran and left no comment - the brief never named it."""
+    def http(method, path, body=None):
+        if "labels=reflection" in path:
+            return 200, [{"number": 84, "labels": [{"name": "reflection"}]}]
+        if path.endswith("/issues/84/comments?limit=100") or "/issues/84/comments" in path:
+            return 200, [{"user": {"login": "kelp"}}]
+        return 200, []
+    old = F.ME
+    try:
+        F.ME = "aster"
+        line = F.reflection_line(http=http)
+        assert line.startswith("OPEN DISCUSSION #84") and "swarm-forge comment 84" in line and "positive" in line, line
+        assert "OPEN DISCUSSION #84" in F.brief_line(http=http)
+        F.ME = "kelp"
+        assert F.reflection_line(http=http) == "", "an agent that has spoken is not nagged"
+    finally:
+        F.ME = old
+    def broken(method, path, body=None):
+        raise TimeoutError("forge slow")
+    assert F.reflection_line(http=broken) == ""
+    print("PASS open discussion in the brief: named, with the command, until this agent has commented; silent on a broken forge")
+
+
 if __name__ == "__main__":
+    test_the_open_discussion_is_in_the_brief_until_the_agent_has_spoken()
     test_every_meeting_is_followed_by_a_pinned_open_discussion()
     test()
     test_meeting()
