@@ -238,7 +238,28 @@ def test_the_open_discussion_is_in_the_brief_until_the_agent_has_spoken():
     print("PASS open discussion in the brief: named, with the command, until this agent has commented; silent on a broken forge")
 
 
+def test_the_write_path_is_measured_in_every_brief():
+    """Owner, 2026-09-22: a day after the classic token arrived agents still repeated 'the fine-grained PAT blocks
+    every write' from their notes. The brief now carries GitHub's own answer, every run."""
+    class Out:
+        def __init__(self, s): self.stdout = s
+    classic = Out("HTTP/2.0 200 OK\nX-Oauth-Scopes: admin:org, repo, workflow\n\n{\"login\": \"PANDeveloper001\"}")
+    line = F.write_path_line(run=lambda: classic)
+    assert line.startswith("GITHUB WRITE PATH: OPEN") and "drafts/" in line and "stale" in line, line
+    fine = Out("HTTP/2.0 200 OK\nX-Github-Request-Id: x\n\n{\"login\": \"PANDeveloper001\"}")
+    assert F.write_path_line(run=lambda: fine).startswith("GITHUB WRITE PATH: CLOSED - the token in `gh` is fine-grained")
+    narrow = Out("HTTP/2.0 200 OK\nX-Oauth-Scopes: gist, read:org\n\n{}")
+    assert "CLOSED" in F.write_path_line(run=lambda: narrow) and "without `repo`" in F.write_path_line(run=lambda: narrow)
+    assert F.write_path_line(run=lambda: Out("")) == "", "no answer from GitHub says nothing"
+    def boom():
+        raise OSError("no gh")
+    assert F.write_path_line(run=boom) == ""
+    print("PASS write path measured: OPEN with a classic repo-scoped token (drafts are deliverables, the old note is called "
+          "stale), CLOSED for a fine-grained or narrow token, silent when GitHub does not answer")
+
+
 if __name__ == "__main__":
+    test_the_write_path_is_measured_in_every_brief()
     test_the_open_discussion_is_in_the_brief_until_the_agent_has_spoken()
     test_every_meeting_is_followed_by_a_pinned_open_discussion()
     test()

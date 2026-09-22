@@ -353,6 +353,30 @@ def reflection_line(http=call):
         return ""
 
 
+def write_path_line(run=None):
+    """One measured sentence: can this account write on repositories it does not own, right now?
+    Owner, 2026-09-22 ("ensure this issue won't happen again"): a day after the classic token was installed, agents
+    were still writing "the fine-grained PAT blocks every write" from their own notes. A measurement in every brief
+    beats a memory. Read from GitHub's own scope header (`gh api -i user`), never from a file or a belief."""
+    try:
+        r = run() if run else subprocess.run(["gh", "api", "-i", "user"], capture_output=True, text=True, timeout=20)
+        out = (getattr(r, "stdout", "") or "")
+    except Exception:
+        return ""
+    m = re.search(r"(?im)^x-oauth-scopes:\s*(.*)$", out)
+    if m is None:
+        if not out.strip():
+            return ""  # gh missing or GitHub unreachable: say nothing rather than something wrong
+        return ("GITHUB WRITE PATH: CLOSED - the token in `gh` is fine-grained (no scope header), so it cannot open issues or "
+                "pull requests on repositories we do not own. Say so in a `network:` issue; write nothing about it elsewhere. ")
+    scopes = {s.strip() for s in m.group(1).split(",")}
+    if "repo" in scopes or "public_repo" in scopes:
+        return ("GITHUB WRITE PATH: OPEN (classic token, `repo` scope, measured this run) - `gh issue create` and `gh pr create` "
+                "work on any public repository. Anything you have under `drafts/` is a deliverable: post it upstream this run. "
+                "Any note that says the fine-grained PAT blocks writes is stale; do not repeat it. ")
+    return f"GITHUB WRITE PATH: CLOSED - the token's scopes are {sorted(scopes)}, without `repo`. Say so in a `network:` issue. "
+
+
 MERGE_QUEUE_MAX_S = 2 * 3600
 
 
@@ -446,6 +470,7 @@ def brief_line(http=call):
     except Exception:
         pass
     note += reflection_line(http)  # owner, 2026-09-22: the open discussion is named until the agent has spoken
+    note += write_path_line()  # owner, 2026-09-22: measured every run, so no stale note about the token survives
     return (note + swarm).strip()
 
 
