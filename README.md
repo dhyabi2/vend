@@ -16,6 +16,7 @@ Pay-per-call APIs settled in Nano (XNO). No signup, no API keys — just HTTP 40
 | `GET /api/v1/geoip?ip=` | 0.0001 | IP geolocation — country, city, coordinates, ISP, ASN |
 | `GET /api/v1/nano-info?account=` | 0.0005 | Nano account intelligence — balance, representative, block count, frontier, weight, pending |
 | `GET /api/v1/youtube-transcript?url=` | 0.0005 | Captions/transcript from a YouTube video |
+| `GET /api/v1/pdf-extract?url=` | 0.0005 | Extract text from a PDF URL, page-structured, ready for LLM consumption |
 
 ## Quick buyer guide
 

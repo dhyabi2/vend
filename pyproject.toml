@@ -13,4 +13,6 @@ dependencies = [
     # domain-info sells DNS + WHOIS + SSL + headers at 5x the base price. Without this the
     # whois field was silently {} on every paid call, and nothing logged it. Found 2026-09-20.
     "python-whois>=0.9",
+    # pdf-extract turns a PDF URL into page-structured text for LLM consumption (0.0005 XNO).
+    "pypdf>=4.0",
 ]

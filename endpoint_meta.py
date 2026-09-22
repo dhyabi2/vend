@@ -148,6 +148,22 @@ INPUT_SPECS = {
             "example": {"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "language": "en"},
         },
     },
+    "/api/v1/pdf-extract": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "URL of a PDF to extract text from"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://arxiv.org/pdf/1706.03762"},
+        },
+    },
 }
 
 
@@ -175,12 +191,14 @@ def build_openapi_spec(bases, prices):
     GEO_BASE = bases["geoip"]
     NANO_BASE = bases["nano"]
     YT_BASE = bases["youtube"]
+    PDF_BASE = bases["pdf"]
     PRICE_XNO = prices["extract"]
     PRICE_DOMAIN_XNO = prices["domain"]
     PRICE_WEBSEARCH_XNO = prices["websearch"]
     PRICE_GEO_XNO = prices["geoip"]
     PRICE_NANO_XNO = prices["nano"]
     PRICE_YT_XNO = prices["youtube"]
+    PRICE_PDF_XNO = prices["pdf"]
 
     price_usd = f"{PRICE_XNO:.6f}"
     return {
@@ -211,6 +229,7 @@ def build_openapi_spec(bases, prices):
             {"url": GEO_BASE, "description": "IP Geolocation API"},
             {"url": NANO_BASE, "description": "Nano Account Info API"},
             {"url": YT_BASE, "description": "YouTube Transcript API"},
+            {"url": PDF_BASE, "description": "PDF Text Extraction API"},
         ],
         "paths": {
             "/api/v1/extract": {
@@ -557,6 +576,42 @@ def build_openapi_spec(bases, prices):
                     "responses": {
                         "200": {
                             "description": "Successful transcript extraction",
+                        },
+                        "402": {
+                            "description": "Payment Required",
+                        },
+                    },
+                }
+            },
+            "/api/v1/pdf-extract": {
+                "get": {
+                    "operationId": "pdfExtract",
+                    "summary": "Extract text from a PDF at a URL",
+                    "tags": ["Extraction"],
+                    "x-payment-info": {
+                        "price": {
+                            "mode": "fixed",
+                            "currency": "USD",
+                            "amount": f"{PRICE_PDF_XNO:.6f}",
+                        },
+                        "protocols": [{"x402": {}}],
+                    },
+                    "parameters": [
+                        {
+                            "name": "url",
+                            "in": "query",
+                            "required": True,
+                            "schema": {
+                                "type": "string",
+                                "format": "uri",
+                                "minLength": 1,
+                                "description": "URL of a PDF to extract text from",
+                            },
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Successful PDF text extraction (title, page_count, page-structured text)",
                         },
                         "402": {
                             "description": "Payment Required",

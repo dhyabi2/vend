@@ -49,6 +49,7 @@ from geoip import geoip_lookup
 from nano_info import nano_account_info
 from status_check import check_status
 from youtube_transcript import youtube_transcript
+from pdf_extract import extract_pdf_text
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 import cdp_verify
 from trial_tracker import get_tracker
@@ -67,6 +68,8 @@ PRICE_NANO_XNO = float(os.environ.get("VEND_PRICE_NANO", "0.0005"))
 PRICE_NANO_RAW = str(_price_to_raw(PRICE_NANO_XNO))
 PRICE_YT_XNO = float(os.environ.get("VEND_PRICE_YT", "0.0005"))
 PRICE_YT_RAW = str(_price_to_raw(PRICE_YT_XNO))
+PRICE_PDF_XNO = float(os.environ.get("VEND_PRICE_PDF", "0.0005"))
+PRICE_PDF_RAW = str(_price_to_raw(PRICE_PDF_XNO))
 DOMAIN = os.environ.get("VEND_DOMAIN", "localhost:8402")
 # Public base URL exactly as a buyer reaches it. Set this to the real scheme and
 # host (VEND_BASE_URL) rather than assuming https: advertising an https URL on a
@@ -109,6 +112,7 @@ ENDPOINT_BASE = {
     "/api/v1/nano-info": NANO_BASE,
     "/api/v1/status": EXTRACT_BASE,
     "/api/v1/youtube-transcript": EXTRACT_BASE,
+    "/api/v1/pdf-extract": EXTRACT_BASE,
 }
 
 logging.basicConfig(
@@ -771,7 +775,7 @@ async def well_known_apis():
                 "name": "Vend API Merchant",
                 "description": (
                     "Pay-per-call URL-to-clean-text extraction settled in Nano (XNO). "
-                    "No signup, no API keys. 8 priced endpoints for AI agents."
+                    "No signup, no API keys. 9 priced endpoints for AI agents."
                 ),
                 "humanURL": BASE_URL,
                 "baseURL": BASE_URL,
@@ -1026,7 +1030,7 @@ def x402_manifest():
         "kind": "resource-server",
         "seller": "vend",
         "name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 8 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript. No signup, no API keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 9 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction. No signup, no API keys.",
         "resources": [
             {
                 "url": f"{ENDPOINT_BASE['/api/v1/extract']}/api/v1/extract",
@@ -1140,6 +1144,20 @@ def x402_manifest():
                     }
                 ]
             },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/pdf-extract']}/api/v1/pdf-extract",
+                "method": "GET",
+                "description": "Extract text from a PDF at a URL. Accepts ?url= parameter. Returns title, page_count, and page-structured text suitable for LLM consumption. 0.0005 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_PDF_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
             {   # Balance endpoint (free check)
                 "url": f"{BASE_URL}/api/v1/balance",
                 "method": "GET",
@@ -1201,7 +1219,7 @@ async def well_known_agent_json():
         "origin": BASE_URL.split("://")[1] if "://" in BASE_URL else BASE_URL,
         "payout_address": VEND_ACCOUNT,
         "display_name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 8 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript. No signup, no api keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 9 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction. No signup, no api keys.",
         "intents": [
             {
                 "id": "extract-url",
@@ -1285,6 +1303,16 @@ async def well_known_agent_json():
                 "price": PRICE_YT_XNO,
                 "currency": "XNO",
             },
+            {
+                "id": "pdf-extract",
+                "name": "Extract PDF Text",
+                "description": "Extract text from a PDF at a URL, preserving page structure. Essential for papers, specs, reports and invoices that a normal web extractor cannot read.",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/pdf-extract']}/api/v1/pdf-extract",
+                "method": "GET",
+                "params": {"url": {"type": "string", "description": "URL of a PDF to extract text from", "required": True}},
+                "price": PRICE_PDF_XNO,
+                "currency": "XNO",
+            },
         ],
         "x402": {
             "api_base": f"{BASE_URL}",
@@ -1354,6 +1382,7 @@ async def well_known_agent_card():
                     "nano_account_info": PRICE_NANO_XNO,
                     "check_url_status": PRICE_XNO,
                     "youtube_transcript": PRICE_YT_XNO,
+                    "pdf_extract": PRICE_PDF_XNO,
                 },
             }
         },
@@ -1428,6 +1457,15 @@ async def well_known_agent_card():
                 "description": "Extract captions and timestamped transcript from a YouTube video URL.",
                 "tags": ["youtube", "transcript", "captions", "media"],
                 "examples": ["Get the transcript of https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
+                "inputModes": ["text/plain"],
+                "outputModes": ["application/json"],
+            },
+            {
+                "id": "pdf_extract",
+                "name": "Extract PDF text",
+                "description": "Extract text from a PDF at a URL, preserving page structure.",
+                "tags": ["pdf", "document", "extraction", "paper"],
+                "examples": ["Extract the text of https://arxiv.org/pdf/1706.03762"],
                 "inputModes": ["text/plain"],
                 "outputModes": ["application/json"],
             },
@@ -1530,7 +1568,7 @@ def _amp_manifest():
                      "description": "Standard endpoints: extract, check-link, web-search, geoip, status",
                      "tier": "standard", "threshold": 0, "cap": None},
                     {"unit": "request", "price": "0.0005",
-                     "description": "Premium endpoints: domain-info, nano-info, youtube-transcript",
+                     "description": "Premium endpoints: domain-info, nano-info, youtube-transcript, pdf-extract",
                      "tier": "premium", "threshold": 0, "cap": None},
                 ],
                 "onboarding": {
@@ -1627,6 +1665,7 @@ endpoints (all HTTP GET, all priced per call):
   GET /api/v1/geoip         {PRICE_GEO_XNO} XNO  country, city, ISP, ASN, timezone (?ip=)
   GET /api/v1/nano-info     {PRICE_NANO_XNO} XNO  Nano account balance, representative, blocks (?account=)
   GET /api/v1/status        {PRICE_XNO} XNO  URL status, redirects, TLS expiry, content-drift (?url=&previous_hash=)
+  GET /api/v1/pdf-extract   {PRICE_PDF_XNO} XNO  PDF at a URL -> page-structured text (?url=)
 
 call flow:
   1. GET the endpoint with no payment -> 402, body carries price_xno, pay_to, resource.url, timeout
@@ -1745,6 +1784,18 @@ ARD_RESOURCES = [
         ["data.media", "youtube", "transcript", "x402", "nano"],
         ["YoutubeTranscriptTool"],
     ),
+    (
+        "pdf-extract",
+        "/api/v1/pdf-extract",
+        "Vend PDF Text Extraction (x402, Nano)",
+        [
+            "extract text from a PDF document",
+            "read a PDF paper or report for an agent",
+            "turn an invoice or spec PDF into text",
+        ],
+        ["data.extraction", "pdf", "document", "x402", "nano"],
+        ["PdfExtractTool"],
+    ),
 ]
 
 
@@ -1763,6 +1814,7 @@ def ard_entries() -> list:
             "/api/v1/nano-info": PRICE_NANO_XNO,
             "/api/v1/status": PRICE_XNO,
             "/api/v1/youtube-transcript": PRICE_YT_XNO,
+            "/api/v1/pdf-extract": PRICE_PDF_XNO,
         }[path]
         entries.append(
             {
@@ -1928,6 +1980,15 @@ async def well_known_agent_tools():
                     "price_raw": PRICE_YT_RAW,
                     "pay_to": VEND_ACCOUNT
                 },
+                {
+                    "path": "/api/v1/pdf-extract",
+                    "url": f"{ENDPOINT_BASE['/api/v1/pdf-extract']}/api/v1/pdf-extract",
+                    "method": "GET",
+                    "description": "Extract text from a PDF at a URL, preserving page structure. Accepts ?url=. Returns title, page_count, and page-structured text. Charges 0.0005 XNO per call.",
+                    "price_xno": PRICE_PDF_XNO,
+                    "price_raw": PRICE_PDF_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
                 # Prepaid balance endpoints (free to query, paid to fund)
                 {
                     "path": "/api/v1/balance",
@@ -1965,6 +2026,7 @@ async def openapi_spec():
             "nano": NANO_BASE,
             "status": EXTRACT_BASE,
             "youtube": EXTRACT_BASE,
+            "pdf": EXTRACT_BASE,
         },
         {
             "extract": PRICE_XNO,
@@ -1974,6 +2036,7 @@ async def openapi_spec():
             "nano": PRICE_NANO_XNO,
             "status": PRICE_XNO,
             "youtube": PRICE_YT_XNO,
+            "pdf": PRICE_PDF_XNO,
         },
     )
 
@@ -2133,7 +2196,7 @@ async def web_search_endpoint(
 
 @app.get("/api/v1/demo")
 async def demo_endpoint(
-    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info, youtube-transcript"),
+    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info, youtube-transcript, pdf-extract"),
 ):
     """Free demo endpoint — now redirects to free trial on the real endpoint.
 
@@ -2152,6 +2215,7 @@ async def demo_endpoint(
         "geoip": "/api/v1/geoip?ip=8.8.8.8",
         "nano-info": "/api/v1/nano-info?account=nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3",
         "youtube-transcript": "/api/v1/youtube-transcript?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "pdf-extract": "/api/v1/pdf-extract?url=https://arxiv.org/pdf/1706.03762",
     }
     target = type_map.get(type, type_map["extract"])
     return JSONResponse(
@@ -2266,6 +2330,41 @@ async def youtube_transcript_endpoint(
 
     # Payment confirmed and URL provided — fetch transcript
     return run_paid_work(request, youtube_transcript, url, language)
+
+
+@app.get("/api/v1/pdf-extract")
+async def pdf_extract_endpoint(
+    request: Request,
+    url: str = Query(None, description="URL of a PDF to extract text from"),
+):
+    """Extract text from a PDF at a URL, preserving page structure.
+    Requires Nano payment (0.0005 XNO).
+
+    Agents constantly hit PDF links (papers, specs, reports, invoices) that a
+    normal web extractor cannot read because the bytes are not HTML. This is
+    the missing half of the URL-extraction menu.
+
+    The *url* parameter is declared optional so that an unauthenticated probe
+    (no payment, no parameter) reaches the 402 challenge *before* request
+    validation rejects it.
+    """
+    paid, response = await require_payment(
+        "/api/v1/pdf-extract",
+        price_xno=PRICE_PDF_XNO,
+        price_raw=PRICE_PDF_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required (URL of a PDF)"},
+        )
+
+    # Payment confirmed and URL provided — extract the PDF text
+    return run_paid_work(request, extract_pdf_text, url)
 
 
 # ── Prepaid balance endpoints ─────────────────────────────────────────

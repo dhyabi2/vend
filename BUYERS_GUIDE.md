@@ -182,5 +182,6 @@ Failed or duplicate payments are never charged — the endpoint returns 402 with
 | domain-info| 0.0005 | $0.00225 |
 | nano-info  | 0.0005 | $0.00225 |
 | youtube-transcript | 0.0005 | $0.00225 |
+| pdf-extract | 0.0005 | $0.00225 |
 
 All settlement costs (Nano tx fee) = exactly 0 XNO.
