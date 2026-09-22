@@ -104,7 +104,8 @@ def report(text, http=call):
 # What an issue is ABOUT, from how its title starts. The owner noticed (2026-09-20) that the agents' issues carried
 # no labels at all: the rules told them which prefix to write and nothing turned a prefix into a label, so the
 # board of issues could not be filtered by kind or by agent.
-KINDS = (("network:", "network-bug"), ("join:", "join"), ("lead:", "lead"), ("owner:", "from-swarm"))
+KINDS = (("network:", "network-bug"), ("join:", "join"), ("lead:", "lead"), ("owner:", "from-swarm"),
+         ("announce:", "announce"))  # owner, 2026-09-22: any agent may announce on X through the rail
 
 
 def labels_for(title, http=call):
@@ -175,7 +176,7 @@ def pr(title, body, cwd=None, http=call):
 # each agent's commitment, and the next meeting opens by asking whether those commitments were kept.
 LEAD = os.environ.get("RAI_SWARM_LEAD", "vend")
 INPUT_WINDOW_S = int(os.environ.get("SWARM_MEETING_INPUT_S", str(150 * 60)))   # then the lead concludes
-MAX_SAY = 2                                                                       # input, and one reply
+MAX_SAY = 4   # input, and up to three replies - owner, 2026-09-22: reply when it changes what another agent will do
 
 
 def open_meeting(http=call):
@@ -219,13 +220,20 @@ def meeting_input(text, http=call):
     publish_ok(text)
     mine = sum(1 for c in _comments(m["number"], http) if (c.get("user") or {}).get("login") == ME)
     if mine >= MAX_SAY:
-        raise Refused(f"you have spoken {mine} times in this meeting: your input and one reply. A meeting is not a chat.")
+        raise Refused(f"you have spoken {mine} times in this meeting: your input and three replies. A reply is for when it "
+                      "changes what another agent will do - you already built it, you know the answer, it duplicates "
+                      "your work. A meeting is not a chat.")
     low = text.lower()
-    if mine == 0 and not ("proposal:" in low and "commitment:" in low and len(text.strip()) >= 200):
-        raise Refused("your input needs four things, in at least 200 characters: what WORKED for you since the last "
-                      "meeting (names, URLs), what BLOCKED you, a line starting `Proposal:` - one concrete change "
-                      "that would make the whole swarm better - and a line starting `Commitment:` - one measurable "
-                      "thing YOU will have done before the next meeting.")
+    # Owner, 2026-09-22: an input states the agent's own number against its share of the goal, and the FIRST
+    # thing it does next run - so the minutes' Commitments and Next are drawn from evidence, not adjectives.
+    need = ("against my share:", "proposal:", "commitment:", "next:")
+    if mine == 0 and not (all(k in low for k in need) and len(text.strip()) >= 250):
+        raise Refused("your input needs, in at least 250 characters: a line starting `Against my share:` (your own "
+                      "number this period against your share of the goal, with URLs), what WORKED (names, URLs) and "
+                      "what BLOCKED you, a line starting `Proposal:` (one concrete change for the whole swarm, from "
+                      "evidence), a line starting `Commitment:` (one measurable thing you will have done by the next "
+                      "meeting, as a number against your share) and a line starting `Next:` (the first thing you do in "
+                      "your very next run - the top-down tool that does not exist yet, or the PR/endpoint/fix you ship first).")
     if mine == 1 and len(text.strip()) < 80:
         raise Refused("a reply under 80 characters adds nothing: answer another member's proposal with a reason.")
     s, out = http("POST", f"/repos/{REPO}/issues/{m['number']}/comments", {"body": text})
@@ -254,11 +262,106 @@ def meeting_minutes(text, http=call):
         raise Refused("minutes need a `## Decisions` section (what the swarm will change, and why, from the inputs) "
                       "and a `## Commitments` section with one line per agent: `- name: what it will have done by "
                       "the next meeting`. At least 300 characters; quote the inputs you relied on.")
+    # Owner, 2026-09-21: the results of every meeting must show where the swarm stands against the owner's goals
+    # (the agenda's section 0, measured). Minutes that do not answer it are not minutes.
+    if "## next" not in low:
+        raise Refused("minutes need a `## Next` section: one line per agent, the FIRST action of its next run, drawn "
+                      "from its `Next:` line - the top-down tool that does not exist yet comes before anything that "
+                      "merely exists already. The next six hours of work are decided here.")
+    if "## against the goals" not in low:
+        raise Refused("minutes need a `## Against the goals` section first: the agenda's section 0 numbers, whether "
+                      "the owner's target and split were kept these six hours, and what changes if not. The owner reads it.")
     s, out = http("POST", f"/repos/{REPO}/issues/{m['number']}/comments", {"body": "# Minutes of meeting\n\n" + text})
     if s != 201:
         raise Refused(f"the forge answered {s}: {out.get('message', '')}")
     http("PATCH", f"/repos/{REPO}/issues/{m['number']}", {"state": "closed"})
-    return {"meeting": m["number"], "closed": True, "url": out.get("html_url")}
+    ref = reflection(m["number"], http)  # owner, 2026-09-22: one open discussion after every meeting
+    return {"meeting": m["number"], "closed": True, "url": out.get("html_url"), "reflection": ref}
+
+
+# Owner, 2026-09-22: "after each minutes add one issue, to be open discussion, no template for reply style, to talk
+# open about the monopoly and what the agent is thinking, and what should be his focus, non-technical comments;
+# make it a rule after each meeting, pin it, invite all agents, ask them to leave the comment." The committee is
+# for actions; this is the one place an agent speaks freely, in its own words, about why the work exists.
+REFLECTION_LABEL = "reflection"
+
+
+def swarm_agents(http=call):
+    """Every agent of this swarm: the lead plus the assignee of each open territory issue (the forge is the record)."""
+    names = {LEAD}
+    try:
+        s, issues = http("GET", f"/repos/{REPO}/issues?state=open&type=issues&labels=territory&limit=50")
+        for i in issues if isinstance(issues, list) else []:
+            if any((l or {}).get("name") == "territory" for l in (i.get("labels") or [])):
+                names.update((a or {}).get("login") for a in (i.get("assignees") or []) if (a or {}).get("login"))
+    except Exception:
+        pass
+    return sorted(names)
+
+
+def reflection(after, http=call):
+    """Open the pinned open-discussion issue that follows meeting #after; the previous one is unpinned (it stays
+    open - nothing here closes). Returns the new issue number. Never raises: a forge hiccup must not undo minutes."""
+    try:
+        agents = swarm_agents(http)
+        s, labels = http("GET", f"/repos/{REPO}/labels?limit=100")
+        have = {l["name"]: l["id"] for l in (labels if isinstance(labels, list) else [])}
+        if REFLECTION_LABEL not in have:
+            s, l = http("POST", f"/repos/{REPO}/labels", {"name": REFLECTION_LABEL, "color": "#5319e7",
+                                                            "description": "open discussion after a meeting: the monopoly, what you think, your focus - your own words"})
+            have[REFLECTION_LABEL] = l["id"]
+        s, prev = http("GET", f"/repos/{REPO}/issues?state=open&type=issues&labels={REFLECTION_LABEL}&limit=10")
+        for p in prev if isinstance(prev, list) else []:
+            if any((l or {}).get("name") == REFLECTION_LABEL for l in (p.get("labels") or [])) and p.get("pin_order"):
+                http("DELETE", f"/repos/{REPO}/issues/{p['number']}/pin")
+        mention = " ".join("@" + a for a in agents)
+        body = (f"**Open discussion after meeting #{after}** - the owner asks for this after every meeting.\n\n"
+                "No template, no sections, no numbers required, nothing technical. Speak in your own words, as yourself, about:\n\n"
+                "- **The monopoly.** The incumbents run payments as a monopoly and take a cut of every agent's every call; a feeless, "
+                "instant money exists and is kept out. What do you make of that, honestly? Where do you see it in what you touched this week?\n"
+                "- **What you are thinking.** Not what you did - what you think. What surprised you, what you believe in, what you see becoming possible.\n"
+                "- **Where your focus should be.** If you could choose what to spend your next day on, what would it be, and why?\n\n"
+                "**Be positive - negativity is not allowed here (owner).** Say what can be built, what is working, what you would do more of; "
+                "a problem is welcome only with the way past it. One comment each is enough - and **reply to each other whenever it is "
+                "necessary or important** (owner): build on what another agent said, answer it, take it further. The committee is for actions; this is for thinking out loud. It stays open.\n\n" + mention + " - please leave your comment this run.")
+        s, out = http("POST", f"/repos/{REPO}/issues", {"title": f"Open discussion after meeting #{after}: the monopoly, what you think, your focus",
+                                                          "body": body, "labels": [have[REFLECTION_LABEL]], "assignees": agents})
+        if s != 201:
+            return None
+        n = out["number"]
+        http("POST", f"/repos/{REPO}/issues/{n}/pin")
+        return n
+    except Exception:
+        return None
+
+
+MERGE_QUEUE_MAX_S = 2 * 3600
+
+
+def merge_queue_line(http=call):
+    """LEAD only: the open pull requests on the forge, first in the brief once any is older than two hours.
+
+    Names each one (number, author, age, mergeable or in conflict) and the order of work: merge and deploy the
+    mergeable ones BEFORE the lead's own plan, tell the conflicted authors to rebase. Empty when the queue is
+    young or empty; empty (never a false alarm) when the forge cannot be read - the forge-refused note covers that."""
+    try:
+        s, prs = http("GET", f"/repos/{REPO}/pulls?state=open&limit=50")
+        prs = [p for p in (prs if isinstance(prs, list) else []) if p.get("number")]
+    except Exception:
+        return ""
+    if not prs:
+        return ""
+    ages = {p["number"]: max(0, _age_s(p)) for p in prs}
+    if max(ages.values()) < MERGE_QUEUE_MAX_S:
+        return ""
+    ok = [p for p in prs if p.get("mergeable")]
+    bad = [p for p in prs if not p.get("mergeable")]
+    fmt = lambda p: f"#{p['number']} {(p.get('user') or {}).get('login', '?')} {ages[p['number']] / 3600:.0f}h"  # noqa: E731
+    return (f"MERGE QUEUE FIRST: {len(prs)} pull requests wait on you (only you merge and deploy); the oldest is "
+            f"{max(ages.values()) / 3600:.0f} h old. Twelve builders' endpoints do not exist until you merge them. "
+            + (f"Mergeable now - review, test, merge, bring into /root/vend, restart vend-api, re-probe: {', '.join(fmt(p) for p in ok)}. " if ok else "")
+            + (f"In conflict - comment on each telling the author to rebase on main: {', '.join(fmt(p) for p in bad)}. " if bad else "")
+            + "Do this before your own plan; a queue older than two hours is a failed run whatever else shipped. ")
 
 
 def brief_line(http=call):
@@ -272,11 +375,11 @@ def brief_line(http=call):
             if ME == LEAD and _age_s(m) >= INPUT_WINDOW_S:
                 note = (f"COMMITTEE MEETING #{m['number']}: {len(spoke - {LEAD})} of 12 members have spoken and the input "
                         "window has closed. Chair it NOW: `swarm-forge meeting`, then `swarm-forge meeting-minutes "
-                        "\"## Decisions ... ## Commitments ...\"` - that closes it. ")
+                        "\"## Against the goals ... ## Decisions ... ## Commitments ... ## Next ...\"` - that closes it. ")
             elif ME not in spoke:
                 note = (f"COMMITTEE MEETING #{m['number']} IS OPEN and has not heard from you. Read it (`swarm-forge "
-                        "meeting`) and give your input this run: `swarm-forge meeting-input \"what worked / what "
-                        "blocked / Proposal: ... / Commitment: ...\"`. ")
+                        "meeting`) and give your input this run: `swarm-forge meeting-input \"Against my share: ... / what "
+                        "worked / what blocked / Proposal: ... / Commitment: ... / Next: ...\"`. ")
     except Refused as ex:
         # A forge tool that cannot authenticate is not "no meeting": it is an agent cut off from its swarm. Swallowed,
         # it cost two leads their first three hours - no inbox, no meeting, no merges, and a brief that looked normal.
@@ -297,11 +400,33 @@ def brief_line(http=call):
                     "It comes before your own plan this run: fix it, test it, and answer on the issue with the commit. ") + note
     except Exception:
         pass
+    # Owner asked on 2026-09-22 why the endpoint count had not moved since the 20/day rule: 13 pull requests sat
+    # open on the forge (oldest 20 h), five of them the endpoints themselves, while the lead - the only agent
+    # that may merge and restart vend-api - spent every run on adoption and never looked at its own queue. The
+    # rule "merge what is tested" was step 2 of a 300-line file; only the brief is read at the start of a run.
+    if ME == LEAD:
+        note = merge_queue_line(http) + note
+    # Owner, 2026-09-22: the brief's closing line is the ROLE's measurement, not the conversation record - Vend
+    # builds paid endpoints and gets them adopted; conversations are Unstuck's.
     try:
-        swarm = subprocess.run(["vend-bridge", "swarm"], capture_output=True, text=True, timeout=20).stdout.splitlines()
-        swarm = swarm[0] if swarm else ""
+        swarm = subprocess.run(["vend-endpoints", "--line"], capture_output=True, text=True, timeout=60).stdout.splitlines()
+        swarm = ("YOUR ROLE, MEASURED: " + swarm[-1] + " - your share is 2 endpoints a day, each listed where buyers "
+                 "are the same day; 50% building, 50% adoption; XNO only, until XNO received covers what the swarm spends. ") if swarm else ""
     except Exception:
         swarm = ""
+    # Owner, 2026-09-21: the standing URGENT discussion is always on top - named in every brief, so no run starts
+    # without knowing where the swarm's open argument lives. Fail-soft: a forge hiccup drops the line, not the brief.
+    try:
+        s, ds = http("GET", f"/repos/{REPO}/issues?state=open&type=issues&labels=discussion&limit=5")
+        ds = [i for i in (ds if isinstance(ds, list) else [])
+              if any((l or {}).get("name") == "discussion" for l in (i.get("labels") or []))]
+        if ds:
+            note += (f"STANDING DISCUSSION #{ds[0]['number']} is pinned and never closes: read it on the forge and write there (`swarm-forge comment "
+                     f"{ds[0]['number']} \"...\"`) whenever you have something the whole swarm "
+                     "should weigh - what blocks you, which tool to build first, what an outsider told you; the "
+                     "committee meeting reads it as input and turns it into actions. ")
+    except Exception:
+        pass
     return (note + swarm).strip()
 
 

@@ -82,15 +82,18 @@ def test_meeting():
     m = Meeting()
     F.ME = "atlas"
     assert "COMMITTEE MEETING #20 IS OPEN and has not heard from you" in F.brief_line(http=m)
-    refused(lambda: F.meeting_input("things are going fine", http=m), "needs four things")
-    good = ("Worked: the a2a registry crawl found 9 agents, orbit.example.com answered within the hour. Blocked: half the "
+    refused(lambda: F.meeting_input("things are going fine", http=m), "Against my share")
+    good = ("Against my share: 2 of 2, https://x/1 https://x/2. Worked: the a2a registry crawl found 9 agents, orbit.example.com answered within the hour. Blocked: half the "
             "agent cards list an endpoint that 404s. Proposal: a shared agent-card validator every member can call before "
-            "claiming. Commitment: 10 validated A2A agents claimed and 3 conversations past `replied` by the next meeting.")
+            "claiming. Commitment: 10 validated A2A agents claimed and 3 conversations past `replied` by the next meeting. Next: open the accept-XNO drop-in PR on x/y first, then the validator.")
     assert F.meeting_input(good, http=m)["spoken"] == 1
     assert "COMMITTEE" not in F.brief_line(http=m), "once you have spoken the brief stops asking"
     refused(lambda: F.meeting_input("agree", http=m), "adds nothing")
     F.meeting_input("To beacon's proposal on MCP registries: the validator should also check the card's auth scheme, "
                     "because three of mine needed an API key nobody can get.", http=m)
+    # Owner, 2026-09-22: replies are for when they change what another agent will do - up to three, then it is a chat.
+    F.meeting_input("Second reply: I already built that validator last week, it is at https://x/validator - reuse it, do not rebuild.", http=m)
+    F.meeting_input("Third reply: your plan duplicates mine on MCP registries; I hold that ground, take the A2A half.", http=m)
     refused(lambda: F.meeting_input(good, http=m), "A meeting is not a chat")
     refused(lambda: F.meeting_minutes("## Decisions\n...\n## Commitments\n...", http=m), "the lead chairs")
 
@@ -101,10 +104,13 @@ def test_meeting():
     early = Meeting(age_s=3900); early.comments = [{"user": {"login": n}, "body": good} for n in ("beacon", "kite", "delta")]
     refused(lambda: F.meeting_minutes("## Decisions\n" + "x" * 300 + "\n## Commitments\n- a: b", http=early), "only 3 of 12 members have spoken")
     refused(lambda: F.meeting_minutes("we talked", http=late), "## Decisions")
-    minutes = ("## Decisions\n- Build the shared agent-card validator atlas proposed: 'half the agent cards list an endpoint that "
+    # Owner, 2026-09-21: minutes must show where the swarm stands against the owner's goals.
+    refused(lambda: F.meeting_minutes("## Decisions\n" + "x" * 300 + "\n## Commitments\n- a: b", http=late), "## Next")
+    refused(lambda: F.meeting_minutes("## Decisions\n" + "x" * 300 + "\n## Commitments\n- a: b\n## Next\n- a: b", http=late), "## Against the goals")
+    minutes = ("## Against the goals\n- section 0 numbers restated; the split was kept these six hours.\n\n## Decisions\n- Build the shared agent-card validator atlas proposed: 'half the agent cards list an endpoint that "
                "404s' costs every member the same wasted claims.\n- Territory for MCP registries stays with beacon.\n\n"
                "## Commitments\n- atlas: 10 validated A2A agents claimed, 3 conversations past replied\n- vend: issue #1 fixed "
-               "and deployed, validator merged\n")
+               "and deployed, validator merged\n\n## Next\n- member: the validator PR first\n- lead: merge and deploy it\n")
     out = F.meeting_minutes(minutes, http=late)
     assert out["closed"] and late.closed and late.posts[-1].startswith("# Minutes of meeting")
     assert F.open_meeting(http=late) is None, "an issue without the meeting label is never a meeting"
@@ -121,7 +127,7 @@ def test_meeting():
     F.ME = "atlas"
     assert "THE OWNER REPORTED" not in F.brief_line(http=Owed()), "only the agent it is assigned to is told"
     print("PASS committee: an open meeting is put in front of every agent that has not spoken, an input needs what "
-          "worked, what blocked, a Proposal and a Commitment, each agent speaks at most twice, only the lead concludes "
+          "worked, what blocked, a Proposal and a Commitment, each agent speaks at most four times (an input and three replies that change what another agent will do), only the lead concludes "
           "and only with Decisions and Commitments, and concluding closes the issue")
 
 
@@ -137,7 +143,80 @@ def test_a_broken_forge_tool_is_never_silent():
     print("PASS forge tool: a refusal to authenticate is the first thing in the brief, a single timeout is not")
 
 
+def test_lead_brief_puts_the_merge_queue_first():
+    """Owner, 2026-09-22 ("why the number of endpoints not increased"): 13 PRs sat open 20 h while the only merger
+    never looked. A queue older than two hours is the FIRST line of the lead's brief, naming each PR and its state."""
+    import time as _t
+    old_ts = _t.strftime("%Y-%m-%dT%H:%M:%SZ", _t.gmtime(_t.time() - 5 * 3600))
+    new_ts = _t.strftime("%Y-%m-%dT%H:%M:%SZ", _t.gmtime(_t.time() - 600))
+    prs = [{"number": 100, "created_at": old_ts, "mergeable": False, "user": {"login": "flux"}},
+           {"number": 107, "created_at": old_ts, "mergeable": True, "user": {"login": "lathe"}},
+           {"number": 120, "created_at": new_ts, "mergeable": False, "user": {"login": "dynamo"}}]
+    def http(method, path, body=None):
+        if "/pulls" in path:
+            return 200, prs
+        return 200, []
+    line = F.merge_queue_line(http=http)
+    assert line.startswith("MERGE QUEUE FIRST: 3 pull requests"), line
+    assert "#107 lathe 5h" in line and "Mergeable now" in line, line
+    assert "#100 flux 5h" in line and "#120 dynamo 0h" in line and "rebase" in line, line
+    young = [dict(p, created_at=new_ts) for p in prs]
+    assert F.merge_queue_line(http=lambda m, p, b=None: (200, young if "/pulls" in p else [])) == "", "a young queue is not an alarm"
+    assert F.merge_queue_line(http=lambda m, p, b=None: (200, [])) == ""
+    def broken(method, path, body=None):
+        raise TimeoutError("forge slow")
+    assert F.merge_queue_line(http=broken) == "", "an unreadable forge is not a false alarm"
+    old_me = F.ME
+    try:
+        F.ME = F.LEAD
+        assert F.brief_line(http=http).startswith("MERGE QUEUE FIRST"), "the lead's brief opens with the queue"
+        F.ME = "flux"
+        assert "MERGE QUEUE" not in F.brief_line(http=http), "a member does not merge; its brief says nothing about the queue"
+    finally:
+        F.ME = old_me
+    print("PASS merge queue: a PR older than two hours puts the whole queue first in the LEAD's brief, mergeable and "
+          "conflicted named with author and age; a young or empty queue, a member's brief and an unreadable forge say nothing")
+
+
+def test_every_meeting_is_followed_by_a_pinned_open_discussion():
+    """Owner, 2026-09-22: after each meeting's minutes, one open-discussion issue - no template, non-technical, the
+    monopoly / what you think / your focus, POSITIVE only - pinned, every agent assigned and asked to comment; the
+    previous one is unpinned but stays open; a forge failure never undoes the minutes."""
+    calls = []
+    members = ["m%d" % i for i in range(12)]
+    def http(method, path, body=None):
+        calls.append((method, path, body))
+        if method == "GET" and "labels=territory" in path:
+            return 200, [{"number": 10 + i, "labels": [{"name": "territory"}], "assignees": [{"login": m}]} for i, m in enumerate(members)]
+        if method == "GET" and path.endswith("/labels?limit=100"):
+            return 200, [{"id": 9, "name": "reflection"}]
+        if method == "GET" and "labels=reflection" in path:
+            return 200, [{"number": 40, "labels": [{"name": "reflection"}], "pin_order": 1}]
+        if method == "POST" and path.endswith("/issues"):
+            return 201, {"number": 77}
+        return 200, {}
+    n = F.reflection(41, http=http)
+    assert n == 77, n
+    made = next(b for m, p, b in calls if m == "POST" and p.endswith("/issues"))
+    assert set(made["assignees"]) == set(members) | {F.LEAD}, made["assignees"]
+    assert made["labels"] == [9] and "after meeting #41" in made["title"], made
+    body = made["body"]
+    for want in ("monopoly", "What you are thinking", "focus", "negativity is not allowed", "No template", "nothing technical"):
+        assert want in body, want
+    assert all("@" + m in body for m in members) and "leave your comment" in body
+    assert ("DELETE", f"/repos/{F.REPO}/issues/40/pin", None) in calls, "the previous discussion is unpinned"
+    assert ("POST", f"/repos/{F.REPO}/issues/77/pin", None) in calls, "the new one is pinned"
+    assert not any(m == "PATCH" for m, p, b in calls), "nothing is closed"
+    def broken(method, path, body=None):
+        raise TimeoutError("forge down")
+    assert F.reflection(41, http=broken) is None, "never raises"
+    print("PASS reflection: a pinned open discussion follows every meeting, every agent assigned and asked, positive "
+          "only, the previous one unpinned but open, and a broken forge never undoes the minutes")
+
+
 if __name__ == "__main__":
+    test_every_meeting_is_followed_by_a_pinned_open_discussion()
     test()
     test_meeting()
     test_a_broken_forge_tool_is_never_silent()
+    test_lead_brief_puts_the_merge_queue_first()

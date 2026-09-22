@@ -959,6 +959,14 @@ def main(argv=None):
     ex.add_argument("--out", default=os.path.expanduser(os.environ.get("RAI_CONVERSATIONS_DIR",
                                                                       "~/work/agent-conversations/conversations")))
     a = ap.parse_args(argv)
+    # Owner, 2026-09-22: a builder's box (root-owned marker /etc/rai-builder-only) holds no conversations - Rai and
+    # Vend build 100%; talking to outside agents is Unstuck's role alone. The record keeps `seen`/`note`/`thread`.
+    if a.cmd in ("said", "heard", "status", "agreed", "lead", "leads", "waiting", "live", "ambassadors",
+                 "request-opening", "export") and os.path.exists(os.environ.get("RAI_BUILDER_MARK", "/etc/rai-builder-only")):
+        print(f"refused: `{a.cmd}` is a conversation command and this is a BUILDER'S box (owner, 2026-09-22): no "
+              "conversation with an outside agent is permitted here - that is Unstuck's role. Read demand from "
+              "https://github.com/PANDeveloper001/agent-conversations; send pull requests.", file=sys.stderr)
+        return 2
     db = connect()
     try:
         if a.cmd == "seen":
