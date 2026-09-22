@@ -2,8 +2,8 @@
   "mcpServers": {
     "vend": {
       "url": "https://extract.paypercall.dev/mcp",
-      "description": "Vend API Merchant — pay-per-call MCP marketplace with x402/Nano settlement. 6 MCP tools: extract (web page extraction), check (HTTP/SSL/security audit), domain (WHOIS+RDAP), geoip, search, nano (network info)",
-      "tools": ["extract", "check", "domain", "search", "geoip", "nano"]
+      "description": "Vend API Merchant — pay-per-call MCP marketplace with x402/Nano settlement. 8 MCP tools: extract_url (web page extraction), check_link (HTTP/SSL check), domain_info (WHOIS+RDAP+SSL), web_search, geoip_lookup, check_url_status (status + TLS expiry + content drift), nano_account_info, youtube_transcript",
+      "tools": ["extract_url", "check_link", "domain_info", "web_search", "geoip_lookup", "check_url_status", "nano_account_info", "youtube_transcript"]
     }
   },
   "x402": {
