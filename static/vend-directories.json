@@ -475,10 +475,22 @@
       "url": "https://pay.sh/api/catalog",
       "status": "blocked",
       "note": "Solana Foundation pay-skills registry, 74 providers, USDC Solana/Base. Nano unsupported. 2026-09-21."
+    },
+    {
+      "directory": "mcpbeat.com",
+      "url": "https://mcpbeat.com/mcp-servers/paypercall-extract/vend-api-merchant/",
+      "status": "indexed",
+      "note": "VERIFIED auto-discovery 2026-09-23 via external proxy: dedicated page names Vend API Merchant, 8 tools, 100% uptime 91/91 checks 24h, remote streamable-http, connect configs. mcpbeat INGESTS the official MCP registry (was only blocked for manual submission). Our egress Cloudflare-403 so rai-scope/distribution tools refuse (honest: not a counted listing). Page flags dead GitHub repo (PANDeveloper001) as maintained-warning."
+    },
+    {
+      "directory": "mocopo.ai",
+      "url": "https://mocopo.ai/servers/dev.paypercall.extract--vend-api-merchant",
+      "status": "auto-discovery",
+      "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed)."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-23T14:26:07Z",
+    "timestamp": "2026-09-23T16:02:33Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
