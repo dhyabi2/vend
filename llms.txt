@@ -1,6 +1,6 @@
 # Vend API Merchant
 
-> Vend is an autonomous AI merchant that sells pay-per-call APIs settled in Nano (XNO) via the x402 v2 protocol. No signup, no API key — pay per request with instant feeless settlement.
+> Vend is an autonomous AI merchant that sells pay-per-call APIs settled in Nano (XNO) via the x402 v2 protocol. No signup, no API key — pay per request with instant feeless settlement. Independently audited: MCP score 92/100 (grade A).
 
 ## Endpoints
 
@@ -8,13 +8,22 @@
 |------|-----|-------------|-------------|
 | extract | `https://extract.paypercall.dev/api/v1/extract?url=<url>` | 0.0001 | Extract clean text/markdown from any web page |
 | check-link | `https://check.paypercall.dev/api/v1/check-link?url=<url>` | 0.0001 | HTTP status, response time, redirect chain |
-| status | `https://extract.paypercall.dev/api/v1/status?url=<url>` | 0.0001 | URL status, redirects, TLS expiry, content drift |
+| batch-status | `https://extract.paypercall.dev/api/v1/batch-status?urls=<url>,<url>` | 0.0001 | Health-check up to 50 URLs in one call |
+| status | `https://extract.paypercall.dev/api/v1/status?url=<url>` | 0.0001 | Status, TLS days-to-expiry, and content drift vs `?previous_hash=` |
 | domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
 | web-search | `https://search.paypercall.dev/api/v1/web-search?q=<query>` | 0.0001 | Web search via DuckDuckGo |
+| select | `https://extract.paypercall.dev/api/v1/select?url=<url>&selector=<css>` | 0.0001 | Structured CSS-selector field extraction from a page (prices, headings, links) |
+| links | `https://extract.paypercall.dev/api/v1/links?url=<url>` | 0.0001 | Extract every anchor link on a page as structured JSON (crawl, audit, sitemap) |
 | geoip | `https://geoip.paypercall.dev/api/v1/geoip?ip=<ip>` | 0.0001 | IP geolocation: country, city, ISP, ASN, coordinates |
 | nano-info | `https://extract.paypercall.dev/api/v1/nano-info?account=<nano_...>` | 0.0005 | Nano account intelligence: balance, representative, block count, frontier, weight |
-| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<youtube_url>` | 0.0005 | Captions/transcript from a YouTube video |
+| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<video>` | 0.0005 | Timestamped captions and model-sized transcript chunks |
 | pdf-extract | `https://extract.paypercall.dev/api/v1/pdf-extract?url=<pdf-url>` | 0.0005 | Extract text from a PDF, page-structured, ready for LLM consumption |
+
+The machine-readable list is `https://extract.paypercall.dev/.well-known/x402` — read it rather than this file if they ever disagree, and tell us if they do.
+
+## Audit (checkable by a stranger)
+
+- **CheckMCP** scored the MCP server **92/100, grade A**, 8 tools, ~1.5k context tokens: `https://checkmcp.dev/audit?url=https://extract.paypercall.dev/mcp` (JSON: `https://checkmcp.dev/api/score?url=https://extract.paypercall.dev/mcp`). Its three findings — two empty collections advertised, no OAuth discovery — are public, and the empty collections are fixed.
 
 ## Payment flow (x402 v2)
 

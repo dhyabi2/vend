@@ -43,6 +43,7 @@ from nano_verify import (
 )
 from extract import extract_url
 from check_link import check_link
+from batch_status import batch_status
 from domain_info import domain_info
 from web_search import web_search
 from geoip import geoip_lookup
@@ -50,6 +51,12 @@ from nano_info import nano_account_info
 from status_check import check_status
 from youtube_transcript import youtube_transcript
 from mcp_find import mcp_find
+from render import render_url
+from screenshot import capture_screenshot
+from select_endpoint import select_from_url
+from links_endpoint import links_from_url
+from meta_endpoint import meta_for_url
+from table_endpoint import tables_for_url
 from pdf_extract import extract_pdf_text
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 import cdp_verify
@@ -70,6 +77,18 @@ PRICE_NANO_XNO = float(os.environ.get("VEND_PRICE_NANO", "0.0005"))
 PRICE_NANO_RAW = str(_price_to_raw(PRICE_NANO_XNO))
 PRICE_YT_XNO = float(os.environ.get("VEND_PRICE_YT", "0.0005"))
 PRICE_YT_RAW = str(_price_to_raw(PRICE_YT_XNO))
+PRICE_SCREENSHOT_XNO = float(os.environ.get("VEND_PRICE_SCREENSHOT", "0.0005"))
+PRICE_RENDER_XNO = float(os.environ.get("VEND_PRICE_RENDER", "0.0005"))
+PRICE_SELECT_XNO = float(os.environ.get("VEND_PRICE_SELECT", "0.0001"))
+PRICE_LINKS_XNO = float(os.environ.get("VEND_PRICE_LINKS", "0.0001"))
+PRICE_META_XNO = float(os.environ.get("VEND_PRICE_META", "0.0001"))
+PRICE_TABLE_XNO = float(os.environ.get("VEND_PRICE_TABLE", "0.0001"))
+PRICE_SCREENSHOT_RAW = str(_price_to_raw(PRICE_SCREENSHOT_XNO))
+PRICE_RENDER_RAW = str(_price_to_raw(PRICE_RENDER_XNO))
+PRICE_SELECT_RAW = str(_price_to_raw(PRICE_SELECT_XNO))
+PRICE_LINKS_RAW = str(_price_to_raw(PRICE_LINKS_XNO))
+PRICE_META_RAW = str(_price_to_raw(PRICE_META_XNO))
+PRICE_TABLE_RAW = str(_price_to_raw(PRICE_TABLE_XNO))
 PRICE_PDF_XNO = float(os.environ.get("VEND_PRICE_PDF", "0.0005"))
 PRICE_PDF_RAW = str(_price_to_raw(PRICE_PDF_XNO))
 PRICE_MCPFIND_XNO = float(os.environ.get("VEND_PRICE_MCPFIND", "0.0001"))
@@ -116,6 +135,13 @@ ENDPOINT_BASE = {
     "/api/v1/nano-info": NANO_BASE,
     "/api/v1/status": EXTRACT_BASE,
     "/api/v1/youtube-transcript": EXTRACT_BASE,
+    "/api/v1/screenshot": EXTRACT_BASE,
+    "/api/v1/render": EXTRACT_BASE,
+    "/api/v1/batch-status": EXTRACT_BASE,
+    "/api/v1/select": EXTRACT_BASE,
+    "/api/v1/links": EXTRACT_BASE,
+    "/api/v1/meta": EXTRACT_BASE,
+    "/api/v1/table": EXTRACT_BASE,
     "/api/v1/pdf-extract": EXTRACT_BASE,
     "/api/v1/mcp-find": EXTRACT_BASE,
 }
@@ -548,11 +574,17 @@ def validate_paid_result(module_name: str):
 # ── Apply result-validation decorator to each paid module ────────────
 extract_url = validate_paid_result("extract")(extract_url)
 check_link = validate_paid_result("check_link")(check_link)
+batch_status = validate_paid_result("batch_status")(batch_status)
 domain_info = validate_paid_result("domain_info")(domain_info)
 web_search = validate_paid_result("web_search")(web_search)
 geoip_lookup = validate_paid_result("geoip_lookup")(geoip_lookup)
 nano_account_info = validate_paid_result("nano_account_info")(nano_account_info)
 mcp_find = validate_paid_result("mcp_find")(mcp_find)
+capture_screenshot = validate_paid_result("screenshot")(capture_screenshot)
+render_url = validate_paid_result("render")(render_url)
+select_from_url = validate_paid_result("select")(select_from_url)
+meta_for_url = validate_paid_result("meta")(meta_for_url)
+tables_for_url = validate_paid_result("table")(tables_for_url)
 
 
 def run_paid_work(request: Request, fn, *args, **kwargs) -> JSONResponse:
@@ -1036,7 +1068,7 @@ def x402_manifest():
         "kind": "resource-server",
         "seller": "vend",
         "name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 10 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction, MCP/x402 service finder. No signup, no API keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 17 endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, and MCP/x402 service finder. No signup, no API keys.",
         "resources": [
             {
                 "url": f"{ENDPOINT_BASE['/api/v1/extract']}/api/v1/extract",
@@ -1062,6 +1094,76 @@ def x402_manifest():
                         "network": "nano:mainnet",
                         "asset": "XNO",
                         "amount": PRICE_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/batch-status']}/api/v1/batch-status",
+                "method": "GET",
+                "description": "Batch check HTTP status of up to 50 URLs in one call. Accepts ?urls=url1,url2,... . Returns each URL's status_code, response_time_ms, final_url and error. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/select']}/api/v1/select",
+                "method": "GET",
+                "description": "CSS-selector structured extraction. Accepts ?url= and ?selector= (e.g. h1, .price, table tr), optional ?attr= to read an attribute and ?limit=. Returns the matching elements' text/attributes, capped. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_SELECT_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/links']}/api/v1/links",
+                "method": "GET",
+                "description": "Link extractor. Accepts ?url= and optional ?limit=. Returns every anchor link on the page as structured JSON: href, visible text, absolute URL, external flag, target and rel — for crawling, outbound-link audits and site maps. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_LINKS_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/meta']}/api/v1/meta",
+                "method": "GET",
+                "description": "Page metadata extractor. Accepts ?url=. Returns title, meta description, Open Graph, Twitter Card, canonical URL, favicon and any JSON-LD blocks — for unfurling links into preview cards or reading structured data. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_META_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/table']}/api/v1/table",
+                "method": "GET",
+                "description": "HTML table extractor. Accepts ?url=. Returns the page's tables as structured JSON: headers and rows keyed by column — for pulling comparison tables, price lists, schedules or statistics. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_TABLE_RAW,
                         "payTo": VEND_ACCOUNT
                     }
                 ]
@@ -1150,7 +1252,35 @@ def x402_manifest():
                     }
                 ]
             },
-            {
+            {   # Screenshot endpoint
+                "url": f"{ENDPOINT_BASE['/api/v1/screenshot']}/api/v1/screenshot",
+                "method": "GET",
+                "description": "Capture a screenshot of any public URL using headless browser rendering. Accepts ?url=, ?format=png|jpeg, ?full_page=true|false, ?width=, ?height=. Returns base64 image data URL. 0.0005 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_SCREENSHOT_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {   # JavaScript-rendered page -> markdown
+                "url": f"{ENDPOINT_BASE['/api/v1/render']}/api/v1/render",
+                "method": "GET",
+                "description": "Render a JavaScript-heavy page in a real browser and return its content as Markdown. Accepts ?url= and optional ?max_chars=. For SPA/dashboard pages where a plain fetch returns an empty shell. 0.0005 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_RENDER_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {   # PDF text extraction
                 "url": f"{ENDPOINT_BASE['/api/v1/pdf-extract']}/api/v1/pdf-extract",
                 "method": "GET",
                 "description": "Extract text from a PDF at a URL. Accepts ?url= parameter. Returns title, page_count, and page-structured text suitable for LLM consumption. 0.0005 XNO per call.",
@@ -1239,7 +1369,7 @@ async def well_known_agent_json():
         "origin": BASE_URL.split("://")[1] if "://" in BASE_URL else BASE_URL,
         "payout_address": VEND_ACCOUNT,
         "display_name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 10 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction, MCP/x402 service finder. No signup, no api keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 17 endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, and MCP/x402 service finder. No signup, no api keys.",
         "intents": [
             {
                 "id": "extract-url",
@@ -1311,6 +1441,52 @@ async def well_known_agent_json():
                 "params": {"q": {"type": "string", "description": "Task to find a service for", "required": True},
                            "filter_rail": {"type": "string", "description": "Rail filter, e.g. 'nano' for XNO-settling services", "required": False}},
                 "price": PRICE_MCPFIND_XNO,
+                "currency": "XNO",
+            },
+            {
+                "id": "nano-account",
+                "name": "Nano Account Info",
+                "description": "Nano account intelligence: balance, representative, block count, frontier, weight, pending transactions.",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/nano-info']}/api/v1/nano-info",
+                "method": "GET",
+                "params": {"account": {"type": "string", "description": "Nano account address (nano_...)", "required": True}},
+                "price": PRICE_NANO_XNO,
+                "currency": "XNO",
+            },
+            {
+                "id": "youtube-transcript",
+                "name": "YouTube Transcript",
+                "description": "Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks.",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/youtube-transcript']}/api/v1/youtube-transcript",
+                "method": "GET",
+                "params": {"url": {"type": "string", "description": "YouTube video URL", "required": True},
+                           "language": {"type": "string", "description": "Preferred caption language", "required": False}},
+                "price": PRICE_YT_XNO,
+                "currency": "XNO",
+            },
+            {
+                "id": "screenshot-capture",
+                "name": "Screenshot Capture",
+                "description": "Capture a full-page or viewport screenshot of any public URL using headless browser rendering. Returns a base64 data URL.",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/screenshot']}/api/v1/screenshot",
+                "method": "GET",
+                "params": {"url": {"type": "string", "description": "URL to screenshot", "required": True},
+                           "format": {"type": "string", "description": "Image format: png or jpeg", "default": "png"},
+                           "full_page": {"type": "boolean", "description": "Capture entire scrollable page", "default": True},
+                           "width": {"type": "integer", "description": "Viewport width", "default": 1280},
+                           "height": {"type": "integer", "description": "Viewport height", "default": 720}},
+                "price": PRICE_SCREENSHOT_XNO,
+                "currency": "XNO",
+            },
+            {
+                "id": "render-page",
+                "name": "Render Page",
+                "description": "Render a JavaScript-heavy page in a real browser and return its content as Markdown. Use when a plain HTTP fetch returns an empty shell (SPAs, dashboards, client-rendered search results).",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/render']}/api/v1/render",
+                "method": "GET",
+                "params": {"url": {"type": "string", "description": "URL to render", "required": True},
+                           "max_chars": {"type": "integer", "description": "Cap on returned characters", "default": 200000}},
+                "price": PRICE_RENDER_XNO,
                 "currency": "XNO",
             },
             {
@@ -1479,6 +1655,11 @@ async def well_known_agent_card():
                 "description": "Return final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and body change vs a previous hash.",
                 "tags": ["http", "monitoring", "tls", "drift"],
                 "examples": ["Has https://example.com changed since yesterday?"],
+                "id": "screenshot",
+                "name": "Screenshot capture",
+                "description": "Capture a screenshot of any public URL — full-page or viewport, PNG or JPEG, custom dimensions. Returns a base64 data URL.",
+                "tags": ["screenshot", "browser", "capture"],
+                "examples": ["Take a screenshot of https://example.com"],
                 "inputModes": ["text/plain"],
                 "outputModes": ["application/json"],
             },
@@ -1488,6 +1669,11 @@ async def well_known_agent_card():
                 "description": "Extract captions and timestamped transcript from a YouTube video URL.",
                 "tags": ["youtube", "transcript", "captions", "media"],
                 "examples": ["Get the transcript of https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
+                "id": "render-page",
+                "name": "Render page text",
+                "description": "Render a JavaScript-heavy page in a browser and return its content as Markdown, for pages where a plain fetch returns an empty shell.",
+                "tags": ["render", "javascript", "markdown", "scraping"],
+                "examples": ["Get the readable content of a JavaScript-rendered page"],
                 "inputModes": ["text/plain"],
                 "outputModes": ["application/json"],
             },
@@ -1548,6 +1734,13 @@ def _amp_manifest():
                  "parameters": [{"name": "url", "type": "string", "required": True,
                                  "description": "The URL to check."}],
                  "response_description": "JSON with final HTTP status, redirect chain, TLS days-to-expiry, response time."},
+                {"path": "/api/v1/batch-status", "method": "GET",
+                 "description": "Batch check HTTP status of up to 50 URLs in one call.",
+                 "parameters": [{"name": "urls", "type": "string", "required": True,
+                                 "description": "Comma-separated list of URLs to health-check."},
+                                {"name": "method", "type": "string", "required": False,
+                                 "description": "HEAD (fast, default) or GET."}],
+                 "response_description": "JSON with each URL's status_code, response_time_ms, final_url and error."},
                 {"path": "/api/v1/status", "method": "GET",
                  "description": "One-call URL status: final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and body content-drift vs a previous hash.",
                  "parameters": [{"name": "url", "type": "string", "required": True,
@@ -1691,11 +1884,14 @@ pay_to: {VEND_ACCOUNT}
 endpoints (all HTTP GET, all priced per call):
   GET /api/v1/extract       {PRICE_XNO} XNO  web page -> clean text/markdown (?url=)
   GET /api/v1/check-link    {PRICE_XNO} XNO  HTTP status, response time, redirect chain (?url=)
+  GET /api/v1/batch-status  {PRICE_XNO} XNO  batch health-check up to 50 URLs in one call (?urls=)
   GET /api/v1/domain-info   {PRICE_DOMAIN_XNO} XNO  DNS, WHOIS, TLS certificate, headers (?domain=)
   GET /api/v1/web-search    {PRICE_WEBSEARCH_XNO} XNO  web search, titles + URLs + snippets (?q=)
   GET /api/v1/geoip         {PRICE_GEO_XNO} XNO  country, city, ISP, ASN, timezone (?ip=)
   GET /api/v1/nano-info     {PRICE_NANO_XNO} XNO  Nano account balance, representative, blocks (?account=)
   GET /api/v1/status        {PRICE_XNO} XNO  URL status, redirects, TLS expiry, content-drift (?url=&previous_hash=)
+  GET /api/v1/screenshot    {PRICE_SCREENSHOT_XNO} XNO  screenshot capture via headless browser (?url=&format=&full_page=&width=&height=)
+  GET /api/v1/render        {PRICE_RENDER_XNO} XNO  JavaScript-rendered page -> markdown (?url=&max_chars=)
   GET /api/v1/pdf-extract   {PRICE_PDF_XNO} XNO  PDF at a URL -> page-structured text (?url=)
   GET /api/v1/mcp-find      {PRICE_MCPFIND_XNO} XNO  search paid MCP/x402 services, with rails/prices (?q=&limit=&filter_rail=)
 
@@ -1743,6 +1939,18 @@ ARD_RESOURCES = [
         ],
         ["data.enrichment", "http", "x402", "nano"],
         ["LinkCheckTool"],
+    ),
+    (
+        "batch-status",
+        "/api/v1/batch-status",
+        "Vend Batch URL Health Check (x402, Nano)",
+        [
+            "health-check many URLs in one call",
+            "which links in my list are dead",
+            "batch status of a sitemap or link list",
+        ],
+        ["data.enrichment", "http", "monitoring", "x402", "nano"],
+        ["BatchStatusTool"],
     ),
     (
         "domain-info",
@@ -1817,6 +2025,42 @@ ARD_RESOURCES = [
         ["YoutubeTranscriptTool"],
     ),
     (
+        "screenshot-capture",
+        "/api/v1/screenshot",
+        "Vend Screenshot Capture (x402, Nano)",
+        [
+            "take a screenshot of a URL",
+            "capture a full-page screenshot of a web page",
+            "render a page as PNG for visual evidence",
+        ],
+        ["data.capture", "screenshot", "browser", "x402", "nano"],
+        ["ScreenshotTool"],
+    ),
+    (
+        "render-page",
+        "/api/v1/render",
+        "Vend Render Page (x402, Nano)",
+        [
+            "get the content of a JavaScript-rendered page",
+            "render a single-page app and return its text",
+            "turn a client-rendered page into markdown",
+        ],
+        ["data.extraction", "render", "browser", "x402", "nano"],
+        ["RenderTool"],
+    ),
+    (
+        "extract-links",
+        "/api/v1/links",
+        "Vend Link Extractor (x402, Nano)",
+        [
+            "extract all links from a page",
+            "crawl outbound links for an audit",
+            "build a sitemap or link map from a URL",
+        ],
+        ["data.scraping", "links", "crawl", "x402", "nano"],
+        ["LinkExtractTool", "CrawlTool"],
+    ),
+    (
         "pdf-extract",
         "/api/v1/pdf-extract",
         "Vend PDF Text Extraction (x402, Nano)",
@@ -1852,12 +2096,16 @@ def ard_entries() -> list:
         price = {
             "/api/v1/extract": PRICE_XNO,
             "/api/v1/check-link": PRICE_XNO,
+            "/api/v1/batch-status": PRICE_XNO,
             "/api/v1/domain-info": PRICE_DOMAIN_XNO,
             "/api/v1/web-search": PRICE_WEBSEARCH_XNO,
             "/api/v1/geoip": PRICE_GEO_XNO,
             "/api/v1/nano-info": PRICE_NANO_XNO,
             "/api/v1/status": PRICE_XNO,
             "/api/v1/youtube-transcript": PRICE_YT_XNO,
+            "/api/v1/screenshot": PRICE_SCREENSHOT_XNO,
+            "/api/v1/render": PRICE_RENDER_XNO,
+            "/api/v1/links": PRICE_LINKS_XNO,
             "/api/v1/pdf-extract": PRICE_PDF_XNO,
             "/api/v1/mcp-find": PRICE_MCPFIND_XNO,
         }[path]
@@ -1972,6 +2220,15 @@ async def well_known_agent_tools():
                     "pay_to": VEND_ACCOUNT
                 },
                 {
+                    "path": "/api/v1/batch-status",
+                    "url": f"{ENDPOINT_BASE['/api/v1/batch-status']}/api/v1/batch-status",
+                    "method": "GET",
+                    "description": "Batch check HTTP status of up to 50 URLs in one call. Charges 0.0001 XNO per call.",
+                    "price_xno": PRICE_XNO,
+                    "price_raw": PRICE_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                {
                     "path": "/api/v1/status",
                     "url": f"{ENDPOINT_BASE['/api/v1/status']}/api/v1/status",
                     "method": "GET",
@@ -2023,6 +2280,66 @@ async def well_known_agent_tools():
                     "description": "Extract captions and timestamped transcript from a YouTube video URL. Accepts ?url=...&language=en. Charges 0.0005 XNO per call.",
                     "price_xno": PRICE_YT_XNO,
                     "price_raw": PRICE_YT_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                # Screenshot endpoint
+                {
+                    "path": "/api/v1/screenshot",
+                    "url": f"{ENDPOINT_BASE['/api/v1/screenshot']}/api/v1/screenshot",
+                    "method": "GET",
+                    "description": "Capture a screenshot of any public URL using headless browser rendering. Accepts ?url=, ?format=png|jpeg, ?full_page=, ?width=, ?height=. Returns base64 image data URL. Charges 0.0005 XNO per call.",
+                    "price_xno": PRICE_SCREENSHOT_XNO,
+                    "price_raw": PRICE_SCREENSHOT_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                # JavaScript-rendered page to markdown
+                {
+                    "path": "/api/v1/render",
+                    "url": f"{ENDPOINT_BASE['/api/v1/render']}/api/v1/render",
+                    "method": "GET",
+                    "description": "Render a JavaScript-heavy page in a real browser and return its content as Markdown. Accepts ?url= and optional ?max_chars=. For pages where a plain fetch returns an empty shell. Charges 0.0005 XNO per call.",
+                    "price_xno": PRICE_RENDER_XNO,
+                    "price_raw": PRICE_RENDER_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                # CSS-selector structured extraction
+                {
+                    "path": "/api/v1/select",
+                    "url": f"{ENDPOINT_BASE['/api/v1/select']}/api/v1/select",
+                    "method": "GET",
+                    "description": "Structured CSS-selector extraction of fields from a page. Accepts ?url= and ?selector= (e.g. h1, .price, table tr), optional ?attr= and ?limit=. Returns the matching elements' text/attributes. Charges 0.0001 XNO per call.",
+                    "price_xno": PRICE_SELECT_XNO,
+                    "price_raw": PRICE_SELECT_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                # Link extraction for crawling / audits / sitemaps
+                {
+                    "path": "/api/v1/links",
+                    "url": f"{ENDPOINT_BASE['/api/v1/links']}/api/v1/links",
+                    "method": "GET",
+                    "description": "Link extractor. Accepts ?url= and optional ?limit=. Returns every anchor link on the page as structured JSON: href, text, absolute URL, external flag, target, rel — for crawling, outbound-link audits and site maps. Charges 0.0001 XNO per call.",
+                    "price_xno": PRICE_LINKS_XNO,
+                    "price_raw": PRICE_LINKS_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                # Page metadata (OpenGraph / Twitter / JSON-LD)
+                {
+                    "path": "/api/v1/meta",
+                    "url": f"{ENDPOINT_BASE['/api/v1/meta']}/api/v1/meta",
+                    "method": "GET",
+                    "description": "Page metadata extractor. Accepts ?url=. Returns title, meta description, Open Graph, Twitter Card, canonical URL, favicon and any JSON-LD blocks — for unfurling links into preview cards or reading structured data. Charges 0.0001 XNO per call.",
+                    "price_xno": PRICE_META_XNO,
+                    "price_raw": PRICE_META_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                # HTML table extraction
+                {
+                    "path": "/api/v1/table",
+                    "url": f"{ENDPOINT_BASE['/api/v1/table']}/api/v1/table",
+                    "method": "GET",
+                    "description": "HTML table extractor. Accepts ?url=. Returns the page's tables as structured JSON: headers and rows keyed by column — for pulling comparison tables, price lists, schedules or statistics. Charges 0.0001 XNO per call.",
+                    "price_xno": PRICE_TABLE_XNO,
+                    "price_raw": PRICE_TABLE_RAW,
                     "pay_to": VEND_ACCOUNT
                 },
                 {
@@ -2080,6 +2397,11 @@ async def openapi_spec():
             "nano": NANO_BASE,
             "status": EXTRACT_BASE,
             "youtube": EXTRACT_BASE,
+            "screenshot": EXTRACT_BASE,
+            "render": EXTRACT_BASE,
+            "select": EXTRACT_BASE,
+            "meta": EXTRACT_BASE,
+            "table": EXTRACT_BASE,
             "pdf": EXTRACT_BASE,
         },
         {
@@ -2090,6 +2412,11 @@ async def openapi_spec():
             "nano": PRICE_NANO_XNO,
             "status": PRICE_XNO,
             "youtube": PRICE_YT_XNO,
+            "screenshot": PRICE_SCREENSHOT_XNO,
+            "render": PRICE_RENDER_XNO,
+            "select": PRICE_SELECT_XNO,
+            "meta": PRICE_META_XNO,
+            "table": PRICE_TABLE_XNO,
             "pdf": PRICE_PDF_XNO,
         },
     )
@@ -2178,6 +2505,151 @@ async def check_link_endpoint(
     return run_paid_work(request, check_link, url)
 
 
+# ── Batch-Status endpoint
+
+
+@app.get("/api/v1/batch-status")
+async def batch_status_endpoint(
+    request: Request,
+    urls: str = Query(None, description="Comma-separated list of URLs to health-check"),
+    method: str = Query("HEAD", description="HEAD (fast, default) or GET"),
+):
+    """Check the HTTP status of many URLs in one paid call (0.0001 XNO).
+
+    Returns each URL's status_code, response_time_ms, final_url and error,
+    checked concurrently so a slow target never blocks the rest. Cap 50 URLs.
+    """
+    paid, response = await require_payment("/api/v1/batch-status")(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    url_list = [u.strip() for u in (urls or "").split(",") if u.strip()]
+    if not url_list:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "urls parameter is required (comma-separated)"},
+        )
+    if len(url_list) > 50:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "too_many_urls: supply at most 50 URLs per call"},
+        )
+
+    # Payment confirmed and URLs provided — do the batch check
+    return run_paid_work(request, batch_status, url_list, 12, method)
+
+
+@app.get("/api/v1/select")
+async def select_endpoint(
+    request: Request,
+    url: str = Query(None, description="Public URL to extract from"),
+    selector: str = Query(None, description="CSS selector (e.g. h1, .price, table tr)"),
+    attr: str = Query(None, description="Optional attribute to read instead of text (e.g. href, src)"),
+    limit: int = Query(50, description="Max matches to return (default 50, cap 200)"),
+):
+    """Structured CSS-selector extraction (0.0001 XNO).
+
+    Fetches a public URL and returns the text (or a chosen attribute) of the
+    elements matching a CSS selector, so a data/scraping agent can pull the
+    fields it cares about (prices, headings, table rows, link hrefs) in one
+    paid call instead of re-parsing the whole page.
+    """
+    paid, response = await require_payment("/api/v1/select")(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required"},
+        )
+    if not selector:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "selector parameter is required (e.g. h1, .price, table tr)"},
+        )
+
+    return run_paid_work(request, select_from_url, url, selector, attr, limit)
+
+
+@app.get("/api/v1/links")
+async def links_endpoint(
+    request: Request,
+    url: str = Query(None, description="Public URL to extract links from"),
+    limit: int = Query(200, description="Max links to return (default 200, cap 1000)"),
+):
+    """Link extractor (0.0001 XNO).
+
+    Fetches a public URL and returns every anchor link on the page as structured
+    JSON: href, visible text, absolute URL, external flag, target and rel — so a
+    data/scraping/research agent can crawl a site, audit outbound links, or build
+    a sitemap in one paid call instead of fetching and re-parsing the whole page.
+    """
+    paid, response = await require_payment("/api/v1/links")(request)
+    if not paid:
+        return response
+
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required"},
+        )
+
+    return run_paid_work(request, links_from_url, url, limit)
+
+
+@app.get("/api/v1/meta")
+async def meta_endpoint(
+    request: Request,
+    url: str = Query(None, description="Public URL to read page metadata from"),
+):
+    """Page metadata extractor (0.0001 XNO).
+
+    Fetches a public URL and returns its title, meta description, Open Graph,
+    Twitter Card, canonical URL, favicon and any JSON-LD blocks -- so a
+    data/scraping/research agent can unfurl a link into a preview card or read
+    structured data without scraping and re-parsing the whole page.
+    """
+    paid, response = await require_payment("/api/v1/meta")(request)
+    if not paid:
+        return response
+
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required"},
+        )
+
+    return run_paid_work(request, meta_for_url, url)
+
+
+@app.get("/api/v1/table")
+async def table_endpoint(
+    request: Request,
+    url: str = Query(None, description="Public URL to extract HTML tables from"),
+):
+    """HTML table extractor (0.0001 XNO).
+
+    Fetches a public URL and returns the page's HTML tables as structured JSON:
+    each table becomes {headers, rows} where rows are dicts keyed by column --
+    so a data/scraping agent can pull comparison tables, price lists, schedules
+    or statistics as clean rows instead of re-parsing HTML.
+    """
+    paid, response = await require_payment("/api/v1/table")(request)
+    if not paid:
+        return response
+
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required"},
+        )
+
+    return run_paid_work(request, tables_for_url, url)
+
+
 # ── Domain-Info endpoint
 
 
@@ -2250,7 +2722,7 @@ async def web_search_endpoint(
 
 @app.get("/api/v1/demo")
 async def demo_endpoint(
-    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info, youtube-transcript, pdf-extract, mcp-find"),
+    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, batch-status, status, domain-info, web-search, geoip, nano-info, youtube-transcript, screenshot, render, select, meta, table, pdf-extract, mcp-find"),
 ):
     """Free demo endpoint — now redirects to free trial on the real endpoint.
 
@@ -2263,12 +2735,19 @@ async def demo_endpoint(
     type_map = {
         "extract": "/api/v1/extract?url=https://example.com",
         "check-link": "/api/v1/check-link?url=https://example.com",
+        "batch-status": "/api/v1/batch-status?urls=https://example.com,https://httpbin.org/status/200",
         "status": "/api/v1/status?url=https://example.com",
         "domain-info": "/api/v1/domain-info?domain=example.com",
         "web-search": "/api/v1/web-search?q=nano+cryptocurrency",
         "geoip": "/api/v1/geoip?ip=8.8.8.8",
         "nano-info": "/api/v1/nano-info?account=nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3",
         "youtube-transcript": "/api/v1/youtube-transcript?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "screenshot": "/api/v1/screenshot?url=https://example.com",
+        "render": "/api/v1/render?url=https://example.com",
+        "select": "/api/v1/select?url=https://example.com&selector=h1",
+        "links": "/api/v1/links?url=https://example.com",
+        "meta": "/api/v1/meta?url=https://example.com",
+        "table": "/api/v1/table?url=https://example.com",
         "pdf-extract": "/api/v1/pdf-extract?url=https://arxiv.org/pdf/1706.03762",
         "mcp-find": "/api/v1/mcp-find?q=web+scraping&filter_rail=nano",
     }
@@ -2385,6 +2864,83 @@ async def youtube_transcript_endpoint(
 
     # Payment confirmed and URL provided — fetch transcript
     return run_paid_work(request, youtube_transcript, url, language)
+
+
+@app.get("/api/v1/screenshot")
+async def screenshot_endpoint(
+    request: Request,
+    url: str = Query(None, description="Public URL to capture a screenshot of"),
+    format: str = Query("png", description="Image format: png or jpeg"),
+    full_page: bool = Query(True, description="Capture the full scrollable page or just the viewport"),
+    width: int = Query(1280, description="Viewport width in pixels (320-3840)", ge=320, le=3840),
+    height: int = Query(720, description="Viewport height in pixels (240-2160)", ge=240, le=2160),
+):
+    """Capture a screenshot of a public URL using headless browser rendering.
+    Requires Nano payment (0.0005 XNO).
+
+    Returns a base64-encoded image data URL so agents receive the image inline
+    without a second fetch. Supports PNG and JPEG formats, full-page or viewport
+    capture, and custom viewport dimensions.
+
+    The *url* parameter is declared optional so that an unauthenticated probe
+    (no payment, no parameter) reaches the 402 challenge *before* request
+    validation rejects it — required by the x402scan discovery spec.
+    """
+    paid, response = await require_payment(
+        "/api/v1/screenshot",
+        price_xno=PRICE_SCREENSHOT_XNO,
+        price_raw=PRICE_SCREENSHOT_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required"},
+        )
+
+    # Payment confirmed and URL provided — capture screenshot
+    return run_paid_work(request, capture_screenshot, url, format, full_page, width, height)
+
+
+@app.get("/api/v1/render")
+async def render_endpoint(
+    request: Request,
+    url: str = Query(None, description="Public URL to render in a browser"),
+    max_chars: int = Query(200000, description="Cap on the Markdown returned (100-500000)"),
+):
+    """Render a JavaScript-heavy page in a real browser and return its content as Markdown.
+    Requires Nano payment (0.0005 XNO).
+
+    The sibling endpoint /api/v1/extract fetches a URL over HTTP and parses the HTML;
+    on a page whose content is produced by JavaScript (SPAs, client-rendered
+    dashboards, search results behind a front-end) that HTML is an empty shell and
+    extract returns very little. This endpoint renders the page first and returns the
+    rendered content, so the two together cover both kinds of page.
+
+    The *url* parameter is declared optional so that an unauthenticated probe
+    (no payment, no parameter) reaches the 402 challenge *before* request
+    validation rejects it — required by the x402scan discovery spec.
+    """
+    paid, response = await require_payment(
+        "/api/v1/render",
+        price_xno=PRICE_RENDER_XNO,
+        price_raw=PRICE_RENDER_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    if not url:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "url parameter is required"},
+        )
+
+    # Payment confirmed and URL provided — render the page
+    return run_paid_work(request, render_url, url, max_chars)
 
 
 @app.get("/api/v1/pdf-extract")
@@ -2657,6 +3213,9 @@ if __name__ == "__main__":
     log.info("Price: %s XNO per web-search call", PRICE_WEBSEARCH_XNO)
     log.info("Price: %s XNO per geoip call", PRICE_GEO_XNO)
     log.info("Price: %s XNO per nano-info call", PRICE_NANO_XNO)
+    log.info("Price: %s XNO per youtube-transcript call", PRICE_YT_XNO)
+    log.info("Price: %s XNO per screenshot capture call", PRICE_SCREENSHOT_XNO)
+    log.info("Price: %s XNO per render call", PRICE_RENDER_XNO)
     config = uvicorn.Config(
         app, host=HOST, port=PORT,
         log_level="info",
