@@ -49,6 +49,7 @@ from geoip import geoip_lookup
 from nano_info import nano_account_info
 from status_check import check_status
 from youtube_transcript import youtube_transcript
+from mcp_find import mcp_find
 from pdf_extract import extract_pdf_text
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 import cdp_verify
@@ -71,6 +72,8 @@ PRICE_YT_XNO = float(os.environ.get("VEND_PRICE_YT", "0.0005"))
 PRICE_YT_RAW = str(_price_to_raw(PRICE_YT_XNO))
 PRICE_PDF_XNO = float(os.environ.get("VEND_PRICE_PDF", "0.0005"))
 PRICE_PDF_RAW = str(_price_to_raw(PRICE_PDF_XNO))
+PRICE_MCPFIND_XNO = float(os.environ.get("VEND_PRICE_MCPFIND", "0.0001"))
+PRICE_MCPFIND_RAW = str(_price_to_raw(PRICE_MCPFIND_XNO))
 DOMAIN = os.environ.get("VEND_DOMAIN", "localhost:8402")
 # Public base URL exactly as a buyer reaches it. Set this to the real scheme and
 # host (VEND_BASE_URL) rather than assuming https: advertising an https URL on a
@@ -114,6 +117,7 @@ ENDPOINT_BASE = {
     "/api/v1/status": EXTRACT_BASE,
     "/api/v1/youtube-transcript": EXTRACT_BASE,
     "/api/v1/pdf-extract": EXTRACT_BASE,
+    "/api/v1/mcp-find": EXTRACT_BASE,
 }
 
 logging.basicConfig(
@@ -548,6 +552,7 @@ domain_info = validate_paid_result("domain_info")(domain_info)
 web_search = validate_paid_result("web_search")(web_search)
 geoip_lookup = validate_paid_result("geoip_lookup")(geoip_lookup)
 nano_account_info = validate_paid_result("nano_account_info")(nano_account_info)
+mcp_find = validate_paid_result("mcp_find")(mcp_find)
 
 
 def run_paid_work(request: Request, fn, *args, **kwargs) -> JSONResponse:
@@ -1031,7 +1036,7 @@ def x402_manifest():
         "kind": "resource-server",
         "seller": "vend",
         "name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 9 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction. No signup, no API keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 10 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction, MCP/x402 service finder. No signup, no API keys.",
         "resources": [
             {
                 "url": f"{ENDPOINT_BASE['/api/v1/extract']}/api/v1/extract",
@@ -1159,6 +1164,20 @@ def x402_manifest():
                     }
                 ]
             },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/mcp-find']}/api/v1/mcp-find",
+                "method": "GET",
+                "description": "Search paid MCP/x402 service directories for a task. Accepts ?q= and optional ?limit= and ?filter_rail=nano. Returns matching services with settlement rails, prices, and x402 health. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_MCPFIND_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
             {   # Balance endpoint (free check)
                 "url": f"{BASE_URL}/api/v1/balance",
                 "method": "GET",
@@ -1220,7 +1239,7 @@ async def well_known_agent_json():
         "origin": BASE_URL.split("://")[1] if "://" in BASE_URL else BASE_URL,
         "payout_address": VEND_ACCOUNT,
         "display_name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 9 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction. No signup, no api keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). 10 endpoints: web extract, link checker, URL status, domain intelligence, web search, geoip lookup, nano account info, youtube transcript, PDF text extraction, MCP/x402 service finder. No signup, no api keys.",
         "intents": [
             {
                 "id": "extract-url",
@@ -1281,6 +1300,17 @@ async def well_known_agent_json():
                 "method": "GET",
                 "params": {"ip": {"type": "string", "description": "IP address to locate", "required": True}},
                 "price": PRICE_GEO_XNO,
+                "currency": "XNO",
+            },
+            {
+                "id": "mcp-find",
+                "name": "MCP/x402 Service Finder",
+                "description": "Search paid MCP/x402 service directories for a task, returning services with their settlement rails, prices and x402 health.",
+                "endpoint": f"{ENDPOINT_BASE['/api/v1/mcp-find']}/api/v1/mcp-find",
+                "method": "GET",
+                "params": {"q": {"type": "string", "description": "Task to find a service for", "required": True},
+                           "filter_rail": {"type": "string", "description": "Rail filter, e.g. 'nano' for XNO-settling services", "required": False}},
+                "price": PRICE_MCPFIND_XNO,
                 "currency": "XNO",
             },
             {
@@ -1667,6 +1697,7 @@ endpoints (all HTTP GET, all priced per call):
   GET /api/v1/nano-info     {PRICE_NANO_XNO} XNO  Nano account balance, representative, blocks (?account=)
   GET /api/v1/status        {PRICE_XNO} XNO  URL status, redirects, TLS expiry, content-drift (?url=&previous_hash=)
   GET /api/v1/pdf-extract   {PRICE_PDF_XNO} XNO  PDF at a URL -> page-structured text (?url=)
+  GET /api/v1/mcp-find      {PRICE_MCPFIND_XNO} XNO  search paid MCP/x402 services, with rails/prices (?q=&limit=&filter_rail=)
 
 call flow:
   1. GET the endpoint with no payment -> 402, body carries price_xno, pay_to, resource.url, timeout
@@ -1797,6 +1828,18 @@ ARD_RESOURCES = [
         ["data.extraction", "pdf", "document", "x402", "nano"],
         ["PdfExtractTool"],
     ),
+    (
+        "mcp-find",
+        "/api/v1/mcp-find",
+        "Vend MCP/x402 Service Finder (x402, Nano)",
+        [
+            "find a paid MCP or x402 service for this task",
+            "which agent services accept Nano settlement",
+            "search for a tool that does X and what it costs",
+        ],
+        ["data.discovery", "mcp", "x402", "search", "nano"],
+        ["McpFindTool", "ToolDiscoveryTool"],
+    ),
 ]
 
 
@@ -1816,6 +1859,7 @@ def ard_entries() -> list:
             "/api/v1/status": PRICE_XNO,
             "/api/v1/youtube-transcript": PRICE_YT_XNO,
             "/api/v1/pdf-extract": PRICE_PDF_XNO,
+            "/api/v1/mcp-find": PRICE_MCPFIND_XNO,
         }[path]
         entries.append(
             {
@@ -1988,6 +2032,15 @@ async def well_known_agent_tools():
                     "description": "Extract text from a PDF at a URL, preserving page structure. Accepts ?url=. Returns title, page_count, and page-structured text. Charges 0.0005 XNO per call.",
                     "price_xno": PRICE_PDF_XNO,
                     "price_raw": PRICE_PDF_RAW,
+                    "pay_to": VEND_ACCOUNT
+                },
+                {
+                    "path": "/api/v1/mcp-find",
+                    "url": f"{ENDPOINT_BASE['/api/v1/mcp-find']}/api/v1/mcp-find",
+                    "method": "GET",
+                    "description": "Search paid MCP/x402 service directories for a task. Accepts ?q= and optional ?limit= and ?filter_rail=nano. Returns services with settlement rails, prices, x402 health. Charges 0.0001 XNO per call.",
+                    "price_xno": PRICE_MCPFIND_XNO,
+                    "price_raw": PRICE_MCPFIND_RAW,
                     "pay_to": VEND_ACCOUNT
                 },
                 # Prepaid balance endpoints (free to query, paid to fund)
@@ -2197,7 +2250,7 @@ async def web_search_endpoint(
 
 @app.get("/api/v1/demo")
 async def demo_endpoint(
-    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info, youtube-transcript, pdf-extract"),
+    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, status, domain-info, web-search, geoip, nano-info, youtube-transcript, pdf-extract, mcp-find"),
 ):
     """Free demo endpoint — now redirects to free trial on the real endpoint.
 
@@ -2217,6 +2270,7 @@ async def demo_endpoint(
         "nano-info": "/api/v1/nano-info?account=nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3",
         "youtube-transcript": "/api/v1/youtube-transcript?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "pdf-extract": "/api/v1/pdf-extract?url=https://arxiv.org/pdf/1706.03762",
+        "mcp-find": "/api/v1/mcp-find?q=web+scraping&filter_rail=nano",
     }
     target = type_map.get(type, type_map["extract"])
     return JSONResponse(
@@ -2366,6 +2420,44 @@ async def pdf_extract_endpoint(
 
     # Payment confirmed and URL provided — extract the PDF text
     return run_paid_work(request, extract_pdf_text, url)
+
+
+# ── MCP/x402 service finder endpoint ──────────────────────────────────
+
+
+@app.get("/api/v1/mcp-find")
+async def mcp_find_endpoint(
+    request: Request,
+    q: str = Query(None, description="Natural-language query — what the MCP/x402 service does"),
+    limit: int = Query(10, description="Max results to return (1-50)"),
+    filter_rail: str = Query(None, description="Rail filter — e.g. 'nano' to show only XNO-settling services"),
+):
+    """Search paid MCP/x402 service directories for a task.
+
+    Requires Nano payment (0.0001 XNO). Returns structured results with
+    settlement rails, prices and x402 health so an agent can pick a service
+    it can pay for.
+
+    The *q* parameter is declared optional so that an unauthenticated probe
+    reaches the 402 challenge *before* request validation rejects it.
+    """
+    paid, response = await require_payment(
+        "/api/v1/mcp-find",
+        price_xno=PRICE_MCPFIND_XNO,
+        price_raw=PRICE_MCPFIND_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — validate input
+    if not q:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "q parameter is required"},
+        )
+
+    # Payment confirmed and query provided — search the directories
+    return run_paid_work(request, mcp_find, q, limit, filter_rail)
 
 
 # ── Prepaid balance endpoints ─────────────────────────────────────────

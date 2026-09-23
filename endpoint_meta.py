@@ -148,6 +148,26 @@ INPUT_SPECS = {
             "example": {"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "language": "en"},
         },
     },
+    "/api/v1/mcp-find": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "q": {"type": "string",
+                          "description": "Natural-language query — what the MCP/x402 service does"},
+                    "limit": {"type": "integer",
+                               "description": "Max results to return (1-50), default 10"},
+                    "filter_rail": {"type": "string",
+                                    "description": "Rail filter — e.g. 'nano' to show only XNO-settling services"},
+                },
+                "required": ["q"],
+            },
+            "example": {"q": "web scraping", "filter_rail": "nano"},
+        },
+    },
     "/api/v1/pdf-extract": {
         "type": "http",
         "method": "GET",

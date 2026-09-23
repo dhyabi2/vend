@@ -92,6 +92,10 @@ ENDPOINTS = {
         "path": "/api/v1/youtube-transcript",
         "description": "Extract captions and transcript from a YouTube video URL. Returns timestamped segments and model-sized chunks with deep-linked citations. Charges 0.0005 XNO in Nano via x402.",
     },
+    "mcp_find": {
+        "path": "/api/v1/mcp-find",
+        "description": "Search paid MCP and x402 service directories for a task. Returns matching services with their settlement rails, prices, and x402 health. Optional filter_rail='nano' shows only XNO-settling services. Charges 0.0001 XNO in Nano via x402.",
+    },
 }
 
 CLIENT_TIMEOUT = 60.0
@@ -288,6 +292,22 @@ def create_server():
         result = await call_vend_endpoint(
             ENDPOINTS["youtube_transcript"]["path"], {"url": url, "language": language}
         )
+        return json.dumps(result)
+
+    @server.tool(
+        description=ENDPOINTS["mcp_find"]["description"],
+        annotations=readonly_annotations,
+    )
+    async def mcp_find(
+        q: Annotated[str, Field(description="Natural-language query — what the MCP or x402 service should do.")],
+        filter_rail: Annotated[str, Field(description="Optional rail filter — pass 'nano' to show only services that settle in Nano (XNO), 'base' for USDC on Base, etc.")] = "",
+        limit: Annotated[int, Field(description="Max results to return (1-50), default 10.")] = 10,
+    ) -> str:
+        """Search paid MCP/x402 service directories. Returns services with settlement rails, prices, x402 health."""
+        params = {"q": q, "limit": limit}
+        if filter_rail:
+            params["filter_rail"] = filter_rail
+        result = await call_vend_endpoint(ENDPOINTS["mcp_find"]["path"], params)
         return json.dumps(result)
 
     return server
