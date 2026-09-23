@@ -92,6 +92,18 @@ def get_402_challenge(endpoint_name: str, params: dict) -> dict:
     with httpx.Client(timeout=15) as client:
         resp = client.get(url)
 
+    if resp.status_code == 200:
+        print(f"\n  -> HTTP 200: Free trial response!")
+        print(f"     You have trial calls remaining — no payment needed.")
+        print(f"     To see the paid flow, exhaust your trial or use --trial-paid.")
+        try:
+            body = resp.json()
+            print(f"     Data preview: {json.dumps(body, default=str)[:300]}")
+        except Exception:
+            print(f"     Body: {resp.text[:200]}")
+        print(f"\n  To simulate the full paid flow, make 5+ unpaid calls first to exhaust the trial.")
+        sys.exit(0)
+
     if resp.status_code != 402:
         print(f"  ERROR: Expected 402 but got {resp.status_code}")
         print(f"  Response: {resp.text[:500]}")
