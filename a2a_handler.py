@@ -44,33 +44,58 @@ def _jsonrpc_result(result, id_: str | None) -> dict:
 
 
 # ── A2A task semantics ──────────────────────────────────────────────────────
+#
+# The A2A agent card (`/.well-known/agent-card.json`) advertises 9 skills with
+# these exact IDs.  An A2A client (e.g. the a2aregistry.org task-conformance
+# probe) reads the card, then calls message/send with the `skillId` it found.
+# The handler must therefore accept every ID the card advertises, or the
+# listing genuinely mis-sequences discovery (advertise X, reject X).
+#
+# Each entry maps a message/send `skillId` to the server's paid route, its
+# price, and the server function to run once payment is confirmed.  Legacy
+# aliases (`extract`, `check_url`, `url_status`) are kept for callers who used
+# the earlier narrow adapter; the canonical IDs are the card's.
 
-A2A_SKILL_MAP = {
-    "extract": {
-        "path": "/api/v1/extract",
-        "price_xno": None,  # server.py's per-path price
-    },
-    "check_link": {
-        "path": "/api/v1/check-link",
-        "price_xno": None,
-    },
-    "domain_info": {
-        "path": "/api/v1/domain-info",
-        "price_xno": None,
-    },
-    "web_search": {
-        "path": "/api/v1/web-search",
-        "price_xno": None,
-    },
-    "geoip_lookup": {
-        "path": "/api/v1/geoip",
-        "price_xno": None,
-    },
-    "nano_account_info": {
-        "path": "/api/v1/nano-info",
-        "price_xno": None,
-    },
-}
+def _skill(skill_id, path, price_xno, fn, *, aliases=()):
+    """One canonical skill entry.
+
+    `skill_id` is the card's canonical A2A skill id (what a client sends as
+    `skillId` in message/send); `aliases` are extra skillIds that route here
+    for backwards compatibility with the earlier narrow adapter.
+    """
+    return {"id": skill_id, "path": path, "price_xno": price_xno,
+            "fn": fn, "aliases": tuple(aliases)}
+
+
+# The first arg is the canonical card skill id; path is the server's paid route.
+# youtube_transcript takes (url, language="en"); every other paid function takes
+# a single text argument.
+A2A_SKILLS = [
+    _skill("extract_url", "/api/v1/extract", None, "extract_url", aliases=("extract",)),
+    _skill("check_link", "/api/v1/check-link", None, "check_link", aliases=("check_url",)),
+    _skill("domain_info", "/api/v1/domain-info", None, "domain_info"),
+    _skill("web_search", "/api/v1/web-search", None, "web_search"),
+    _skill("geoip_lookup", "/api/v1/geoip", None, "geoip_lookup"),
+    _skill("nano_account_info", "/api/v1/nano-info", None, "nano_account_info"),
+    # URL-status check is the same monitoring route as check-link in this
+    # narrow adapter; the card lists it separately, so accept it too.
+    _skill("check_url_status", "/api/v1/check-link", None, "check_link", aliases=("url_status",)),
+    _skill("youtube_transcript", "/api/v1/youtube-transcript", None, "youtube_transcript"),
+    _skill("pdf_extract", "/api/v1/pdf-extract", None, "extract_pdf_text"),
+]
+
+# skillId -> canonical entry (card ids + legacy aliases + path-as-key for safety)
+A2A_SKILL_LOOKUP = {}
+for _e in A2A_SKILLS:
+    A2A_SKILL_LOOKUP[_e["id"]] = _e
+    A2A_SKILL_LOOKUP.setdefault(_e["path"], _e)
+    for _a in _e["aliases"]:
+        A2A_SKILL_LOOKUP.setdefault(_a, _e)
+
+
+def _resolve_skill(skill_id: str):
+    """Return the canonical skill entry for a skillId (card ID or legacy alias), or None."""
+    return A2A_SKILL_LOOKUP.get(skill_id)
 
 
 # ── JSON-RPC dispatcher ─────────────────────────────────────────────────
@@ -116,24 +141,33 @@ def handle_initialize(params: dict, id_: str | None) -> dict:
                 "stateTransitionHistory": False,
             },
             "skills": [
-                {"id": "extract", "name": "Extract URL content",
-                 "description": "Return the readable text and markdown for a web page.",
+                {"id": "extract_url", "name": "Extract URL content",
+                 "description": "Return the readable title, text and markdown for a web page.",
                  "examples": ["Extract the main text of https://example.com"]},
-                {"id": "web_search", "name": "Web search",
-                 "description": "Search the web and return results.",
-                 "examples": ["Search for Nano x402 payment facilitators"]},
-                {"id": "geoip_lookup", "name": "IP geolocation",
-                 "description": "Return location data for an IP address.",
-                 "examples": ["Where is 8.8.8.8 located?"]},
+                {"id": "check_link", "name": "Check link status",
+                 "description": "Return HTTP status, redirect chain, TLS validity and response time for a URL.",
+                 "examples": ["Is https://example.com up and where does it redirect?"]},
                 {"id": "domain_info", "name": "Domain intelligence",
                  "description": "Return DNS, WHOIS, TLS info for a domain.",
                  "examples": ["DNS summary for example.com"]},
-                {"id": "check_link", "name": "Check link status",
-                 "description": "Return HTTP status and redirect chain for a URL.",
-                 "examples": ["Is https://example.com up?"]},
+                {"id": "web_search", "name": "Web search",
+                 "description": "Search the web and return result titles, URLs and snippets.",
+                 "examples": ["Search for Nano x402 payment facilitators"]},
+                {"id": "geoip_lookup", "name": "IP geolocation",
+                 "description": "Return country, city, coordinates, ISP and ASN for an IP address.",
+                 "examples": ["Where is 8.8.8.8 located?"]},
                 {"id": "nano_account_info", "name": "Nano account info",
-                 "description": "Return balance and info for a Nano account.",
+                 "description": "Return balance, representative, weight, frontier and pending for a Nano account.",
                  "examples": ["Balance of nano_1yo6c1t..."]},
+                {"id": "check_url_status", "name": "URL status check",
+                 "description": "Return final HTTP status, redirect chain, TLS validity and body change vs a previous hash.",
+                 "examples": ["Has https://example.com changed since yesterday?"]},
+                {"id": "youtube_transcript", "name": "YouTube transcript",
+                 "description": "Extract captions and timestamped transcript from a YouTube video URL.",
+                 "examples": ["Get the transcript of a YouTube video"]},
+                {"id": "pdf_extract", "name": "Extract PDF text",
+                 "description": "Extract text from a PDF at a URL, preserving page structure.",
+                 "examples": ["Extract the text of a PDF at a URL"]},
             ],
         },
         id_,
@@ -176,11 +210,13 @@ async def handle_message_send(params: dict, request: Request, id_: str | None) -
     #   - X-PAYMENT header (block hash) or X-BALANCE header (account address)
     #   - plus verify_payment and store redemption
 
-    # Route to skill
-    if skill_id not in A2A_SKILL_MAP:
+    # Route to skill (canonical card ID or legacy alias)
+    entry = _resolve_skill(skill_id)
+    if entry is None:
         return _jsonrpc_error(-32602, f"Unknown skill '{skill_id}'", id_)
 
-    endpoint_path = A2A_SKILL_MAP[skill_id]["path"]
+    endpoint_path = entry["path"]
+    fn_name = entry["fn"]
 
     # Use require_payment to check payment. It reads directly from request.headers.
     paid, response = await require_payment(endpoint_path)(request)
@@ -203,28 +239,24 @@ async def handle_message_send(params: dict, request: Request, id_: str | None) -
         _tasks[task_id] = task
         return _jsonrpc_result({"task": task, "requiresPayment": True}, id_)
 
-    # Paid → parse input and run the computation
-    result_obj = None
-    if skill_id == "extract":
-        if not text:
-            return _jsonrpc_error(-32602, "extract needs a url in message text", id_)
-        result_obj = run_paid_work(request, __import__("server").extract_url, text)
-    elif skill_id == "web_search":
-        if not text:
-            return _jsonrpc_error(-32602, "web_search needs a query in message text", id_)
-        result_obj = run_paid_work(request, __import__("server").web_search, text)
-    elif skill_id == "geoip_lookup":
-        result_obj = run_paid_work(request, __import__("server").geoip_lookup, text)
-    elif skill_id == "check_link":
-        if not text:
-            return _jsonrpc_error(-32602, "check_link needs a url in message text", id_)
-        result_obj = run_paid_work(request, __import__("server").check_link, text)
-    elif skill_id == "domain_info":
-        if not text:
-            return _jsonrpc_error(-32602, "domain_info needs a domain in message text", id_)
-        result_obj = run_paid_work(request, __import__("server").domain_info, text)
-    else:
+    # Paid → parse input and run the computation.  Every paid function takes the
+    # URL/query/account/domain text from the message; youtube_transcript also
+    # accepts an optional language.
+    import server
+
+    fn = getattr(server, fn_name, None)
+    if fn is None:
         return _jsonrpc_error(-32602, f"Skill '{skill_id}' not implemented in this narrow adapter", id_)
+
+    if not text:
+        return _jsonrpc_error(-32602, f"{skill_id} needs its input (URL, query, domain, account or IP) in message text", id_)
+
+    if fn_name == "youtube_transcript":
+        lang = (params.get("metadata") or {}).get("language", "en")
+        result_obj = run_paid_work(request, fn, text, lang)
+    else:
+        result_obj = run_paid_work(request, fn, text)
+
 
     # run_paid_work returns a JSONResponse; extract its body dict for the artifact
     if hasattr(result_obj, "body"):
