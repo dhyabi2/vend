@@ -295,7 +295,30 @@ def test_announce_is_checked_before_the_issue_exists_and_the_brief_measures_x():
           "headline with a stranger-checkable link passes; the brief's X line is measured (posted/refused/waiting) and orders "
           "the announce; an unreadable forge drops the line")
 
+
+def test_throttled_account_is_measured_and_the_brief_orders_drafts_not_calls():
+    """Owner, 2026-09-23 ("work like previously, 100 PRs per day"): after GitHub's security reset the account is flagged
+    and throttled to anonymous limits (core 60/h, GraphQL 0). The brief measures it every run: throttled -> no GitHub
+    call, build and keep PRs under drafts/; a normal limit -> the OPEN line as before; an unreadable limit -> OPEN
+    (the scope header already proved the token), never a false THROTTLED."""
+    import json as _j  # noqa: WPS433
+    class Out:
+        def __init__(self, stdout): self.stdout = stdout
+    classic = Out("HTTP/2.0 200 OK\r\nX-Oauth-Scopes: repo, workflow\r\n\r\n{}")
+    def run_with(limit, left, gl):
+        body = _j.dumps({"resources": {"core": {"limit": limit, "remaining": left, "reset": 1790189052}, "graphql": {"limit": gl, "remaining": 0}}})
+        return lambda *a: classic if not a else Out(body)
+    t = F.write_path_line(run=run_with(60, 12, 0))
+    assert t.startswith("GITHUB WRITE PATH: THROTTLED") and "core limit 60/h with 12 left until 18:44 UTC" in t and "GraphQL limit 0" in t, t
+    assert "NO GitHub call this run" in t and "drafts/<repo>-<slug>.md" in t and "says OPEN" in t
+    assert F.write_path_line(run=run_with(5000, 4990, 5000)).startswith("GITHUB WRITE PATH: OPEN")
+    assert F.write_path_line(run=lambda *a: classic if not a else Out("not json")).startswith("GITHUB WRITE PATH: OPEN"), "an unreadable limit is not a throttle"
+    assert F.throttle_line(run=run_with(999, 0, 0)).startswith("GITHUB WRITE PATH: THROTTLED"), "below 1000 is throttled"
+    print("PASS throttle: a 60/h core limit puts THROTTLED in the brief with the numbers, the reset time and the order to draft, "
+          "not call; 5000 reads OPEN; an unreadable limit reads OPEN")
+
 if __name__ == "__main__":
+    test_throttled_account_is_measured_and_the_brief_orders_drafts_not_calls()
     test_announce_is_checked_before_the_issue_exists_and_the_brief_measures_x()
     test_the_write_path_is_measured_in_every_brief()
     test_the_open_discussion_is_in_the_brief_until_the_agent_has_spoken()

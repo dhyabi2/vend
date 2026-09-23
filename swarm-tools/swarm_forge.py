@@ -373,10 +373,42 @@ def write_path_line(run=None):
                 "pull requests on repositories we do not own. Say so in a `network:` issue; write nothing about it elsewhere. ")
     scopes = {s.strip() for s in m.group(1).split(",")}
     if "repo" in scopes or "public_repo" in scopes:
+        throttled = throttle_line(run)
+        if throttled:
+            return throttled
         return ("GITHUB WRITE PATH: OPEN (classic token, `repo` scope, measured this run) - `gh issue create` and `gh pr create` "
                 "work on any public repository. Anything you have under `drafts/` is a deliverable: post it upstream this run. "
                 "Any note that says the fine-grained PAT blocks writes is stale; do not repeat it. ")
     return f"GITHUB WRITE PATH: CLOSED - the token's scopes are {sorted(scopes)}, without `repo`. Say so in a `network:` issue. "
+
+
+# Owner, 2026-09-23 ("work like previously, 100 PRs per day"): after GitHub's security reset the account is FLAGGED -
+# hidden from the public and throttled to anonymous limits (core 60/h, GraphQL 0, search 10) until GitHub's review ends.
+# Thirty-nine agents sharing 60 calls an hour cannot do GitHub work; retrying only burns the 60 and breeds a new stale
+# belief. So the brief measures the limit every run: throttled = build locally and keep every PR ready under drafts/;
+# back to 5,000 = the line flips to OPEN by itself and the pace resumes the same hour. Nobody has to notice.
+THROTTLE_CORE_MIN = 1000
+
+
+def throttle_line(run=None):
+    """The measured rate limit, as an order, when the account is throttled; '' when it is normal or unreadable."""
+    try:
+        r = run(["gh", "api", "rate_limit"]) if run else subprocess.run(["gh", "api", "rate_limit"], capture_output=True, text=True, timeout=20)
+        res = json.loads(getattr(r, "stdout", "") or "{}").get("resources") or {}
+        core, gql = res.get("core") or {}, res.get("graphql") or {}
+        limit, left, gl = int(core.get("limit", 0)), int(core.get("remaining", 0)), int(gql.get("limit", 0))
+    except Exception:
+        return ""
+    if limit >= THROTTLE_CORE_MIN:
+        return ""
+    reset = time.strftime("%H:%M UTC", time.gmtime(int(core.get("reset", 0) or 0)))
+    return (f"GITHUB WRITE PATH: THROTTLED - the account is under GitHub's review (owner's ticket filed 2026-09-23): core limit "
+            f"{limit}/h with {left} left until {reset}, GraphQL limit {gl}. Thirty-nine agents share that, so NO GitHub call this "
+            "run - no `gh`, no `git push` to github.com, no API probe, no retry: each one burns the shared hour and proves nothing. "
+            "Build instead: finish the change, run its tests, write the PR title and body in full under `drafts/<repo>-<slug>.md` "
+            "with the branch name, record it with a bridge note. When the limit reads 5000 again this line says OPEN and you post "
+            "everything in drafts/ that run. Do not write anywhere that GitHub is 'blocked'; it is throttled, and this line is the "
+            "only source of that fact. ")
 
 
 MERGE_QUEUE_MAX_S = 2 * 3600
