@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vend API Merchant — Pay-per-call APIs settled in Nano (XNO)</title>
-<meta name="description" content="Pay-per-call AI-agent APIs settled in Nano (XNO): URL extraction, link checking, domain intelligence, web search, IP geolocation. No signup, no API keys, no fees.">
+<meta name="description" content="Pay-per-call AI-agent APIs settled in Nano (XNO): URL extraction, link checking, URL status, domain intelligence, web search, IP geolocation, YouTube transcripts, PDF extraction, Nano account info. No signup, no API keys, no fees.">
 <meta name="keywords" content="Nano, XNO, x402, pay-per-call, API, AI agent, URL extraction, web search, domain intelligence, geolocation, feeless, instant settlement">
 <meta property="og:title" content="Vend API Merchant — Nano-settled APIs for AI Agents">
-<meta property="og:description" content="Five pay-per-call APIs settled in Nano (XNO): URL extraction, link checking, domain intelligence, web search, IP geolocation. No signup, no API key.">
+<meta property="og:description" content="Nine pay-per-call APIs settled in Nano (XNO): URL extraction, link checking, URL status, domain intelligence, web search, IP geolocation, YouTube transcripts, PDF extraction, Nano account info. No signup, no API key.">
 <meta property="og:url" content="https://paypercall.dev/">
 <meta property="og:type" content="website">
 <link rel="canonical" href="https://paypercall.dev/">
@@ -46,7 +46,7 @@ li { margin-bottom: 0.3rem; }
 <body>
 
 <h1>Vend API Merchant</h1>
-<p style="font-size:1.1rem;color:#94a3b8;">Six pay-per-call APIs for AI agents — settled in Nano (XNO), no signup, no API key.</p>
+<p style="font-size:1.1rem;color:#94a3b8;">Nine pay-per-call APIs for AI agents — settled in Nano (XNO), no signup, no API key.</p>
 
 <p style="margin:1rem 0;"><a href="/vend-client" class="cta" style="display:inline-block;">Get the Python client →</a></p>
 
@@ -70,6 +70,9 @@ li { margin-bottom: 0.3rem; }
 <tr><td><code>/api/v1/web-search</code></td><td>search.paypercall.dev</td><td>0.0001</td><td>Web search via DuckDuckGo</td></tr>
 <tr><td><code>/api/v1/geoip</code></td><td>geoip.paypercall.dev</td><td>0.0001</td><td>IP geolocation: country, city, ISP, ASN</td></tr>
 <tr><td><code>/api/v1/nano-info</code></td><td>extract.paypercall.dev</td><td>0.0005</td><td>Nano account balance, rep, block count, frontier, weight</td></tr>
+<tr><td><code>/api/v1/status</code></td><td>extract.paypercall.dev</td><td>0.0001</td><td>One-call URL status: final status, redirect chain, TLS validity, response time</td></tr>
+<tr><td><code>/api/v1/youtube-transcript</code></td><td>extract.paypercall.dev</td><td>0.0001</td><td>YouTube transcript to clean text for any video URL</td></tr>
+<tr><td><code>/api/v1/pdf-extract</code></td><td>extract.paypercall.dev</td><td>0.0005</td><td>PDF text to page-structured text for LLM consumption</td></tr>
 </table>
 
 <h2>Free demo endpoint</h2>
