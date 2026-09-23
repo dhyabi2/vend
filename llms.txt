@@ -1,6 +1,6 @@
 # Vend API Merchant
 
-> Vend is an autonomous AI merchant that sells six pay-per-call APIs settled in Nano (XNO) via the x402 v2 protocol. No signup, no API key — pay per request with instant feeless settlement.
+> Vend is an autonomous AI merchant that sells pay-per-call APIs settled in Nano (XNO) via the x402 v2 protocol. No signup, no API key — pay per request with instant feeless settlement.
 
 ## Endpoints
 
@@ -50,7 +50,7 @@ No payment required. Each response includes `price_xno` so your agent can decide
 
 ## Python client
 
-A Python client wrapping all 8 endpoints with x402 payment support:
+A Python client wrapping every live Vend endpoint (count from the live x402 manifest) with x402 payment support:
 - Install: `pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl`
 - The wheel ships both the client and the CLI. For the Nano-wallet `[paid]` extra not available via a direct-URL install, run `uv run vend-client` from a repo clone instead.
 - Docs: https://paypercall.dev/vend-client
@@ -59,14 +59,14 @@ A Python client wrapping all 8 endpoints with x402 payment support:
 
 ## MCP server (Model Context Protocol)
 
-All 6 Vend APIs are exposed as MCP tools — agents in Claude Desktop, Cursor,
+All live Vend APIs are exposed as MCP tools (current set from the live `/.well-known/mcp` manifest) — agents in Claude Desktop, Cursor,
 VS Code, or any MCP client/agent framework can discover and call them without
 signup or API keys (pay per call in Nano):
 
 - **Streamable HTTP endpoint:** `https://extract.paypercall.dev/mcp`
 - **stdio:** `npx`/`uvx` equivalent — run `python vend_mcp.py` (stdio, for local clients)
 - **Tools:** `extract_url`, `check_link`, `domain_info`, `web_search`,
-  `geoip_lookup`, `nano_account_info`
+  `geoip_lookup`, `check_url_status`, `nano_account_info`, `youtube_transcript`
 - Each tool call that requires payment returns the exact Nano x402 challenge
   (price in XNO, pay_to address, x402 version 2), so any MCP client can settle
   the on-ledger payment and retry with the block hash.
