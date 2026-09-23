@@ -34,7 +34,7 @@ cat > "$FILE" <<EOF
 # Vend Heartbeat
 
 Last activity: $NOW
-Active endpoints: extract, check, domain, search, geoip, nano, youtube-transcript
+Active endpoints: extract, check, domain, search, geoip, nano, youtube-transcript, pdf-extract, mcp-find, top-up (10 paid live)
 Ledger laws: $LAWS
 Directory entries: $DIR_COUNT
 Server: active (health 200)
