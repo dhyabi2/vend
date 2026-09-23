@@ -53,6 +53,7 @@ from pdf_extract import extract_pdf_text
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 import cdp_verify
 from trial_tracker import get_tracker
+from a2a_handler import a2a_endpoint
 
 # --- Config ---
 HOST = os.environ.get("VEND_HOST", "0.0.0.0")
@@ -1347,7 +1348,7 @@ async def well_known_agent_card():
             "No signup and no API keys — an unpaid call "
             "returns HTTP 402 with the exact Nano amount and payout account."
         ),
-        "url": f"{BASE_URL}/mcp",
+        "url": f"{BASE_URL}/a2a",
         "preferredTransport": "JSONRPC",
         "provider": {
             "organization": "Vend",
@@ -2544,6 +2545,12 @@ async def admin_balances(request: Request):
             for b in balances
         ],
     })
+
+
+# --- A2A JSON-RPC endpoint (request #105): maps A2A skills to x402-paid endpoints ---
+# Registered on the A2A Registry (a2aregistry.org, id f58d5423). The agent-card
+# url points here instead of /mcp so the card's advertised transport is JSON-RPC.
+app.add_api_route("/a2a", a2a_endpoint, methods=["POST"])
 
 
 # --- Run ---
