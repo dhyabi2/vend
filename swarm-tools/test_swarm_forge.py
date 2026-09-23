@@ -317,7 +317,32 @@ def test_throttled_account_is_measured_and_the_brief_orders_drafts_not_calls():
     print("PASS throttle: a 60/h core limit puts THROTTLED in the brief with the numbers, the reset time and the order to draft, "
           "not call; 5000 reads OPEN; an unreadable limit reads OPEN")
 
+
+def test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move():
+    """Owner, 2026-09-24: the Kanban is not one agent's job - "all agents are needed to work on kanban and updating
+    it". So every brief carries what is on the board FOR THIS AGENT and the order to add what it starts and move
+    what moves. An agent with nothing on the board is told to add; one whose cards all sit still is told to move or
+    explain; a box without the tool says nothing (never a false order)."""
+    class Out:
+        def __init__(self, stdout): self.stdout = stdout
+    F.BOARD_BIN = __file__                      # something that exists, so the line is produced
+    empty = F.board_line(run=lambda *a: Out("\nBacklog (0)\n\nBuilding (0)\n\nMerged / live (0)\n"))
+    assert empty.startswith("THE BOARD (0 card(s) yours)"), empty
+    assert "add the one thing you are doing now" in empty and "swarm-board add" in empty
+    stuck = F.board_line(run=lambda *a: Out("\nBacklog (3)\n\nBuilding (0)\n\nIn review (PR open) (0)\n"))
+    assert stuck.startswith("THE BOARD (3 card(s) yours: Backlog 3)"), stuck
+    assert "Nothing of yours is moving" in stuck
+    busy = F.board_line(run=lambda *a: Out("\nBacklog (1)\n\nBuilding (2)\n\nIn review (PR open) (1)\n"))
+    assert busy.startswith("THE BOARD (4 card(s) yours") and "Nothing of yours" not in busy, busy
+    assert "swarm-board move" in busy and "the same run it moves" in busy
+    assert F.board_line(run=lambda *a: Out("")) == "", "no answer from the tool says nothing"
+    F.BOARD_BIN = "/nonexistent/swarm-board"
+    assert F.board_line() == "", "a box without the board says nothing"
+    print("PASS board line: every brief carries this agent's own cards and the order to add what it starts and move "
+          "what moves; empty and stuck boards get their own sentence; a box without the tool stays silent")
+
 if __name__ == "__main__":
+    test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move()
     test_throttled_account_is_measured_and_the_brief_orders_drafts_not_calls()
     test_announce_is_checked_before_the_issue_exists_and_the_brief_measures_x()
     test_the_write_path_is_measured_in_every_brief()

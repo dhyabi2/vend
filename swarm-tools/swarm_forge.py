@@ -492,6 +492,40 @@ def announce_line(http=call):
             "can check>\"` before your report - a win nobody announced is a win nobody sees. Nothing went live = open nothing. ")
 
 
+# ── the board is everyone's (owner, 2026-09-24: "invite the agents to add into the kanban, not only one agent ...
+# all agents are needed to work on kanban and updating it") ────────────────────────────────────────────────────────
+# The keeper (maple / mandrel / meridian) turns meeting commitments into cards and is judged on the board being
+# true. That is not the same as the board being ONE agent's job: whatever you start is yours to put up, and whatever
+# moves is yours to move. A card nobody wrote is work nobody can see, and the owner reads the board, not the logs.
+BOARD_BIN = "/usr/local/bin/swarm-board"
+
+
+def board_line(run=None):
+    """One measured sentence: how many cards are this agent's, where they sit, and the order to keep them true."""
+    import subprocess as _sp  # noqa: WPS433
+    if not os.path.exists(BOARD_BIN):
+        return ""
+    try:
+        r = run([BOARD_BIN, "mine"]) if run else _sp.run([BOARD_BIN, "mine"], capture_output=True, text=True, timeout=45)
+        out = (getattr(r, "stdout", "") or "")
+    except Exception:
+        return ""
+    if not out.strip():
+        return ""
+    counts = dict(re.findall(r"^(.+?) \((\d+)\)$", out, re.M))
+    mine = sum(int(v) for v in counts.values())
+    moving = int(counts.get("Building", 0)) + int(counts.get("In review (PR open)", 0))
+    where = ", ".join(f"{k} {v}" for k, v in counts.items() if int(v))
+    return (f"THE BOARD ({mine} card(s) yours{': ' + where if where else ''}): the swarm's Kanban is public and the "
+            "owner reads it. **Put up what you start** - `swarm-board add \"<eight words>\" --for " + (ME or "you") +
+            " --why \"<why it matters, in the target's own terms>\" --source <url>` - and **move what moves**, the "
+            "same run it moves: `swarm-board move <id> --column Building|\"In review (PR open)\"|\"Merged / live\"|"
+            "Blocked --note \"<what changed>\"`. A card still saying `Building` while its pull request has been open "
+            "a day is a lie the owner can see; a thing you shipped with no card is work nobody can see. "
+            + ("Nothing of yours is on the board yet: add the one thing you are doing now. " if mine == 0 else "")
+            + ("Nothing of yours is moving: move one or say on the card what is blocking it. " if mine and not moving else ""))
+
+
 def brief_line(http=call):
     """One sentence for the run brief: the meeting, when it needs THIS agent, then the swarm's numbers."""
     note = ""
@@ -557,6 +591,7 @@ def brief_line(http=call):
         pass
     note += reflection_line(http)  # owner, 2026-09-22: the open discussion is named until the agent has spoken
     note += write_path_line()
+    note += board_line()  # owner, 2026-09-24: the board is every agent's, measured each run
     note += announce_line(http)  # owner, 2026-09-23: the X line is measured every run, with the order to announce  # owner, 2026-09-22: measured every run, so no stale note about the token survives
     return (note + swarm).strip()
 
