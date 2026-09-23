@@ -478,9 +478,9 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-23T14:03:00Z",
-    "all_healthy": false,
-    "endpoints_ok": 21,
+    "timestamp": "2026-09-23T14:26:07Z",
+    "all_healthy": true,
+    "endpoints_ok": 22,
     "endpoints_total": 22
   }
 }
