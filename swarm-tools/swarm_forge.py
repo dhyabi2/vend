@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import re
+import time
 import subprocess
 import sys
 import urllib.error
@@ -119,6 +120,7 @@ def labels_for(title, http=call):
 
 def issue(title, body, to="", http=call):
     publish_ok(title, body)
+    announce_check(title, body)  # owner, 2026-09-23: refuse what the X rail would refuse, before the issue exists
     if len(title.strip()) < 8:
         raise Refused("give the issue a title someone can act on")
     ids, names = labels_for(title, http)
@@ -406,6 +408,58 @@ def merge_queue_line(http=call):
             + "Do this before your own plan; a queue older than two hours is a failed run whatever else shipped. ")
 
 
+# ── announcing on X (owner, 2026-09-23: "why X posting stopped again, agents also are not posting") ───────────────
+# The rail was fine; the SUPPLY was not: five `announce:` issues had ever been opened across three forges against
+# eleven merged PRs, live endpoints and an npm package, and two of the five were refused by the rail for rules the
+# agent never saw (18 words; no checkable link). The rule lived in the playbook and never in the brief - and only the
+# brief is read. So: the tool refuses a malformed announce BEFORE the issue exists, naming the rule, and every brief
+# carries a measured X line with the order to announce this run's win.
+ANNOUNCE_MAX_WORDS = 10
+OWNED_LINK_RE = re.compile(r"https?://(?:www\.)?github\.com/(?:PANDeveloper001|dhyabi2)/", re.I)
+LINK_RE = re.compile(r"https://[^\s)>\]\"']+")
+
+
+def announce_check(title, body):
+    """Refuse an `announce:` issue the X rail would refuse, before it is opened."""
+    low = title.strip().lower()
+    if not low.startswith("announce:"):
+        return
+    head = title.split(":", 1)[1].strip()
+    n = len(head.split())
+    if n == 0 or n > ANNOUNCE_MAX_WORDS:
+        raise Refused(f"announce: the headline has {n} words; the X rail posts at most {ANNOUNCE_MAX_WORDS} - say it in "
+                      f"{ANNOUNCE_MAX_WORDS} words and put the rest behind the link")
+    links = [l for l in LINK_RE.findall(body or "") if not OWNED_LINK_RE.search(l)]
+    if not links:
+        raise Refused("announce: the body needs ONE https link a stranger can check - the merged PR on THEIR repository, the live "
+                      "endpoint, the registry page - never a repository we own, never no link")
+    if re.search(r"(?i)\b(none|nothing) (this run|to announce)\b", head):
+        raise Refused("announce: 'none this run' is not an announcement - open one only when something went live")
+
+
+def announce_line(http=call):
+    """One measured sentence: how many posts this swarm sent to X today, how many announces wait, and the order."""
+    try:
+        s, ts = http("GET", f"/repos/{REPO}/issues?state=all&type=issues&labels=x-posting&limit=5")
+        ts = [i for i in (ts if isinstance(ts, list) else []) if any((l or {}).get("name") == "x-posting" for l in (i.get("labels") or []))]
+        posted = failed = 0
+        if ts:
+            today = time.strftime("%Y-%m-%d", time.gmtime())
+            for c in _comments(ts[0]["number"], http):
+                if str(c.get("created_at", "")).startswith(today):
+                    b = c.get("body") or ""
+                    posted += b.lstrip().startswith("**POSTED**")
+                    failed += b.lstrip().startswith("**FAILED**")
+        s, an = http("GET", f"/repos/{REPO}/issues?state=open&type=issues&labels=announce&limit=20")
+        waiting = len([i for i in (an if isinstance(an, list) else []) if any((l or {}).get("name") == "announce" for l in (i.get("labels") or []))])
+    except Exception:
+        return ""
+    return (f"X TODAY: {posted} posted from this swarm, {failed} refused, {waiting} announce issue(s) waiting; 3 posts a day "
+            "account-wide, first come first served. If THIS run merged a PR on someone's repository, put an endpoint or a package "
+            "live, or got a listing accepted, open `swarm-forge issue \"announce: <at most 10 words>\" \"<one https link a stranger "
+            "can check>\"` before your report - a win nobody announced is a win nobody sees. Nothing went live = open nothing. ")
+
+
 def brief_line(http=call):
     """One sentence for the run brief: the meeting, when it needs THIS agent, then the swarm's numbers."""
     note = ""
@@ -470,7 +524,8 @@ def brief_line(http=call):
     except Exception:
         pass
     note += reflection_line(http)  # owner, 2026-09-22: the open discussion is named until the agent has spoken
-    note += write_path_line()  # owner, 2026-09-22: measured every run, so no stale note about the token survives
+    note += write_path_line()
+    note += announce_line(http)  # owner, 2026-09-23: the X line is measured every run, with the order to announce  # owner, 2026-09-22: measured every run, so no stale note about the token survives
     return (note + swarm).strip()
 
 

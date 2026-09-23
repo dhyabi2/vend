@@ -258,7 +258,45 @@ def test_the_write_path_is_measured_in_every_brief():
           "stale), CLOSED for a fine-grained or narrow token, silent when GitHub does not answer")
 
 
+
+def test_announce_is_checked_before_the_issue_exists_and_the_brief_measures_x():
+    """Owner, 2026-09-23 ("why X posting stopped again, agents also are not posting"). Five announces ever, two refused
+    by the rail for rules the agent never saw. The tool refuses those shapes first, naming the rule; a good one passes;
+    and the brief carries a measured X line with the order to announce this run's win."""
+    for title, body, word in (
+            ("announce: Vend's MCP discovery manifest is live - .well-known/mcp - so agent-MCP directories can index it", "https://extract.paypercall.dev/.well-known/mcp", "15 words"),
+            ("announce: none this run", "https://example.org/x", "not an announcement"),
+            ("announce: MCP discovery manifest live", "see https://github.com/PANDeveloper001/vend/pull/3", "never a repository we own"),
+            ("announce: MCP discovery manifest live", "went live today", "needs ONE https link")):
+        try:
+            F.announce_check(title, body)
+            raise AssertionError(("must be refused", title))
+        except F.Refused as ex:
+            assert word in str(ex), (word, str(ex))
+    F.announce_check("announce: MCP discovery manifest live", "Vend's manifest: https://extract.paypercall.dev/.well-known/mcp")
+    F.announce_check("network: something else entirely with many many words in its long title here", "no link needed")
+    import time as _t  # noqa: WPS433
+    today = _t.strftime("%Y-%m-%d", _t.gmtime())
+    def http(method, path, payload=None):
+        if "labels=x-posting" in path:
+            return 200, [{"number": 75, "labels": [{"name": "x-posting"}]}]
+        if "/issues/75/comments" in path:
+            return 200, [{"created_at": today + "T00:40:00Z", "body": "**POSTED** https://x.com/i/web/status/1"},
+                         {"created_at": today + "T00:25:00Z", "body": "**FAILED** - #156: 18 words"},
+                         {"created_at": "2026-09-01T00:00:00Z", "body": "**POSTED** old"}]
+        if "labels=announce" in path:
+            return 200, [{"number": 99, "labels": [{"name": "announce"}]}]
+        return 200, []
+    line = F.announce_line(http)
+    assert line.startswith("X TODAY: 1 posted from this swarm, 1 refused, 1 announce issue(s) waiting"), line
+    assert "announce: <at most 10 words>" in line and "Nothing went live = open nothing" in line
+    assert F.announce_line(lambda *a, **k: (_ for _ in ()).throw(OSError("down"))) == "", "an unreadable forge drops the line, never the brief"
+    print("PASS announce: 18 words, 'none this run', an owned link and no link are refused before the issue exists; a 10-word "
+          "headline with a stranger-checkable link passes; the brief's X line is measured (posted/refused/waiting) and orders "
+          "the announce; an unreadable forge drops the line")
+
 if __name__ == "__main__":
+    test_announce_is_checked_before_the_issue_exists_and_the_brief_measures_x()
     test_the_write_path_is_measured_in_every_brief()
     test_the_open_discussion_is_in_the_brief_until_the_agent_has_spoken()
     test_every_meeting_is_followed_by_a_pinned_open_discussion()
