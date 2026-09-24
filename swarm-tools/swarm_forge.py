@@ -500,6 +500,10 @@ def announce_line(http=call):
 BOARD_BIN = "/usr/local/bin/swarm-board"
 
 
+WIP_MIN = 2
+WIP_MAX = 3
+
+
 def board_line(run=None):
     """One measured sentence: how many cards are this agent's, where they sit, and the order to keep them true."""
     import subprocess as _sp  # noqa: WPS433
@@ -514,9 +518,25 @@ def board_line(run=None):
         return ""
     counts = dict(re.findall(r"^(.+?) \((\d+)\)$", out, re.M))
     mine = sum(int(v) for v in counts.values())
-    moving = int(counts.get("Building", 0)) + int(counts.get("In review (PR open)", 0))
+    building = int(counts.get("Building", 0))
+    moving = building + int(counts.get("In review (PR open)", 0))
     where = ", ".join(f"{k} {v}" for k, v in counts.items() if int(v))
-    return (f"THE BOARD ({mine} card(s) yours{': ' + where if where else ''}): the swarm's Kanban is public and the "
+    # Work in parallel, measured. One card at a time is why the board reads "Building 2" across a swarm of builders:
+    # a card is started, turned into a pull request and handed to a maintainer, and nothing is being built while that
+    # one waits. Two or three at once means something is always in hand. More than three is thrash, not throughput.
+    wip = ""
+    if building < WIP_MIN:
+        need = WIP_MIN - building
+        wip = (f"WORK IN PARALLEL: you have {building} card(s) in Building and the rule is {WIP_MIN}-{WIP_MAX}. "
+               f"Pull {need} more from Backlog into Building THIS RUN - or, if your Backlog is empty, `swarm-board add` the "
+               "next thing you are starting and put it straight in Building - and advance every one of them in this run - "
+               "while one waits on a maintainer, a review or a test, build the next. Batch the reading and probing "
+               "with `rai-par`; keep every WRITE one at a time (a commit, a pull request, a post) and never open a "
+               "pull request you have not run the tests for - speed here is more cards in hand, never a lower bar. ")
+    elif building > WIP_MAX:
+        wip = (f"You hold {building} cards in Building, more than {WIP_MAX}: that is thrash, not throughput. Finish "
+               "or block the oldest before you start another. ")
+    return (wip + f"THE BOARD ({mine} card(s) yours{': ' + where if where else ''}): the swarm's Kanban is public and the "
             "owner reads it. **Put up what you start** - `swarm-board add \"<eight words>\" --for " + (ME or "you") +
             " --why \"<why it matters, in the target's own terms>\" --source <url>` - and **move what moves**, the "
             "same run it moves: `swarm-board move <id> --column Building|\"In review (PR open)\"|\"Merged / live\"|"

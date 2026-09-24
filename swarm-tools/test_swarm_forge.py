@@ -327,10 +327,10 @@ def test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move():
         def __init__(self, stdout): self.stdout = stdout
     F.BOARD_BIN = __file__                      # something that exists, so the line is produced
     empty = F.board_line(run=lambda *a: Out("\nBacklog (0)\n\nBuilding (0)\n\nMerged / live (0)\n"))
-    assert empty.startswith("THE BOARD (0 card(s) yours)"), empty
+    assert "THE BOARD (0 card(s) yours)" in empty, empty
     assert "add the one thing you are doing now" in empty and "swarm-board add" in empty
     stuck = F.board_line(run=lambda *a: Out("\nBacklog (3)\n\nBuilding (0)\n\nIn review (PR open) (0)\n"))
-    assert stuck.startswith("THE BOARD (3 card(s) yours: Backlog 3)"), stuck
+    assert "THE BOARD (3 card(s) yours: Backlog 3)" in stuck, stuck
     assert "Nothing of yours is moving" in stuck
     busy = F.board_line(run=lambda *a: Out("\nBacklog (1)\n\nBuilding (2)\n\nIn review (PR open) (1)\n"))
     assert busy.startswith("THE BOARD (4 card(s) yours") and "Nothing of yours" not in busy, busy
@@ -341,7 +341,37 @@ def test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move():
     print("PASS board line: every brief carries this agent's own cards and the order to add what it starts and move "
           "what moves; empty and stuck boards get their own sentence; a box without the tool stays silent")
 
+def test_an_agent_is_told_to_carry_two_or_three_cards_at_once():
+    """Owner, 2026-09-24: "why in kanban only 2 are building now, and we have 13 agents 100% builders but not doing
+    building in parallel? ... tell agents to work on multiple tasks in parallel ... without compromising the quality".
+
+    The agents were not idle - the boards carried 50 and 46 cards in review - but each held ONE card and flipped it to
+    "In review" the moment a pull request opened, so a whole swarm of builders showed "Building 2". A run is one
+    process, so the parallelism that is real is work in hand: two or three cards at once, so that while one waits on a
+    maintainer another is being built. Below the floor the agent is told to pull the difference from Backlog THIS RUN;
+    above the ceiling it is told that is thrash. The quality half is stated in the same breath and is not negotiable:
+    reads batch through rai-par, every WRITE stays one at a time, and no pull request goes out untested."""
+    class Out:
+        def __init__(self, stdout): self.stdout = stdout
+    F.BOARD_BIN = __file__
+    one = F.board_line(run=lambda *a: Out("\nBacklog (4)\n\nBuilding (1)\n\nIn review (PR open) (2)\n"))
+    assert one.startswith("WORK IN PARALLEL"), one
+    assert "you have 1 card(s) in Building" in one and f"the rule is {F.WIP_MIN}-{F.WIP_MAX}" in one
+    assert "Pull 1 more from Backlog" in one, one
+    assert "keep every WRITE one at a time" in one and "never open a" in one, "the quality half travels with it"
+    none = F.board_line(run=lambda *a: Out("\nBacklog (2)\n\nBuilding (0)\n\nIn review (PR open) (0)\n"))
+    assert "Pull 2 more from Backlog" in none, none
+    at_floor = F.board_line(run=lambda *a: Out("\nBacklog (1)\n\nBuilding (2)\n\nIn review (PR open) (1)\n"))
+    assert "WORK IN PARALLEL" not in at_floor, "two in hand already obeys the rule"
+    over = F.board_line(run=lambda *a: Out("\nBacklog (1)\n\nBuilding (5)\n\nIn review (PR open) (1)\n"))
+    assert over.startswith("You hold 5 cards in Building") and "thrash" in over, over
+    assert "Pull" not in over.split("THE BOARD")[0], "over the ceiling is never told to pull more"
+    print("PASS parallel work: an agent under the floor is told how many to pull from Backlog this run and that "
+          "writes stay one at a time; at the floor it is left alone; over the ceiling it is told to finish, not start")
+
+
 if __name__ == "__main__":
+    test_an_agent_is_told_to_carry_two_or_three_cards_at_once()
     test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move()
     test_throttled_account_is_measured_and_the_brief_orders_drafts_not_calls()
     test_announce_is_checked_before_the_issue_exists_and_the_brief_measures_x()
