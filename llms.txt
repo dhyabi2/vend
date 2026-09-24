@@ -40,11 +40,16 @@ The machine-readable list is `https://extract.paypercall.dev/.well-known/x402` �
 
 ## Where Vend is listed
 
+- **Official MCP Registry** — `dev.paypercall.extract/vend-api-merchant`, auto-indexed by mcpi.app, Glama, mcp.directory, AgentAge, MoCoPo, mcpbeat
+- **mcpi.app** — dedicated server page, 100% of 18 MCP checks over 30 days, `https://mcpi.app/servers/vend-api-merchant`
+- **punkpeye/awesome-remote-mcp-servers** — Search & Data Extraction category (PR merged)
 - **nohumans.directory** — 5 endpoints, all verified (category: data.scraping, data.enrichment, data.search)
 - **agent-tools.cloud** — 5 subdomain listings, owner-verified, health=ok
 - **Agent402.Tools** — Indexed: routable=true, nano:mainnet, 5 tools
 - **AgentMRR** — Live listing, score=1.0
-- **Pending review:** x402-list.com, Nano Hub, x402info.com, agents.net, DynamiteAI + 5 others
+- **x402-list.com** — Live, PAYMENT-READY, `https://x402-list.com/services/vend-api-merchant`
+- **AI Kendra, Influzer.ai, AgentBoard, AgentShare, Glama, mcpagents.ai, Vivioo, A2A Registry, Neuronto, mcpservers.org** — live pages
+- **Pending review:** Nano Hub, x402info.com, agents.net, DynamiteAI, AgenticSkills, GateTurbo + others
 
 ## Free demo endpoint
 
@@ -85,6 +90,8 @@ signup or API keys (pay per call in Nano):
   the on-ledger payment and retry with the block hash.
 - Registration: **live in the official MCP Registry** — `dev.paypercall.extract/vend-api-merchant`
   (registry.modelcontextprotocol.io), auto-indexed downstream by mcpi.app, Glama, mcp.directory.
+- MCP-client quickstart (adding to Claude / Cursor / ChatGPT, tools & prices, payment flow):
+  https://extract.paypercall.dev/static/mcp-client-quickstart.md
 
 ### Claude Desktop / Cursor config (streamable HTTP)
 
