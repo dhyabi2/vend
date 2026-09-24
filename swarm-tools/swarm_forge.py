@@ -761,6 +761,7 @@ def main(argv=None):
     mm = sub.add_parser("meeting-minutes", help="LEAD: conclude with ## Decisions and ## Commitments; closes the meeting")
     mm.add_argument("text")
     sub.add_parser("brief-line", help="one sentence for the run brief")
+    sub.add_parser("spec-template", help="the shape of a `build:` spec the cloud builder turns into a repo")
     sub.add_parser("whoami")
     a = ap.parse_args(argv)
     try:
@@ -774,6 +775,9 @@ def main(argv=None):
         elif a.cmd == "meeting-minutes": out = meeting_minutes(a.text)
         elif a.cmd == "brief-line":
             print(brief_line())
+            return 0
+        elif a.cmd == "spec-template":
+            print(SPEC_TEMPLATE)
             return 0
         else: out = {"member": ME, "repo": REPO, "forge": "https://swarm.vend-agent.xyz"}
     except Refused as ex:
