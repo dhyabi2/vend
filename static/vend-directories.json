@@ -507,10 +507,17 @@
       "directory": "zPlatform.ai",
       "url": "https://zplatform.ai/submit-ai-tool/",
       "status": "submitted"
+    },
+    {
+      "directory": "AgenticSkills",
+      "url": "https://agenticskills.io/mcp",
+      "status": "submitted",
+      "submitted_at": "2026-09-24T09:0Z",
+      "note": "New keyless MCP directory (193 servers, 22 categories). Submitted Vend remote MCP URL (extract.paypercall.dev/mcp), Finance & Payments, via web form. Form showed Creating Review Issue then reset; review ~48h. Verify live page in later run."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T08:20:01Z",
+    "timestamp": "2026-09-24T09:11:19Z",
     "all_healthy": false,
     "endpoints_ok": 21,
     "endpoints_total": 22
