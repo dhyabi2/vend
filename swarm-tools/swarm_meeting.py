@@ -23,7 +23,7 @@ import vend_swarm as S  # noqa: E402
 
 API = "http://127.0.0.1:3000/api/v1"
 REPO = "swarm/vend"
-AUTOCLOSE_S = 5 * 3600
+AUTOCLOSE_S = 25 * 60   # owner, 2026-09-24: meetings are every 30 minutes - one must close inside its own half hour
 
 
 def forge(method, path, payload=None):
@@ -278,7 +278,8 @@ def sweep(now=None, http=forge):
     m = open_[0]
     age = now - calendar.timegm(time.strptime(m["created_at"][:19], "%Y-%m-%dT%H:%M:%S"))
     if age < AUTOCLOSE_S:
-        return f"meeting #{m['number']} is {round(age / 3600, 1)} h old; the lead has until {AUTOCLOSE_S // 3600} h"
+        return (f"meeting #{m['number']} is {round(age / 60)} min old; the lead has until "
+                f"{AUTOCLOSE_S // 60} min")
     s, cs = http("GET", f"/repos/{REPO}/issues/{m['number']}/comments?limit=100")
     kept = []
     for c in cs or []:
@@ -287,7 +288,7 @@ def sweep(now=None, http=forge):
             if line.strip().lower().startswith("commitment:"):
                 kept.append(f"- {who}: {line.split(':', 1)[1].strip()}")
     body = ("# Minutes of meeting (closed by the clock)\n\nThe lead did not conclude this meeting within "
-            f"{AUTOCLOSE_S // 3600} hours, so no decisions were taken. That is itself the first item for the next one.\n\n"
+            f"{AUTOCLOSE_S // 60} minutes, so no decisions were taken. That is itself the first item for the next one.\n\n"
             "## Decisions\n- none\n\n## Commitments\n" + ("\n".join(kept) if kept else "- none were made"))
     http("POST", f"/repos/{REPO}/issues/{m['number']}/comments", {"body": body})
     http("PATCH", f"/repos/{REPO}/issues/{m['number']}", {"state": "closed"})
