@@ -15,9 +15,15 @@
 | select | `https://extract.paypercall.dev/api/v1/select?url=<url>&selector=<css>` | 0.0001 | Structured CSS-selector field extraction from a page (prices, headings, links) |
 | links | `https://extract.paypercall.dev/api/v1/links?url=<url>` | 0.0001 | Extract every anchor link on a page as structured JSON (crawl, audit, sitemap) |
 | geoip | `https://geoip.paypercall.dev/api/v1/geoip?ip=<ip>` | 0.0001 | IP geolocation: country, city, ISP, ASN, coordinates |
+| domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
+| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<url>` | 0.0005 | Captions + timestamped transcript from a YouTube video |
 | nano-info | `https://extract.paypercall.dev/api/v1/nano-info?account=<nano_...>` | 0.0005 | Nano account intelligence: balance, representative, block count, frontier, weight |
-| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<video>` | 0.0005 | Timestamped captions and model-sized transcript chunks |
 | pdf-extract | `https://extract.paypercall.dev/api/v1/pdf-extract?url=<pdf-url>` | 0.0005 | Extract text from a PDF, page-structured, ready for LLM consumption |
+| ai-jobs | `https://extract.paypercall.dev/api/v1/ai-jobs?q=<query>` | 0.0002 | Search 19,800+ live AI/AI-adjacent job postings (q/company/category/region/level/remote, limit/offset) |
+| wiki-summary | `https://extract.paypercall.dev/api/v1/wiki-summary?q=<topic>` | 0.0001 | Clean Wikipedia entity summary: title, one-paragraph extract, description, thumbnail, wikidata_id, canonical URL |
+| arxiv-paper | `https://extract.paypercall.dev/api/v1/arxiv-paper?arxiv_id=<id>` | 0.0001 | Clean arXiv paper metadata by ID or search: title, authors, primary category, abstract, published, DOI, PDF link |
+| hn-news | `https://extract.paypercall.dev/api/v1/hn-news?list=top&limit=5` | 0.0001 | Hacker News top/new/best/ask/show/job feed as clean bounded JSON — tech-trend research, content monitoring, curation agents |
+| address-verdict | `https://extract.paypercall.dev/api/v1/address-verdict?account=<nano_...>` | 0.0001 | Nano on-chain address verdict — is this payTo real, active and valuable or dust/wash? Label + on-ledger signals |
 
 The machine-readable list is `https://extract.paypercall.dev/.well-known/x402` — read it rather than this file if they ever disagree, and tell us if they do.
 
@@ -27,12 +33,10 @@ The machine-readable list is `https://extract.paypercall.dev/.well-known/x402` �
 
 ## Payment flow (x402 v2)
 
-Vend accepts both payment dialects of the x402 `exact` scheme on `nano:mainnet`. A stock x402 client that signs a block and sends it in `PAYMENT-SIGNATURE` works out of the box — Vend acts as its own facilitator (broadcast, confirm, serve).
-
 1. Call any endpoint without payment → receives HTTP 402 with `PAYMENT-REQUIRED` header + JSON body `{accepts: [{scheme:"exact", network:"nano:mainnet", asset:"XNO", payTo:"nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7", amount:"<raw>"}]}`
-2. **Option A (manual / self-broadcast):** sign and broadcast a Nano send block to the payTo address, then retry with `X-PAYMENT: <64-char-hex-block-hash>`.
-   **Option B (stock x402 exact client):** sign the send block and retry with it base64-encoded in `PAYMENT-SIGNATURE` — Vend broadcasts it, waits for confirmation, and serves the result.
-3. Server verifies the block on-ledger and returns the data
+2. Sign and broadcast a Nano send block to the payTo address for the exact amount
+3. Retry the request with header `X-PAYMENT: <64-char-hex-block-hash>`
+4. Server verifies the block on-ledger and returns the data
 
 ## Where Vend is listed
 

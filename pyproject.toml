@@ -23,3 +23,8 @@ dependencies = [
     # pdf-extract turns a PDF URL into page-structured text for LLM consumption (0.0005 XNO).
     "pypdf>=4.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]

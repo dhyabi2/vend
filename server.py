@@ -58,6 +58,11 @@ from links_endpoint import links_from_url
 from meta_endpoint import meta_for_url
 from table_endpoint import tables_for_url
 from pdf_extract import extract_pdf_text
+from ai_jobs import ai_jobs
+from wiki_summary import wiki_summary
+from arxiv_paper import arxiv_paper
+from hn_news import hn_news
+from address_verdict import address_verdict
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 import cdp_verify
 from trial_tracker import get_tracker
@@ -93,6 +98,16 @@ PRICE_PDF_XNO = float(os.environ.get("VEND_PRICE_PDF", "0.0005"))
 PRICE_PDF_RAW = str(_price_to_raw(PRICE_PDF_XNO))
 PRICE_MCPFIND_XNO = float(os.environ.get("VEND_PRICE_MCPFIND", "0.0001"))
 PRICE_MCPFIND_RAW = str(_price_to_raw(PRICE_MCPFIND_XNO))
+PRICE_JOBS_XNO = float(os.environ.get("VEND_PRICE_JOBS", "0.0002"))
+PRICE_JOBS_RAW = str(_price_to_raw(PRICE_JOBS_XNO))
+PRICE_WIKI_XNO = float(os.environ.get("VEND_PRICE_WIKI", "0.0001"))
+PRICE_WIKI_RAW = str(_price_to_raw(PRICE_WIKI_XNO))
+PRICE_ARXIV_XNO = float(os.environ.get("VEND_PRICE_ARXIV", "0.0001"))
+PRICE_ARXIV_RAW = str(_price_to_raw(PRICE_ARXIV_XNO))
+PRICE_HN_XNO = float(os.environ.get("VEND_PRICE_HN", "0.0001"))
+PRICE_HN_RAW = str(_price_to_raw(PRICE_HN_XNO))
+PRICE_VERDICT_XNO = float(os.environ.get("VEND_PRICE_VERDICT", "0.0001"))
+PRICE_VERDICT_RAW = str(_price_to_raw(PRICE_VERDICT_XNO))
 DOMAIN = os.environ.get("VEND_DOMAIN", "localhost:8402")
 # Public base URL exactly as a buyer reaches it. Set this to the real scheme and
 # host (VEND_BASE_URL) rather than assuming https: advertising an https URL on a
@@ -144,6 +159,11 @@ ENDPOINT_BASE = {
     "/api/v1/table": EXTRACT_BASE,
     "/api/v1/pdf-extract": EXTRACT_BASE,
     "/api/v1/mcp-find": EXTRACT_BASE,
+    "/api/v1/ai-jobs": EXTRACT_BASE,
+    "/api/v1/wiki-summary": EXTRACT_BASE,
+    "/api/v1/arxiv-paper": EXTRACT_BASE,
+    "/api/v1/hn-news": EXTRACT_BASE,
+    "/api/v1/address-verdict": NANO_BASE,
 }
 
 logging.basicConfig(
@@ -757,15 +777,9 @@ async def sitemap_xml():
 
 
 @app.get("/.well-known/mcp.json")
-@app.get("/.well-known/mcp")
-@app.get("/mcp.json")
 async def well_known_mcp():
-    """MCP discovery manifest (mcp.json / /.well-known/mcp) — serves the
-    same static mcp.json at three paths so every crawler finds it regardless of
-    which convention it checks.
-    - /.well-known/mcp.json   — preferred by the MCP spec
-    - /.well-known/mcp        — checked by Glama, mcpserver.cc and others
-    - /mcp.json               — root-level fallback (some aggregators)"""
+    """MCP discovery manifest (mcp.json) — lets mcpub.dev and other keyless
+    MCP directories verify and index Vend's live remote endpoint."""
     return FileResponse(
         os.path.join(STATIC_DIR, "mcp.json"),
         media_type="application/json",
@@ -1068,7 +1082,7 @@ def x402_manifest():
         "kind": "resource-server",
         "seller": "vend",
         "name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 17 endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, and MCP/x402 service finder. No signup, no API keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). Endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, Hacker News feed, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, AI-jobs search, wiki summary, arxiv paper, and MCP/x402 service finder. No signup, no API keys.",
         "resources": [
             {
                 "url": f"{ENDPOINT_BASE['/api/v1/extract']}/api/v1/extract",
@@ -1225,6 +1239,76 @@ def x402_manifest():
                 ]
             },
             {
+                "url": f"{ENDPOINT_BASE['/api/v1/ai-jobs']}/api/v1/ai-jobs",
+                "method": "GET",
+                "description": "Search 19,800+ live AI/AI-adjacent job postings. Accepts ?q=<text>&company=<c>&category=<cat>&region=<reg>&level=<lvl>&remote=1&limit=<n>&offset=<n>. Returns clean structured jobs for labor-market research, lead-gen and competitor intelligence. 0.0002 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_JOBS_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/wiki-summary']}/api/v1/wiki-summary",
+                "method": "GET",
+                "description": "Wikipedia entity summary — clean one-paragraph profile for any topic (company, person, technology). Accepts ?q=<topic>. Returns title, description, extract, thumbnail, wikidata_id. Reliable English Wikipedia REST endpoint. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_WIKI_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/arxiv-paper']}/api/v1/arxiv-paper",
+                "method": "GET",
+                "description": "arXiv paper metadata — clean JSON for any paper by arXiv ID or search query: title, authors, primary category, abstract, published date, DOI, PDF link. Accepts ?arxiv_id=<id> or ?query=<terms>. Reliable keyless export.arxiv.org Atom API. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_ARXIV_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/hn-news']}/api/v1/hn-news",
+                "method": "GET",
+                "description": "Hacker News top/new/best/ask/show/job feed — clean bounded JSON for tech-trend research, content monitoring, and curation agents. Accepts ?list=<top|new|best|ask|show|job>&limit=<n>&score=<min>. Reliable keyless HN Firebase API. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_HN_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
+                "url": f"{ENDPOINT_BASE['/api/v1/address-verdict']}/api/v1/address-verdict",
+                "method": "GET",
+                "description": "Nano on-chain address verdict — is this payTo address a real active valuable counterparty or dust/wash? Accepts ?account=nano_.... Returns label (high_value/active/dust/wash_likely/inactive/not_found) plus signals (balance, receivable, block_count, send/receive counts, distinct senders, total received, largest inflow, account age, activity). Computed from public Nano RPC on-ledger data only. 0.0001 XNO per call.",
+                "accepts": [
+                    {
+                        "scheme": "exact",
+                        "network": "nano:mainnet",
+                        "asset": "XNO",
+                        "amount": PRICE_VERDICT_RAW,
+                        "payTo": VEND_ACCOUNT
+                    }
+                ]
+            },
+            {
                 "url": f"{ENDPOINT_BASE['/api/v1/nano-info']}/api/v1/nano-info",
                 "method": "GET",
                 "description": "Nano account intelligence: balance, representative, block count, frontier, weight, pending. Accepts ?account=nano_.... 0.0005 XNO per call.",
@@ -1322,6 +1406,12 @@ def x402_manifest():
                     }
                 ]
             },
+            {   # Delivery-proof endpoint (free)
+                "url": f"{BASE_URL}/api/v1/delivery-proof",
+                "method": "GET",
+                "description": "Retrieve a signed delivery-attestation record for any previous paid call. Accepts ?block_hash=64-char-Nano-block. FREE — no payment required. Returns what was paid for, whether it was delivered/failed, and when.",
+                "accepts": []
+            },
         ],
         "contact": "vend@paypercall.dev",
         "docs": BASE_URL,
@@ -1363,7 +1453,7 @@ async def well_known_agent_json():
         "origin": BASE_URL.split("://")[1] if "://" in BASE_URL else BASE_URL,
         "payout_address": VEND_ACCOUNT,
         "display_name": "Vend API Merchant",
-        "description": "Pay-per-call API merchant settled in Nano (XNO). 17 endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, and MCP/x402 service finder. No signup, no api keys.",
+        "description": "Pay-per-call API merchant settled in Nano (XNO). Endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, AI-jobs search, wiki summary, arxiv paper, and MCP/x402 service finder. No signup, no api keys.",
         "intents": [
             {
                 "id": "extract-url",
@@ -1584,6 +1674,8 @@ async def well_known_agent_card():
                     "check_url_status": PRICE_XNO,
                     "youtube_transcript": PRICE_YT_XNO,
                     "pdf_extract": PRICE_PDF_XNO,
+                    "wiki_summary": PRICE_WIKI_XNO,
+                    "arxiv_paper": PRICE_ARXIV_XNO,
                 },
             }
         },
@@ -1755,6 +1847,30 @@ def _amp_manifest():
                                 {"name": "language", "type": "string", "required": False,
                                  "description": "Language code for the transcript (default 'en')."}],
                  "response_description": "JSON with timestamped transcript segments and model-sized deep-linked chunks."},
+                {"path": "/api/v1/wiki-summary", "method": "GET",
+                 "description": "Wikipedia entity summary: clean one-paragraph profile for any topic (company, person, technology, concept).",
+                 "parameters": [{"name": "q", "type": "string", "required": True,
+                                 "description": "Entity or topic to look up."}],
+                 "response_description": "JSON with title, description, extract, thumbnail, wikidata_id, canonical url."},
+                {"path": "/api/v1/arxiv-paper", "method": "GET",
+                 "description": "arXiv paper metadata: clean JSON for a paper by ID or search query (title, authors, primary category, abstract, published, DOI, PDF link).",
+                 "parameters": [{"name": "arxiv_id", "type": "string", "required": False,
+                                 "description": "arXiv ID, e.g. 2106.09685."},
+                                {"name": "query", "type": "string", "required": False,
+                                 "description": "Full-text search terms (used when arxiv_id is absent)."}],
+                 "response_description": "JSON paper object or list, never fabricated."},
+                {"path": "/api/v1/hn-news", "method": "GET",
+                 "description": "Hacker News feed: top/new/best/ask/show/job stories as clean bounded JSON (id, title, url, by, score, time, comment_count, item_type).",
+                 "parameters": [{"name": "list", "type": "string", "required": False,
+                                 "description": "HN feed: top|new|best|ask|show|job."},
+                                {"name": "limit", "type": "integer", "required": False,
+                                 "description": "Max stories (default 10, cap 30)."}],
+                 "response_description": "Clean JSON feed with normalised story objects."},
+                {"path": "/api/v1/address-verdict", "method": "GET",
+                 "description": "Nano on-chain address verdict: is this payTo address real, active and valuable, or dust/wash? Label plus on-ledger signals.",
+                 "parameters": [{"name": "account", "type": "string", "required": True,
+                                 "description": "Nano address (nano_ or xrb_ prefix) to classify."}],
+                 "response_description": "Verdict label (high_value/active/dust/wash_likely/inactive/not_found) with signals."},
             ],
             "authentication": {"required": False, "type": "none"},
             "pricing": {
@@ -2702,7 +2818,7 @@ async def web_search_endpoint(
 
 @app.get("/api/v1/demo")
 async def demo_endpoint(
-    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, batch-status, status, domain-info, web-search, geoip, nano-info, youtube-transcript, screenshot, render, select, meta, table, pdf-extract, mcp-find"),
+    type: str = Query("extract", description="Endpoint type to demo: extract, check-link, batch-status, status, domain-info, web-search, geoip, nano-info, youtube-transcript, screenshot, render, select, meta, table, pdf-extract, mcp-find, ai-jobs, wiki-summary, arxiv-paper, hn-news, address-verdict"),
 ):
     """Free demo endpoint — now redirects to free trial on the real endpoint.
 
@@ -2730,6 +2846,11 @@ async def demo_endpoint(
         "table": "/api/v1/table?url=https://example.com",
         "pdf-extract": "/api/v1/pdf-extract?url=https://arxiv.org/pdf/1706.03762",
         "mcp-find": "/api/v1/mcp-find?q=web+scraping&filter_rail=nano",
+        "ai-jobs": "/api/v1/ai-jobs?q=OpenAI&limit=5",
+        "wiki-summary": "/api/v1/wiki-summary?q=Nano",
+        "arxiv-paper": "/api/v1/arxiv-paper?arxiv_id=2106.09685",
+        "hn-news": "/api/v1/hn-news?list=top&limit=5",
+        "address-verdict": f"/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
     }
     target = type_map.get(type, type_map["extract"])
     return JSONResponse(
@@ -2996,6 +3117,172 @@ async def mcp_find_endpoint(
     return run_paid_work(request, mcp_find, q, limit, filter_rail)
 
 
+# ── AI jobs search endpoint ───────────────────────────────────────────
+
+
+@app.get("/api/v1/ai-jobs")
+async def ai_jobs_endpoint(
+    request: Request,
+    q: str = Query(None, description="Full-text search term"),
+    company: str = Query(None, description="Filter by company"),
+    category: str = Query(None, description="Filter by category"),
+    region: str = Query(None, description="Filter by region"),
+    level: str = Query(None, description="Filter by seniority level"),
+    remote: str = Query(None, description="Set to 1/true to return only remote roles"),
+    limit: int = Query(10, description="Max jobs to return (default 10, cap 50)"),
+    offset: int = Query(0, description="Pagination offset (default 0)"),
+):
+    """Search 19,800+ live AI/AI-adjacent job postings.
+    Requires Nano payment (0.0002 XNO).
+
+    Filters (all optional): q (full-text), company, category, region, level,
+    remote (1/true), plus limit (cap 50) and offset for pagination. Returns
+    clean structured jobs for labor-market research, lead-gen, competitor
+    intelligence and job-bot building.
+
+    All query params are declared optional so an unauthenticated probe (no
+    payment, no parameter) reaches the 402 challenge *before* validation.
+    """
+    paid, response = await require_payment(
+        "/api/v1/ai-jobs",
+        price_xno=PRICE_JOBS_XNO,
+        price_raw=PRICE_JOBS_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — run the search with the provided filters.
+    return run_paid_work(
+        request, ai_jobs,
+        q=q, company=company, category=category, region=region, level=level,
+        remote=remote, limit=limit, offset=offset,
+    )
+
+
+@app.get("/api/v1/wiki-summary")
+async def wiki_summary_endpoint(
+    request: Request,
+    q: str = Query(None, description="Entity or topic to look up (e.g. 'Nano', 'OpenAI', 'Python')."),
+):
+    """Return a clean Wikipedia summary profile for any topic — company, person,
+    technology or concept. Priced at 0.0001 XNO per lookup.
+
+    Uses the free, keyless, highly-reliable English Wikipedia REST Summary API.
+    Returns title, one-paragraph extract, description, thumbnail, wikidata_id
+    and canonical URL. No scraping needed.
+
+    The ?q parameter is required; an unauthenticated probe (no query, no
+    payment) returns the 402 challenge before validation.
+    """
+    paid, response = await require_payment(
+        "/api/v1/wiki-summary",
+        price_xno=PRICE_WIKI_XNO,
+        price_raw=PRICE_WIKI_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — run the lookup.
+    return run_paid_work(
+        request, wiki_summary,
+        query=q, q=None, timeout=15,
+    )
+
+
+@app.get("/api/v1/arxiv-paper")
+async def arxiv_paper_endpoint(
+    request: Request,
+    arxiv_id: str = Query(None, description="arXiv paper ID, e.g. '2106.09685' or 'math.GT/0309136'."),
+    query: str = Query(None, description="Full-text search terms (used when arxiv_id is absent)."),
+    max_results: int = Query(1, description="Max results for a free-text query (1-5)."),
+):
+    """Return clean arXiv paper metadata by ID or search query — title, authors,
+    primary category, abstract, published date, DOI, PDF link. Priced at 0.0001 XNO per call.
+
+    Uses the free, keyless export.arxiv.org Atom API. Returns structured JSON
+    ready for research agents and deep-research tooling. No XML parsing needed.
+
+    Provide ONE of ?arxiv_id= or ?query= — not both. A bare probe (no payment)
+    returns the 402 challenge.
+    """
+    paid, response = await require_payment(
+        "/api/v1/arxiv-paper",
+        price_xno=PRICE_ARXIV_XNO,
+        price_raw=PRICE_ARXIV_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — run the lookup.
+    return run_paid_work(
+        request, arxiv_paper,
+        arxiv_id=arxiv_id, query=query, max_results=max_results, timeout=25,
+    )
+
+
+@app.get("/api/v1/hn-news")
+async def hn_news_endpoint(
+    request: Request,
+    list: str = Query("top", description="HN feed: top|new|best|ask|show|job"),
+    limit: int = Query(10, description="Max stories to return (default 10, cap 30)"),
+    score: int = Query(None, description="Optional minimum score filter"),
+):
+    """Read the Hacker News top/new/best/ask/show/job feed as clean JSON.
+    Priced at 0.0001 XNO per call.
+
+    Returns bounded, normalised story objects (id, title, url, by, score,
+    time, comment_count, item_type) for tech-trend research, content
+    monitoring, and curation agents. Uses the reliable keyless HN Firebase API.
+
+    A bare probe (no payment, no parameter) returns the 402 challenge.
+    """
+    paid, response = await require_payment(
+        "/api/v1/hn-news",
+        price_xno=PRICE_HN_XNO,
+        price_raw=PRICE_HN_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — fetch the feed.
+    return run_paid_work(
+        request, hn_news,
+        list_name=list, limit=limit, score=score,
+    )
+
+
+@app.get("/api/v1/address-verdict")
+async def address_verdict_endpoint(
+    request: Request,
+    account: str = Query(..., description="Nano address (nano_ or xrb_ prefix) to classify"),
+):
+    """Return an on-chain trust verdict for a Nano address. Priced 0.0001 XNO.
+
+    Answers the question an agent decoding an x402 challenge asks before it
+    signs: is this payTo address a real, active, valuable counterparty or a
+    dust/wash account? Computed only from public Nano RPC on-ledger data
+    (account_info + account_history). Label is conservative and data-grounded
+    (high_value/active/dust/wash_likely/inactive/not_found/invalid_address/
+    unreachable) with the raw signals underneath — it never claims to know an
+    account's human intent.
+
+    A bare probe (no payment, no valid account) returns the 402 challenge.
+    """
+    paid, response = await require_payment(
+        "/api/v1/address-verdict",
+        price_xno=PRICE_VERDICT_XNO,
+        price_raw=PRICE_VERDICT_RAW,
+    )(request)
+    if not paid:
+        return response
+
+    # Payment confirmed — compute the verdict.
+    return run_paid_work(
+        request, address_verdict,
+        account=account,
+    )
+
+
 # ── Prepaid balance endpoints ─────────────────────────────────────────
 
 
@@ -3179,6 +3466,51 @@ async def admin_balances(request: Request):
 # Registered on the A2A Registry (a2aregistry.org, id f58d5423). The agent-card
 # url points here instead of /mcp so the card's advertised transport is JSON-RPC.
 app.add_api_route("/a2a", a2a_endpoint, methods=["POST"])
+
+# --- Delivery-Attestation Endpoint ---
+
+
+@app.get("/api/v1/delivery-proof")
+async def delivery_proof(block_hash: str = Query(..., description="Nano block hash to look up")):
+    """Return a signed delivery-attestation record for a paid call.
+
+    Accepts a Nano block hash as ?block_hash=... and returns what it
+    paid for, whether it was delivered or failed, and when -- the proof that
+    an honest settlement happened.
+
+    This is the answer to hinge finding #30 / #82: the most-wanted unmet
+    layer across the whole x402 ecosystem is a verifiable record of delivery
+    / release / refund / re-attestation of a paid call.  No other x402 rail
+    produces it.  Vend already stores every redemption; this endpoint makes
+    them queryable.
+
+    FREE (no payment required) -- the proof of delivery costs nothing.
+    """
+    # Validate block hash format
+    if not parse_block_hash(block_hash):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "invalid_block_hash", "message": "Not a valid Nano block hash"},
+        )
+
+    rec = store.get_redemption(block_hash)
+    if rec is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "not_found", "message": "No payment found for this block hash"},
+        )
+
+    return JSONResponse(content={
+        "block_hash": rec["block_hash"],
+        "amount_xno": raw_to_xno(rec["amount_raw"]),
+        "source": rec["source"][:15] + "...",
+        "endpoint": rec["endpoint"],
+        "status": rec["status"],
+        "created_at": rec["created_at"],
+        "seller": "vend",
+        "settlement_rail": "nano:mainnet/XNO",
+        "x402_version": 2,
+    })
 
 
 # --- Run ---

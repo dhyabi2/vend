@@ -80,6 +80,30 @@ INPUT_SPECS = {
             "example": {"q": "x402 nano payments"},
         },
     },
+    "/api/v1/ai-jobs": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "q": {"type": "string",
+                          "description": "Full-text search term (e.g. a company, role or keyword)"},
+                    "company": {"type": "string", "description": "Filter by company name"},
+                    "category": {"type": "string",
+                                 "description": "Filter by category (Engineering, Research, Sales & GTM, ...)"},
+                    "region": {"type": "string", "description": "Filter by region (US, Europe, Asia-Pacific, ...)"},
+                    "level": {"type": "string", "description": "Filter by seniority level (Lead+, Mid, Senior, ...)"},
+                    "remote": {"type": "string",
+                               "description": "Set to 1/true to return only remote roles"},
+                    "limit": {"type": "integer", "description": "Max jobs to return (default 10, cap 50)"},
+                    "offset": {"type": "integer", "description": "Pagination offset (default 0)"},
+                },
+            },
+            "example": {"q": "OpenAI", "remote": "1", "limit": "5"},
+        },
+    },
     "/api/v1/geoip": {
         "type": "http",
         "method": "GET",
@@ -182,6 +206,41 @@ INPUT_SPECS = {
                 "required": ["url"],
             },
             "example": {"url": "https://arxiv.org/pdf/1706.03762"},
+        },
+    },
+    "/api/v1/hn-news": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "list": {"type": "string",
+                             "description": "HN feed: top|new|best|ask|show|job"},
+                    "limit": {"type": "integer",
+                              "description": "Max stories to return (default 10, cap 30)"},
+                    "score": {"type": "integer",
+                              "description": "Optional minimum score filter"},
+                },
+            },
+            "example": {"list": "top", "limit": "5"},
+        },
+    },
+    "/api/v1/address-verdict": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "account": {"type": "string",
+                                "description": "Nano address (nano_ or xrb_ prefix) to classify"},
+                },
+                "required": ["account"],
+            },
+            "example": {"account": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"},
         },
     },
 }

@@ -10,15 +10,18 @@ Pay-per-call APIs settled in Nano (XNO). No signup, no API keys — just HTTP 40
 |---|---|---|
 | `GET /api/v1/extract?url=` | 0.0001 | Extract clean text/markdown from any web page |
 | `GET /api/v1/check-link?url=` | 0.0001 | Check HTTP status, response time, redirect chain |
-| `GET /api/v1/status?url=&previous_hash=` | 0.0001 | URL status, redirects, TLS expiry and content drift |
+| `GET /api/v1/status?url=` | 0.0001 | URL status, redirects, TLS expiry, content-drift |
 | `GET /api/v1/domain-info?domain=` | 0.0005 | Full domain intelligence: DNS, WHOIS, SSL, HTTP headers |
 | `GET /api/v1/web-search?q=` | 0.0001 | Web search via DuckDuckGo — titles, URLs, snippets |
 | `GET /api/v1/geoip?ip=` | 0.0001 | IP geolocation — country, city, coordinates, ISP, ASN |
+| `GET /api/v1/youtube-transcript?url=` | 0.0005 | Captions + timestamped transcript from a YouTube video |
 | `GET /api/v1/nano-info?account=` | 0.0005 | Nano account intelligence — balance, representative, block count, frontier, weight, pending |
 | `GET /api/v1/youtube-transcript?url=` | 0.0005 | Captions/transcript from a YouTube video |
 | `GET /api/v1/select?url=&selector=` | 0.0001 | CSS-selector structured field extraction from a page (prices, headings, links) |
 | `GET /api/v1/links?url=` | 0.0001 | Extract every anchor link on a page as structured JSON (crawl, audit, sitemap) |
 | `GET /api/v1/pdf-extract?url=` | 0.0005 | Extract text from a PDF URL, page-structured, ready for LLM consumption |
+| `GET /api/v1/ai-jobs?q=` | 0.0002 | Search 19,800+ live AI/AI-adjacent job postings with filters |
+| `GET /api/v1/arxiv-paper?arxiv_id=` | 0.0001 | Clean arXiv paper metadata by ID or search: title, authors, primary category, abstract, published, DOI, PDF link |
 
 ## Quick buyer guide
 

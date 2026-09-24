@@ -187,6 +187,27 @@ def resolve(block_hash: str, status: str):
         conn.close()
 
 
+def get_redemption(block_hash: str) -> dict | None:
+    """Return full redemption record for *block_hash*, or None if unknown.
+
+    Returns a dict with keys: block_hash, amount_raw, source, endpoint, status, created_at.
+    """
+    init()
+    conn = _connect()
+    try:
+        cur = conn.execute(
+            "SELECT block_hash, amount_raw, source, endpoint, status, created_at "
+            "FROM redemptions WHERE block_hash = ?",
+            (block_hash,),
+        )
+        row = cur.fetchone()
+        if row is None:
+            return None
+        return dict(row)
+    finally:
+        conn.close()
+
+
 def count_redeemed() -> int:
     """Total redeemed blocks (the number of paid calls handled so far)."""
     init()
