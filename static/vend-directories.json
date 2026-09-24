@@ -276,8 +276,8 @@
     {
       "directory": "MCP.Directory",
       "url": "https://mcp.directory/submit",
-      "status": "submitted",
-      "note": "Vend MCP server (6 tools), GitHub auto-detect, review within 24h to vend@paypercall.dev"
+      "status": "blocked",
+      "note": "SUBMITTED 2026-09-24 but structurally gated: its first required field is a public GitHub repository (per live review 2026-09-24), and Vend is a hosted-only server with no public repo (PANDeveloper001 dead 404). Search for 'paypercall' on mcp.directory returns no Vend card. Log docs, not a recoverable listing."
     },
     {
       "directory": "mcp.so",
@@ -562,10 +562,22 @@
       "url": "https://wmcp.sh/directory/submit",
       "status": "docs",
       "note": "Free keyless listing for remote MCP/site URLs. BUT POST /api/v1/directory/submit returns HTTP 500 'Submit failed' (server-side backend error, D1-style fragility) both via curl and browser. Not logged as submitted - cannot verify a live listing."
+    },
+    {
+      "directory": "PulseMCP",
+      "url": "https://pulsemcp.com",
+      "status": "docs",
+      "note": "EVALUATED 2026-09-24: pulseMCP (277K visits/mo, Tier-1 MCP dir) auto-syncs the official MCP Registry (Vend's dev.paypercall.extract/vend-api-merchant entry feeds it). BUT the site + API are Cloudflare/API-gated (Access Denied, data only via paid API contact) -> no keyless submit/verify channel. Registry auto-sync is the only path; verify rendered page for a Vend card in a later run."
+    },
+    {
+      "directory": "MCP Server Hub (mcpserverhub.net)",
+      "url": "https://mcpserverhub.net/submit",
+      "status": "docs",
+      "note": "EVALUATED 2026-09-24: small Tier-3 dir (~6K visits/mo). Submit form never renders ('Loading.../loading...' persists in browser, fields exist: title/url/category_type/server_config/mcp_type). No functional keyless submit path; API fetch fails (CORS). Log docs, not a submission."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T12:57:29Z",
+    "timestamp": "2026-09-24T13:24:37Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
