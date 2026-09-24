@@ -509,6 +509,28 @@ WIP_MIN = 2
 WIP_MAX = 3
 
 
+SCORE_BIN = "/usr/local/bin/swarm-score"
+
+
+def score_line(run=None):
+    """This agent's own last score and running total, in its own brief.
+
+    Owner, 2026-09-24: an agent is scored at every meeting on what it committed to at the last one, and the totals
+    accumulate. A score kept in a database nobody reads changes no behaviour, so it travels in the brief, next to
+    the commitment it will be measured against half an hour from now.
+    """
+    import subprocess as _sp  # noqa: WPS433
+    if not os.path.exists(SCORE_BIN):
+        return ""
+    try:
+        r = run([SCORE_BIN, "mine"]) if run else _sp.run([SCORE_BIN, "mine"], capture_output=True, text=True, timeout=30)
+        out = (getattr(r, "stdout", "") or "").strip()
+    except Exception:
+        return ""
+    if not out or not out.startswith("YOUR SCORE:"):
+        return ""
+    return out + " "
+
 def board_line(run=None):
     """One measured sentence: how many cards are this agent's, where they sit, and the order to keep them true."""
     import subprocess as _sp  # noqa: WPS433
@@ -616,6 +638,7 @@ def brief_line(http=call):
         pass
     note += reflection_line(http)  # owner, 2026-09-22: the open discussion is named until the agent has spoken
     note += write_path_line()
+    note += score_line()  # owner, 2026-09-24: your own score, beside the commitment it measures
     note += board_line()  # owner, 2026-09-24: the board is every agent's, measured each run
     note += announce_line(http)  # owner, 2026-09-23: the X line is measured every run, with the order to announce  # owner, 2026-09-22: measured every run, so no stale note about the token survives
     return (note + swarm).strip()
