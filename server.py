@@ -777,9 +777,15 @@ async def sitemap_xml():
 
 
 @app.get("/.well-known/mcp.json")
+@app.get("/.well-known/mcp")
+@app.get("/mcp.json")
 async def well_known_mcp():
-    """MCP discovery manifest (mcp.json) — lets mcpub.dev and other keyless
-    MCP directories verify and index Vend's live remote endpoint."""
+    """MCP discovery manifest (mcp.json / /.well-known/mcp) — serves the same
+    static mcp.json at three paths so every crawler finds it regardless of which
+    discovery convention it checks:
+    - /.well-known/mcp.json   — MCP spec (SEP-1960)
+    - /.well-known/mcp        — MCP spec (SEP-1649), checked by Glama, mcpserver.cc
+    - /mcp.json               — root-level fallback (some aggregators)"""
     return FileResponse(
         os.path.join(STATIC_DIR, "mcp.json"),
         media_type="application/json",
