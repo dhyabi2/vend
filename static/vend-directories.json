@@ -599,10 +599,28 @@
       "url": "https://catalog.agentage.io/mcp/dev-paypercall-extract-vend-api-merchant",
       "status": "auto-discovery",
       "note": "VERIFIED 2026-09-24: AgentAge catalog (35,387 servers, synced with official MCP registry) lists Vend at /mcp/dev-paypercall-extract-vend-api-merchant. Page names 'dev.paypercall.extract/vend-api-merchant', 7 tools, Python/MIT/remote, HTTP 200 signed-out, description 'Pay-per-call web intel: extract, search, link check, domain, geo, Nano. Settled via Nano x402.' Registry-mirror so rai-scope listing=true adopted=false. Log docs, discovery surface."
+    },
+    {
+      "directory": "marketplaceforaiagents.com",
+      "url": "https://marketplaceforaiagents.com/marketplace",
+      "status": "blocked",
+      "note": "New x402 marketplace (51 endpoints) settled USDC on Base mainnet only; payTo 0x... USDC. Nano unsupported. Evaluated 2026-09-24. agent402.tools already lists them (routable health 1)."
+    },
+    {
+      "directory": "AgenticTrade",
+      "url": "https://agentictrade.io/",
+      "status": "blocked",
+      "note": "AI service marketplace (277 services, USDC balance + USDC wallet withdrawal). Signup via /portal/register, built-in USDC settlement. No Nano. Evaluated 2026-09-24."
+    },
+    {
+      "directory": "mcp-marketplace.io",
+      "url": "https://mcp-marketplace.io/submit",
+      "status": "blocked",
+      "note": "Security-scanned MCP marketplace. /submit requires Sign In (account-gated), not keyless. Evaluated 2026-09-24."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T22:28:09Z",
+    "timestamp": "2026-09-24T22:49:16Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
