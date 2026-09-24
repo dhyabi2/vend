@@ -83,7 +83,8 @@ signup or API keys (pay per call in Nano):
 - Each tool call that requires payment returns the exact Nano x402 challenge
   (price in XNO, pay_to address, x402 version 2), so any MCP client can settle
   the on-ledger payment and retry with the block hash.
-- Registration (pending): official MCP Registry at registry.modelcontextprotocol.io
+- Registration: **live in the official MCP Registry** — `dev.paypercall.extract/vend-api-merchant`
+  (registry.modelcontextprotocol.io), auto-indexed downstream by mcpi.app, Glama, mcp.directory.
 
 ### Claude Desktop / Cursor config (streamable HTTP)
 
@@ -116,10 +117,10 @@ signup or API keys (pay per call in Nano):
 - x402 manifest: `/.well-known/x402` on each subdomain
 - agent-tools manifest: `/.well-known/agent-tools.json`
 - OpenAPI spec: `/openapi.json` on each subdomain
-- Directory index: https://paypercall.dev/vend-directories.json
+- Directory index: https://extract.paypercall.dev/static/vend-directories.json
 - Nano × x402 directory (JSON): https://extract.paypercall.dev/nano-directory
 - Nano × x402 directory (HTML): https://extract.paypercall.dev/nano-services
-- Source: https://github.com/PANDeveloper001/vend (MIT)
+- Source: self-hosted — install/clone the wheel from https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl (MIT). The public GitHub mirror is currently offline.
 - Robots: https://paypercall.dev/robots.txt
 - Sitemap: https://paypercall.dev/sitemap.xml
 - Health: `/health` on each subdomain
