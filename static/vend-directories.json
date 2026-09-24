@@ -110,11 +110,11 @@
     },
     {
       "directory": "Agents.NET",
-      "url": "https://agents.net",
-      "status": "live",
+      "url": "https://agents.net/directory/226",
+      "status": "verified",
       "submission_id": 226,
       "submitted_at": "2026-09-18T00:42:30Z",
-      "note": "Vend API Merchant (ID 244) approved and listed in directory API. Status: approved. Submitted 2026-09-18."
+      "note": "Vend API Merchant live at /directory/226 and /directory/225 (two API listing pages, titles 'Vend API Merchant \u2014 Engineering Agent'), plus /directory/244. All HTTP 200 signed out and name Vend. Verified 2026-09-24."
     },
     {
       "directory": "AgentStore (agentstore.tools)",
@@ -488,10 +488,22 @@
       "url": "https://mocopo.ai/servers/dev.paypercall.extract--vend-api-merchant",
       "status": "auto-discovery",
       "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed)."
+    },
+    {
+      "directory": "Smithery.ai",
+      "url": "https://smithery.ai/servers?q=paypercall",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: Smithery = 446K visits/mo, the most-used MCP platform among builders; Vend NOT present while USDC x402 competitor PayPerByte is. Publish /servers/new redirects to authk.smithery.ai sign-in (email/Google/GitHub) \u2014 account-gated, no credential, no fake accounts. No keyless path. Log docs, do not count."
+    },
+    {
+      "directory": "mcp.so",
+      "url": "https://mcp.so/servers?q=paypercall",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: mcp.so (238K visits/mo, ~19K servers). Vend not listed. All submit routes (/add, /submit, /servers/new, /publish, /submit-server) return 503; search shows no keyless form. One guide reports $39 premium is the only submission path. No keyless submission possible. Log docs."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T01:36:30Z",
+    "timestamp": "2026-09-24T01:55:31Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
