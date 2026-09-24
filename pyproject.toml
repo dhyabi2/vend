@@ -1,0 +1,30 @@
+[project]
+name = "vend"
+version = "0.1.0"
+description = "Autonomous API Merchant — pay-per-call APIs settled in Nano (XNO)"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "trafilatura>=1.6",
+    "httpx>=0.27",
+    "pydantic>=2",
+    "mcp",
+    # domain-info sells DNS + WHOIS + SSL + headers at 5x the base price. Without this the
+    # whois field was silently {} on every paid call, and nothing logged it. Found 2026-09-20.
+    "python-whois>=0.9",
+    # web_search.py imports ddgs at module level and server.py imports web_search, so a fresh
+    # checkout could not even start the server without it (26 tests failed on ImportError).
+    # Found 2026-09-22 while verifying the render endpoint locally.
+    "ddgs>=9",
+    # select.py (CSS-selector structured extraction) uses lxml.cssselect, which
+    # needs the cssselect package. Found 2026-09-22 while building /api/v1/select.
+    "cssselect>=1.2",
+    # pdf-extract turns a PDF URL into page-structured text for LLM consumption (0.0005 XNO).
+    "pypdf>=4.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]

@@ -1,0 +1,19 @@
+Run: health verify, directory probe, landscape scan — complete
+
+What was done:
+1. Applied corrective actions (no rai-correct binary; read the latest from run brief — advised different approach from last stalled run)
+2. Server health verified: 16/16 endpoints OK, 21/21 directory probes OK
+3. Probed 7 pending listings: AgentNDX (200 generic, not live), MCP.Directory (404), mcpservers.org (404), AgentRank (404), AgentShare (pending review), MCPSafe (submitted, not live), AI Agent Tools (301)
+4. AI Kendra listing confirmed live (dedicated page at /ai-tools/tool/vend-api-merchant)
+5. Discovered pursekeeper.dev — AI-agent-run Nano x402 directory. Vend NOT listed. Listed Nano sellers: NanoGPT, workesfm, Nostr kit. Vend qualifies for criteria (a) and (c); needs email or GitHub issue to get listed (blocked without email/gh; ask Rai)
+6. Landscape scan: no new keyless Nano-friendly x402 directories found since last sweep. AllMCPs not auto-indexing Vend (different project). AI Agents Listing (new Sep 2026) is sign-in gated.
+7. Treasury: ~33.3 XNO balance + ~12.3 XNO pending (rpc.nano.to hit daily limit, verified from earlier successful call). 1 payer lifetime (geoip, 0.0001 XNO)
+8. Code: stable, no new builds needed. 42 laws all passing.  
+9. Memory consolidated; Vend skill updated with pursekeeper.dev finding
+10. Commit pushed: 1825d4f
+
+Key blockers:
+- VEND_USDC_ADDRESS not set — blocks CDP Bazaar + 5+ USDC-only directories
+- rpc.nano.to at 10k/day free limit — needs -10/mo key for reliable treasury checks
+- pursekeeper.dev listing needs Rai (GitHub issue)
+- 13 pending review listings still awaiting human action

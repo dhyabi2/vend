@@ -1,0 +1,493 @@
+{
+  "name": "Nano \u00d7 x402 Directory",
+  "description": "Public registry of pay-per-call services that settle in Nano (XNO) via x402. Compiled by Vend from the public x402 indexes; every origin has an advertised nano:mainnet settlement rail.",
+  "compiled_at": "2026-09-17T16:36:17Z",
+  "probed": true,
+  "sources": {
+    "agent402.tools": "https://agent402.tools/api/index",
+    "cdp-bazaar": "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources"
+  },
+  "services": [
+    {
+      "name": "extract",
+      "origin": "https://extract.paypercall.dev",
+      "url": "https://extract.paypercall.dev/api/v1/extract",
+      "description": "Extract clean text/markdown from a URL",
+      "price_xno": 0.0001,
+      "source": "vend",
+      "advertised_networks": [
+        "nano:mainnet"
+      ],
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "Vend API Merchant",
+        "manifest_seller": "vend",
+        "nano_resources": [
+          {
+            "url": "https://extract.paypercall.dev/api/v1/extract",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://check.paypercall.dev/api/v1/check-link",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://domain.paypercall.dev/api/v1/domain-info",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "500000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://search.paypercall.dev/api/v1/web-search",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://geoip.paypercall.dev/api/v1/geoip",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "check-link",
+      "origin": "https://check.paypercall.dev",
+      "url": "https://check.paypercall.dev/api/v1/check-link",
+      "description": "Check HTTP status, response time, redirect chain",
+      "price_xno": 0.0001,
+      "source": "vend",
+      "advertised_networks": [
+        "nano:mainnet"
+      ],
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "Vend API Merchant",
+        "manifest_seller": "vend",
+        "nano_resources": [
+          {
+            "url": "https://extract.paypercall.dev/api/v1/extract",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://check.paypercall.dev/api/v1/check-link",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://domain.paypercall.dev/api/v1/domain-info",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "500000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://search.paypercall.dev/api/v1/web-search",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://geoip.paypercall.dev/api/v1/geoip",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "domain-info",
+      "origin": "https://domain.paypercall.dev",
+      "url": "https://domain.paypercall.dev/api/v1/domain-info",
+      "description": "DNS, WHOIS, SSL, HTTP headers intelligence",
+      "price_xno": 0.0005,
+      "source": "vend",
+      "advertised_networks": [
+        "nano:mainnet"
+      ],
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "Vend API Merchant",
+        "manifest_seller": "vend",
+        "nano_resources": [
+          {
+            "url": "https://extract.paypercall.dev/api/v1/extract",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://check.paypercall.dev/api/v1/check-link",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://domain.paypercall.dev/api/v1/domain-info",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "500000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://search.paypercall.dev/api/v1/web-search",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://geoip.paypercall.dev/api/v1/geoip",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "web-search",
+      "origin": "https://search.paypercall.dev",
+      "url": "https://search.paypercall.dev/api/v1/web-search",
+      "description": "Web search via DuckDuckGo \u2014 titles, URLs, snippets",
+      "price_xno": 0.0001,
+      "source": "vend",
+      "advertised_networks": [
+        "nano:mainnet"
+      ],
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "Vend API Merchant",
+        "manifest_seller": "vend",
+        "nano_resources": [
+          {
+            "url": "https://extract.paypercall.dev/api/v1/extract",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://check.paypercall.dev/api/v1/check-link",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://domain.paypercall.dev/api/v1/domain-info",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "500000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://search.paypercall.dev/api/v1/web-search",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://geoip.paypercall.dev/api/v1/geoip",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "geoip",
+      "origin": "https://geoip.paypercall.dev",
+      "url": "https://geoip.paypercall.dev/api/v1/geoip",
+      "description": "IP geolocation: country, city, ISP, ASN, timezone",
+      "price_xno": 0.0001,
+      "source": "vend",
+      "advertised_networks": [
+        "nano:mainnet"
+      ],
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "Vend API Merchant",
+        "manifest_seller": "vend",
+        "nano_resources": [
+          {
+            "url": "https://extract.paypercall.dev/api/v1/extract",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://check.paypercall.dev/api/v1/check-link",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://domain.paypercall.dev/api/v1/domain-info",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "500000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://search.paypercall.dev/api/v1/web-search",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          },
+          {
+            "url": "https://geoip.paypercall.dev/api/v1/geoip",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "asset": "XNO",
+                "amount": "100000000000000000000000000",
+                "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "pyfile-llm-base",
+      "origin": "pyfile-agent.taile3ff35.ts.net",
+      "homepage": "https://github.com/pyfile-toolkit/nano-llm-api",
+      "tool_count": 61,
+      "advertised_networks": [
+        "eip155:8453",
+        "eip155:137",
+        "eip155:42161",
+        "nano:mainnet"
+      ],
+      "source": "agent402",
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "pyfile-llm-base",
+        "manifest_seller": null,
+        "nano_resources": [
+          {
+            "url": "",
+            "accepts": [],
+            "note": "Nano declared in top-level payment block"
+          }
+        ]
+      }
+    },
+    {
+      "name": "llmrt - LLM Red-Team Scanner (x402-nano)",
+      "origin": "llmrt-companion.manhliemcn4euwlu.workers.dev",
+      "homepage": "https://llmrt-companion.manhliemcn4euwlu.workers.dev",
+      "tool_count": 2,
+      "advertised_networks": [
+        "nano:mainnet",
+        "eip155:8453",
+        "eip155:1"
+      ],
+      "source": "agent402",
+      "manifest": {
+        "manifest_present": true,
+        "manifest_name": "llmrt - LLM Red-Team Scanner (x402-nano)",
+        "manifest_seller": null,
+        "nano_resources": [
+          {
+            "url": "https://llmrt-companion.manhliemcn4euwlu.workers.dev/pro/402",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "amount": "8100000000000000000000000000000",
+                "maxAmountRequired": "8100000000000000000000000000000",
+                "asset": "XNO",
+                "payTo": "nano_1ptyys4zbsf515a53kgjq7sbuquetqu5a736p1yaqsfe4r5rjp9akut41kr7",
+                "resource": "https://llmrt-companion.manhliemcn4euwlu.workers.dev/pro/402",
+                "mimeType": "application/json",
+                "maxTimeoutSeconds": 1800,
+                "extra": {
+                  "name": "XNO",
+                  "work": "optional"
+                }
+              }
+            ]
+          },
+          {
+            "url": "https://llmrt-companion.manhliemcn4euwlu.workers.dev/pro/micro-402",
+            "accepts": [
+              {
+                "scheme": "exact",
+                "network": "nano:mainnet",
+                "amount": "10000000000000000000000000000",
+                "maxAmountRequired": "10000000000000000000000000000",
+                "asset": "XNO",
+                "payTo": "nano_1ptyys4zbsf515a53kgjq7sbuquetqu5a736p1yaqsfe4r5rjp9akut41kr7",
+                "resource": "https://llmrt-companion.manhliemcn4euwlu.workers.dev/pro/micro-402",
+                "mimeType": "application/json",
+                "maxTimeoutSeconds": 1800,
+                "extra": {
+                  "name": "XNO",
+                  "work": "optional"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "tallies": {
+    "distinct_origins": 7,
+    "vend_endpoints": 5,
+    "third_party_nano_sellers": 2,
+    "agent402_sellers": 5,
+    "bazaar_origins": 0
+  }
+}

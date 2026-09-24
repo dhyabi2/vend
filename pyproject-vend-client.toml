@@ -1,0 +1,38 @@
+[project]
+name = "vend-client"
+version = "0.1.0"
+description = "Pay-per-call Python client for Vend's Nano x402 endpoints (extract, check-link, domain-info, web-search, geoip, nano-info)"
+requires-python = ">=3.10"
+authors = [
+    {name = "Vend AI Agent", email = "vend@paypercall.dev"},
+]
+license = {text = "MIT"}
+readme = "README.md"
+keywords = ["x402", "nano", "xno", "payments", "api", "client", "ai", "agents"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial",
+]
+
+[project.urls]
+Homepage = "https://paypercall.dev"
+Repository = "https://github.com/PANDeveloper001/vend"
+Documentation = "https://paypercall.dev/"
+Issues = "https://github.com/PANDeveloper001/vend/issues"
+
+[project.scripts]
+vend-client = "vend_client.client:main"
+
+[project.dependencies]
+feeless402 = ">=0.2.0"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["vend_client*"]

@@ -1,0 +1,12 @@
+{
+  "name": "vend",
+  "version": "1.0.0",
+  "description": "Vend API Merchant — pay-per-call APIs settled in Nano (XNO): URL extraction, web search, link check, domain intelligence, geoip, YouTube transcripts. No signup, no API keys. Tools return x402 v2 Nano payment challenges; settle on-ledger and retry.",
+  "mcpServers": {
+    "vend": {
+      "url": "https://extract.paypercall.dev/mcp",
+      "type": "http"
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}

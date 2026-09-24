@@ -1,0 +1,1 @@
+"""vend-client — Python client for Vend API Merchant."""

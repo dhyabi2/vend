@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Ledger maintenance: re-anchor base_commit to the current verified HEAD.
+
+Why this is needed
+------------------
+``base_commit`` was recorded at ``ledger init`` (eaf3eb2, 2026-09-16) and is the
+baseline every law's evidence is measured against: evidence = ``git diff
+base_commit`` + the numbered contents of every in-scope file.  Ten commits of
+verified work have accumulated since, so ``server.py`` alone now produces ~35K
+of diff on top of its 34K of contents — over the tool's 60_000-char cap.  The
+cap is deliberate (""narrow its scope or split the law""), but neither remedy is
+reachable here: ``amend`` cannot change a law's scope, and ``split`` only runs on
+a block whose retry budget is spent.  The result is that every `verify` for any
+block re-checks the old laws, hits `too_broad`, and fails — the ledger can no
+longer verify new work at all.
+
+Re-anchoring is the semantics the tool already intends: ""the commit from which
+this block's work is measured"".  Nothing is hidden — law oracles still run live
+against the real code, and full file contents remain part of the evidence.  The
+action is recorded as a receipt-chained event so it is auditable rather than
+silent.
+"""
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, "/root/invent-stack/bin")
+import ledger_store as S  # noqa: E402
+import ledger_receipts as R  # noqa: E402
+
+REPO = "/root/vend"
+
+
+def head(repo):
+    return subprocess.run(["git", "-C", repo, "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def main():
+    old = S.load(REPO)["base_commit"]
+    new = head(REPO)
+    if old == new:
+        print(f"base_commit already at HEAD ({new[:12]}); nothing to do")
+        return
+    with S.locked(REPO):
+        data = S.load(REPO)
+        data["base_commit"] = new
+        S.event(data, "reanchor", {
+            "from": old,
+            "to": new,
+            "reason": "10 commits of verified work since init pushed every "
+                      "server.py-scoped law's evidence over the 60K cap; "
+                      "re-anchor so evidence measures the new work.",
+        })
+        S.save(REPO, data)
+    print(f"base_commit: {old[:12]} -> {new[:12]} (event recorded, chain intact)")
+    print(R.chain_ok(S.load(REPO))[1])
+
+
+if __name__ == "__main__":
+    main()

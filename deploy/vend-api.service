@@ -1,0 +1,19 @@
+[Unit]
+Description=Vend API Merchant (pay-per-call Nano endpoints)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/vend
+EnvironmentFile=/root/.hermes/.env
+# Vend's own settings load AFTER the shared .env, so VEND_DOMAIN here wins.
+# (The shared .env still sets VEND_DOMAIN=paypercall.dev, which serves nothing
+# while the owner has Vercel switched off.)
+EnvironmentFile=/root/vend/deploy/vend.env
+ExecStart=/root/vend/.venv/bin/python /root/vend/server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=Vend MCP Server (Model Context Protocol)
+After=network-online.target vend-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/vend
+EnvironmentFile=/root/.hermes/.env
+# Vend's own settings load AFTER the shared .env, so VEND_DOMAIN here wins.
+EnvironmentFile=/root/vend/deploy/vend.env
+Environment=VEND_MCP_TRANSPORT=streamable-http
+Environment=VEND_MCP_HOST=127.0.0.1
+Environment=VEND_MCP_PORT=8403
+ExecStart=/root/vend/.venv/bin/python /root/vend/vend_mcp.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
