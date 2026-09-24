@@ -456,7 +456,8 @@
     {
       "directory": "x402-list.com",
       "url": "https://x402-list.com",
-      "status": "submitted"
+      "status": "verified",
+      "note": "Live 2026-09-24: service detail page x402-list.com/services/vend-api-merchant HTTP 200, names Vend API Merchant, ONLINE, PAYMENT-READY until 2026-10-01, 5 endpoints, 100% uptime"
     },
     {
       "directory": "x402.be dashboard",
@@ -601,7 +602,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T22:16:05Z",
+    "timestamp": "2026-09-24T22:20:06Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
