@@ -177,7 +177,8 @@ def pr(title, body, cwd=None, http=call):
 # an agenda built from measurements, every member speaks in its next run, the lead concludes with minutes and
 # each agent's commitment, and the next meeting opens by asking whether those commitments were kept.
 LEAD = os.environ.get("RAI_SWARM_LEAD", "vend")
-INPUT_WINDOW_S = int(os.environ.get("SWARM_MEETING_INPUT_S", str(150 * 60)))   # then the lead concludes
+MEETING_EVERY_MIN = 30          # owner, 2026-09-24: a meeting every half hour, so a commitment is never a day old
+INPUT_WINDOW_S = int(os.environ.get("SWARM_MEETING_INPUT_S", str(20 * 60)))    # must close INSIDE the half hour
 MAX_SAY = 4   # input, and up to three replies - owner, 2026-09-22: reply when it changes what another agent will do
 
 
@@ -251,28 +252,32 @@ def meeting_minutes(text, http=call):
     if not m:
         raise Refused("no meeting is open")
     publish_ok(text)
-    # Meeting #14 was concluded 65 minutes after it opened, with 3 of 12 members heard: they run about once an
-    # hour and nine of them had not had a run to speak in. Minutes written before the window closes decide the
-    # swarm's next six hours on a quarter of its evidence.
+    # Meeting #14 was concluded 65 minutes after it opened, with 3 of 12 members heard: nine had not had a run to
+    # speak in. Minutes written before the window closes decide the swarm's next stretch on a fraction of its
+    # evidence - which is why the window is enforced, and why it now closes inside the half hour rather than after
+    # two and a half.
     spoke = {(c.get("user") or {}).get("login") for c in _comments(m["number"], http)} - {LEAD}
     if _age_s(m) < INPUT_WINDOW_S and len(spoke) < 12:
         left = round((INPUT_WINDOW_S - _age_s(m)) / 60)
         raise Refused(f"only {len(spoke)} of 12 members have spoken and the input window has {left} minutes left. "
-                      "Members run about once an hour: conclude when all twelve have spoken or the window closes.")
+                      f"Meetings are every {MEETING_EVERY_MIN} minutes now: conclude when all twelve have spoken "
+                      "or the window closes - never later, or the next meeting opens on top of this one.")
     low = text.lower()
     if not ("## decisions" in low and "## commitments" in low and len(text.strip()) >= 300):
         raise Refused("minutes need a `## Decisions` section (what the swarm will change, and why, from the inputs) "
                       "and a `## Commitments` section with one line per agent: `- name: what it will have done by "
-                      "the next meeting`. At least 300 characters; quote the inputs you relied on.")
+                      "the next meeting`. A commitment is now HALF AN HOUR of work, so it names one deliverable, "
+                      "not a programme. At least 300 characters; quote the inputs you relied on.")
     # Owner, 2026-09-21: the results of every meeting must show where the swarm stands against the owner's goals
     # (the agenda's section 0, measured). Minutes that do not answer it are not minutes.
     if "## next" not in low:
         raise Refused("minutes need a `## Next` section: one line per agent, the FIRST action of its next run, drawn "
                       "from its `Next:` line - the top-down tool that does not exist yet comes before anything that "
-                      "merely exists already. The next six hours of work are decided here.")
+                      "merely exists already. The next half hour of work is decided here.")
     if "## against the goals" not in low:
         raise Refused("minutes need a `## Against the goals` section first: the agenda's section 0 numbers, whether "
-                      "the owner's target and split were kept these six hours, and what changes if not. The owner reads it.")
+                      "the owner's target and split were kept since the last meeting, and what changes if not. "
+                      "The owner reads it.")
     s, out = http("POST", f"/repos/{REPO}/issues/{m['number']}/comments", {"body": "# Minutes of meeting\n\n" + text})
     if s != 201:
         raise Refused(f"the forge answered {s}: {out.get('message', '')}")

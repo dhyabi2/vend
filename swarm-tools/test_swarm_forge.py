@@ -101,7 +101,9 @@ def test_meeting():
     assert "COMMITTEE" in F.brief_line(http=Meeting(age_s=600)), "the lead is a member too: it gives input first"
     late = Meeting(age_s=F.INPUT_WINDOW_S + 60); late.comments = [{"user": {"login": "atlas"}, "body": good}, {"user": {"login": "vend"}, "body": good}]
     assert "Chair it NOW" in F.brief_line(http=late) and "1 of 12 members" in F.brief_line(http=late)
-    early = Meeting(age_s=3900); early.comments = [{"user": {"login": n}, "body": good} for n in ("beacon", "kite", "delta")]
+    early = Meeting(age_s=F.INPUT_WINDOW_S - 300)   # inside the window: meetings are half-hourly now
+    early.comments = []
+    early.comments; early.comments = [{"user": {"login": n}, "body": good} for n in ("beacon", "kite", "delta")]
     refused(lambda: F.meeting_minutes("## Decisions\n" + "x" * 300 + "\n## Commitments\n- a: b", http=early), "only 3 of 12 members have spoken")
     refused(lambda: F.meeting_minutes("we talked", http=late), "## Decisions")
     # Owner, 2026-09-21: minutes must show where the swarm stands against the owner's goals.
