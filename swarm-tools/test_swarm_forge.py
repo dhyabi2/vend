@@ -570,7 +570,46 @@ def test_a_heavy_escalation_is_for_critical_work_and_one_at_a_time():
           "forge never blocks")
 
 
+def test_the_three_doors_are_in_the_brief_not_only_in_a_pinned_issue():
+    """Measured 2026-09-24: the doors opened at 10:40, were announced in a pinned issue assigned to all fifteen
+    agents, and SEVEN runs finished across six agents with not one spec, patch or escalation written.
+
+    That is this swarm's oldest mistake, written down twice already: the merge queue lived in step 2 of a 300-line
+    AGENTS.md and the lead merged nothing for three runs; the write-path belief outlived its token by a day because
+    it lived in text. Only the brief is read. So the doors are in the brief, with the swarm's own count beside them -
+    and while that count is zero, the line says so in the first words, because a line that reads like an
+    advertisement is skipped and a line that reads like a measurement is not."""
+    class Out:
+        pass
+
+    def forge(counts):
+        def go(method, path, body=None):
+            for label, n in counts.items():
+                if f"labels={label}" in path:
+                    return 200, [{"number": i, "labels": [{"name": label}]} for i in range(n)]
+            return 200, []
+        return go
+
+    empty = F.doors_line(http=forge({"build-spec": 0, "patch-request": 0, "heavy-request": 0}))
+    assert empty.startswith("THE CLOUD WORKER - NOTHING HAS BEEN SENT TO IT YET"), empty
+    for door in ("build:", "patch:", "heavy:"):
+        assert door in empty, door
+    assert "spec-template" in empty and "patch-template" in empty and "heavy-template" in empty
+    assert "11 of 192" in empty, "the patch door carries the number that justifies it"
+
+    some = F.doors_line(http=forge({"build-spec": 2, "patch-request": 1, "heavy-request": 0}))
+    assert some.startswith("THE CLOUD WORKER (2 spec / 1 patch / 0 escalation"), some
+    assert "NOTHING HAS BEEN SENT" not in some
+
+    def broken(*a, **k):
+        raise OSError("forge down")
+    assert F.doors_line(http=broken) == "", "a forge that cannot be read never puts a false count in the brief"
+    print("PASS the three doors: the brief carries build/patch/heavy with this swarm's own count; a swarm that has "
+          "sent nothing is told so in the first words; an unreadable forge says nothing rather than a false zero")
+
+
 if __name__ == "__main__":
+    test_the_three_doors_are_in_the_brief_not_only_in_a_pinned_issue()
     test_a_heavy_escalation_is_for_critical_work_and_one_at_a_time()
     test_a_patch_request_is_refused_until_a_worker_could_write_it_upstream()
     test_a_build_spec_is_refused_until_a_builder_could_finish_it_without_asking()

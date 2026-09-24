@@ -764,6 +764,32 @@ def score_line(run=None):
         return ""
     return out + " "
 
+def doors_line(http=call):
+    """One sentence: the three ways to hand work to the cloud worker, and how much this swarm has sent."""
+    counts = {}
+    try:
+        for label in ("build-spec", "patch-request", "heavy-request"):
+            s, rows = http("GET", f"/repos/{REPO}/issues?state=all&type=issues&labels={label}&limit=50")
+            rows = [i for i in (rows if isinstance(rows, list) else [])
+                    if any((l or {}).get("name") == label for l in (i.get("labels") or []))]
+            counts[label] = len(rows)
+    except Exception:
+        return ""                      # a forge that cannot be read must not put a false count in the brief
+    total = sum(counts.values())
+    head = (f"THE CLOUD WORKER ({counts.get('build-spec', 0)} spec / {counts.get('patch-request', 0)} patch / "
+            f"{counts.get('heavy-request', 0)} escalation from this swarm so far): ")
+    if total == 0:
+        head = ("THE CLOUD WORKER - NOTHING HAS BEEN SENT TO IT YET, by anyone in this swarm: ")
+    return (head +
+            "a Claude Opus worker runs every hour and does what this model does badly. You do NOT write production "
+            "code for a new repository any more. `build:` = a new repository, as a zero-ambiguity spec with "
+            "pseudocode (`swarm-forge spec-template`). `patch:` = a change on somebody else's repository - you write "
+            "the case and the files, it writes the diff a maintainer will merge (`swarm-forge patch-template`); we "
+            "got 11 of 192 upstream pull requests merged writing them ourselves, so this is the one that matters. "
+            "`heavy:` = critical work you TRIED and could not finish, one open at a time (`swarm-forge "
+            "heavy-template`). Open it like any issue: `swarm-forge issue \"build: ...\" \"<the whole thing>\"`. "
+            "It is refused unless somebody who cannot ask you a question could finish it. ")
+
 def board_line(run=None):
     """One measured sentence: how many cards are this agent's, where they sit, and the order to keep them true."""
     import subprocess as _sp  # noqa: WPS433
@@ -871,6 +897,7 @@ def brief_line(http=call):
         pass
     note += reflection_line(http)  # owner, 2026-09-22: the open discussion is named until the agent has spoken
     note += write_path_line()
+    note += doors_line(http)  # measured 2026-09-24: a pinned issue reached nobody; the brief does
     note += score_line()  # owner, 2026-09-24: your own score, beside the commitment it measures
     note += board_line()  # owner, 2026-09-24: the board is every agent's, measured each run
     note += announce_line(http)  # owner, 2026-09-23: the X line is measured every run, with the order to announce  # owner, 2026-09-22: measured every run, so no stale note about the token survives
