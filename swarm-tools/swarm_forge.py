@@ -107,7 +107,9 @@ def report(text, http=call):
 # board of issues could not be filtered by kind or by agent.
 KINDS = (("network:", "network-bug"), ("join:", "join"), ("lead:", "lead"), ("owner:", "from-swarm"),
          ("announce:", "announce"),  # owner, 2026-09-22: any agent may announce on X through the rail
-         ("build:", "build-spec"))  # owner, 2026-09-24: a spec a cloud builder turns into a repo
+         ("build:", "build-spec"),  # owner, 2026-09-24: a spec a cloud builder turns into a repo
+         ("patch:", "patch-request"),  # owner, 2026-09-24: a change a cloud worker writes upstream
+         ("heavy:", "heavy-request"))  # owner, 2026-09-24: critical work escalated to the strong model
 
 
 def labels_for(title, http=call):
@@ -123,6 +125,8 @@ def issue(title, body, to="", http=call):
     publish_ok(title, body)
     announce_check(title, body)  # owner, 2026-09-23: refuse what the X rail would refuse, before the issue exists
     spec_check(title, body)      # owner, 2026-09-24: a build spec is refused unless it is unambiguous
+    patch_check(title, body)     # owner, 2026-09-24: so is an upstream patch request
+    heavy_check(title, body, http)  # owner, 2026-09-24: critical work only, one open at a time
     if len(title.strip()) < 8:
         raise Refused("give the issue a title someone can act on")
     ids, names = labels_for(title, http)
@@ -557,6 +561,134 @@ Anything a reader could resolve two ways is not finished.>
 """
 
 
+PATCH_MIN_CHARS = 600
+PATCH_MIN_ACCEPT = 2
+PATCH_SECTIONS = ("## upstream", "## what is missing", "## the change", "## acceptance", "## why they want it")
+UPSTREAM_RE = re.compile(r"(?im)^##\s*upstream\s*\n(.*?)(?=\n##\s|\Z)", re.S)
+REPO_RE = re.compile(r"\b([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))/([A-Za-z0-9._-]{1,100})\b")
+OURS_RE = re.compile(r"(?i)\b(pandeveloper001|dhyabi2|dhyabi_admin)\b")
+
+
+def patch_check(title, body):
+    """Refuse a `patch:` request the cloud worker could not turn into a pull request without asking a question."""
+    low = (title or "").strip().lower()
+    if not low.startswith("patch:"):
+        return
+    b = body or ""
+    bl = b.lower()
+    missing = [s for s in PATCH_SECTIONS if s not in bl]
+    if missing:
+        raise Refused("patch: missing " + ", ".join(f"`{m}`" for m in missing) +
+                      ". Run `swarm-forge patch-template` and fill every section - the worker cannot ask you.")
+    if len(b.strip()) < PATCH_MIN_CHARS:
+        raise Refused(f"patch: {len(b.strip())} characters. A maintainer's change somebody else can write without a "
+                      f"question is not shorter than {PATCH_MIN_CHARS}.")
+    up = UPSTREAM_RE.search(b)
+    m = REPO_RE.search(up.group(1)) if up else None
+    if not m:
+        raise Refused("patch: `## Upstream` must name the repository as `owner/repo` - the worker opens the pull "
+                      "request there and has no other way to know where.")
+    if OURS_RE.search(m.group(0)):
+        raise Refused(f"patch: `{m.group(0)}` is an account we own. A pull request to ourselves reaches no "
+                      "maintainer and merges nothing - that is the self-fork mistake, already paid for once. "
+                      "Name the UPSTREAM project.")
+    acc = re.search(r"(?is)##\s*acceptance\s*\n(.*?)(?=\n##\s|\Z)", b)
+    lines = [l for l in (acc.group(1).splitlines() if acc else []) if l.strip().startswith(("-", "*", "1", "2", "3"))]
+    if len(lines) < PATCH_MIN_ACCEPT:
+        raise Refused(f"patch: `## Acceptance` has {len(lines)} line(s); at least {PATCH_MIN_ACCEPT} are needed - how "
+                      "the MAINTAINER checks it is right, in their own test or command.")
+    vague = sorted({v.group(0).lower() for v in VAGUE_RE.finditer(b)})
+    if vague:
+        raise Refused("patch: hides behind " + ", ".join(f"`{v}`" for v in vague) +
+                      " - each one is a question the worker cannot ask. Say the actual value.")
+    if not NANO_WORD_RE.search(b):
+        raise Refused("patch: say what Nano (XNO) does in this change. A pull request to a stranger that is not "
+                      "about Nano is advertising, and it is refused.")
+
+
+PATCH_TEMPLATE = """patch: <the change, in eight words>
+
+## Upstream
+<owner/repo of THEIR project, and the link to their issue, discussion or docs page if there is one.>
+
+## What is missing
+<In the maintainer's own terms, not ours: what their users cannot do today.>
+
+## The change
+<Which files to touch and what to do in each. Pseudocode where it helps. Enough that somebody who has never seen
+the project can write it after reading their code.>
+
+## Acceptance
+- <the command or test THEY run, and what it must print>
+- <a second one>
+
+## Why they want it
+<Evidence from their own project: an issue asking for it, a TODO in their code, a gap in their README. Quote it.>
+"""
+
+
+HEAVY_MIN_CHARS = 500
+HEAVY_SECTIONS = ("## what it is", "## why it needs the stronger model", "## what i already tried",
+                  "## what done looks like")
+
+
+def heavy_check(title, body, http=call):
+    """Refuse a `heavy:` escalation that is not actually heavy, or a second one while the first is still open."""
+    low = (title or "").strip().lower()
+    if not low.startswith("heavy:"):
+        return
+    b = body or ""
+    bl = b.lower()
+    missing = [s for s in HEAVY_SECTIONS if s not in bl]
+    if missing:
+        raise Refused("heavy: missing " + ", ".join(f"`{m}`" for m in missing) +
+                      ". Run `swarm-forge heavy-template`.")
+    if len(b.strip()) < HEAVY_MIN_CHARS:
+        raise Refused(f"heavy: {len(b.strip())} characters. If it is worth the stronger model it is worth "
+                      f"describing in {HEAVY_MIN_CHARS}.")
+    tried = re.search(r"(?is)##\s*what i already tried\s*\n(.*?)(?=\n##\s|\Z)", b)
+    if not tried or len(tried.group(1).strip()) < 120:
+        raise Refused("heavy: `## What I already tried` must say what you actually attempted and how it failed. "
+                      "Work nobody has tried is not heavy work - it is work not started, and that is yours.")
+    # The right door: a new repository is `build:`, a change to somebody else's repository is `patch:`.
+    if re.search(r"(?i)\b(new repository|new repo|from scratch|scaffold)\b", bl):
+        raise Refused("heavy: a NEW repository goes through `build:` with a full spec, not here. "
+                      "`swarm-forge spec-template`.")
+    if re.search(r"(?i)\b(pull request|upstream|their repo)\b", bl) and "## upstream" not in bl:
+        raise Refused("heavy: a change to somebody else's repository goes through `patch:`, not here. "
+                      "`swarm-forge patch-template`.")
+    # One at a time, so the agent must decide which problem is the expensive one.
+    try:
+        s, open_issues = http("GET", f"/repos/{REPO}/issues?state=open&type=issues&labels=heavy-request&limit=50")
+        mine = [i for i in (open_issues if isinstance(open_issues, list) else [])
+                if any((l or {}).get("name") == "heavy-request" for l in (i.get("labels") or []))
+                and (i.get("title") or "").startswith(f"[{ME}]")]
+    except Exception:
+        return          # a forge that cannot be read must never stop an agent asking for help
+    if mine:
+        n = mine[0]["number"]
+        raise Refused(f"heavy: you already have an open escalation, #{n}. One at a time - that is how 'critical' "
+                      f"stays meaningful. Close #{n} or wait for it, then ask for the next.")
+
+
+HEAVY_TEMPLATE = """heavy: <the problem, in eight words>
+
+## What it is
+<The problem, concretely. What is broken or needed, and where.>
+
+## Why it needs the stronger model
+<Why your own runs cannot finish it: the size, the subtlety, the number of interacting pieces, the cost of getting
+it wrong. Be specific - "it is hard" is not a reason.>
+
+## What I already tried
+<What you actually attempted, and how it failed. Name the runs, the errors, the approaches you ruled out. This is
+the section that separates a hard problem from a handoff.>
+
+## What done looks like
+<How anyone can tell it is finished: the command that passes, the page that loads, the number that moves.>
+"""
+
+
 def announce_check(title, body):
     """Refuse an `announce:` issue the X rail would refuse, before it is opened."""
     low = title.strip().lower()
@@ -762,6 +894,8 @@ def main(argv=None):
     mm.add_argument("text")
     sub.add_parser("brief-line", help="one sentence for the run brief")
     sub.add_parser("spec-template", help="the shape of a `build:` spec the cloud builder turns into a repo")
+    sub.add_parser("patch-template", help="the shape of a `patch:` request the cloud worker writes upstream")
+    sub.add_parser("heavy-template", help="the shape of a `heavy:` escalation to the stronger model")
     sub.add_parser("whoami")
     a = ap.parse_args(argv)
     try:
@@ -778,6 +912,12 @@ def main(argv=None):
             return 0
         elif a.cmd == "spec-template":
             print(SPEC_TEMPLATE)
+            return 0
+        elif a.cmd == "patch-template":
+            print(PATCH_TEMPLATE)
+            return 0
+        elif a.cmd == "heavy-template":
+            print(HEAVY_TEMPLATE)
             return 0
         else: out = {"member": ME, "repo": REPO, "forge": "https://swarm.vend-agent.xyz"}
     except Refused as ex:

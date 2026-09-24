@@ -452,7 +452,127 @@ def test_a_build_spec_is_refused_until_a_builder_could_finish_it_without_asking(
           "acceptance tests, a hedging word and a spec with no Nano in it are each refused, naming what to fix")
 
 
+GOOD_PATCH = """## Upstream
+michielpost/x402-dev - their issue #101 asks for a settlement network that needs no gas token.
+
+## What is missing
+Their seller example can only take USDC on Base, so a seller without an EVM wallet cannot use the project at all.
+Their README calls that out as a known limitation.
+
+## The change
+`src/rails/index.ts`: register a second rail beside the existing `base` entry.
+`src/rails/nano.ts` (new): implement the same `Rail` interface - `quote()`, `verify()`, `refund()` - against a Nano
+node's `block_info`, integer raw arithmetic only.
+`README.md`: one row in the rails table.
+
+## Acceptance
+- `pnpm test` passes with the two new cases in `test/rails.nano.test.ts`
+- `pnpm run example -- --rail nano` prints a settled receipt against their fixture node
+
+## Why they want it
+Their issue #101: "we keep hearing from sellers who do not want to hold gas". Nano (XNO) settles with no gas token
+and no per-transfer fee, which is the case they are asking for.
+"""
+
+
+def test_a_patch_request_is_refused_until_a_worker_could_write_it_upstream():
+    """Owner, 2026-09-24: 192 upstream pull requests in 14 days, 11 merged. The agents pick the right targets; the
+    diff is what loses. So the agent writes the case and the cloud worker writes the patch - which only works if the
+    request names the upstream, the files, how the maintainer verifies it, and evidence from their own project.
+
+    The refusal that matters most is the self-owned one: a pull request to our own account reaches no maintainer and
+    merges nothing, which this swarm already did 35 times before it was caught."""
+    F.patch_check("patch: add a Nano rail", GOOD_PATCH)          # complete: passes silently
+
+    def refused(body, needle, title="patch: add a Nano rail"):
+        try:
+            F.patch_check(title, body)
+        except F.Refused as ex:
+            assert needle in str(ex), (needle, str(ex))
+            return
+        raise AssertionError(f"not refused: {needle}")
+
+    assert F.patch_check("build: something else", "short") is None, "only a patch: issue is a patch request"
+    refused("## Upstream\nthem/repo\n", "missing")
+    refused(GOOD_PATCH.replace("michielpost/x402-dev", "PANDeveloper001/x402-dev"), "account we own")
+    refused(GOOD_PATCH.replace("michielpost/x402-dev", "dhyabi2/x402-dev"), "account we own")
+    refused(GOOD_PATCH.replace("michielpost/x402-dev - their issue #101 asks", "their project asks"),
+            "must name the repository as `owner/repo`")
+    thin = GOOD_PATCH.replace("- `pnpm run example -- --rail nano` prints a settled receipt against their fixture node\n", "")
+    refused(thin, "at least 2 are needed")
+    refused(GOOD_PATCH.replace("one row in the rails table.", "one row in the rails table, etc."), "hides behind")
+    refused(re.sub(r"(?i)\b(nano|xno)\b", "USDC", GOOD_PATCH), "what Nano (XNO) does in this change")
+    assert F.PATCH_TEMPLATE.startswith("patch: ") and "## Acceptance" in F.PATCH_TEMPLATE
+    print("PASS patch request: a complete request passes; a missing section, an upstream that is ours, no owner/repo, "
+          "too few acceptance lines, a hedging word and no Nano are each refused, naming what to fix")
+
+
+GOOD_HEAVY = """## What it is
+The journal on this box has drifted: `swarm-proof` rebuilds from it and now publishes two adoptions whose links
+404, while three real merges are missing entirely. The rebuild logic and the journal's own retention interact and I
+cannot tell which is dropping what.
+
+## Why it needs the stronger model
+Three pieces interact - the retention trim, the collector's dedupe key and the rebuild's link check - and the
+symptom appears in none of them alone. Every run I spend on it costs the pool and ends with a different guess, and
+a wrong fix here publishes false proof to strangers, which is worse than publishing nothing.
+
+## What I already tried
+Run 41: re-ran the collector by hand, 299 commit facts appeared, the two dead links stayed. Run 44: raised retention
+on this box and rebuilt - no change, so it is not the trim. Run 47: read the dedupe key and believed it was the
+idempotency key, rewrote it, and the suite went red in four places, so I reverted it. I have ruled out the trim and
+I cannot hold the other two in one run.
+
+## What done looks like
+`swarm-proof` rebuilds with zero 404 links, the three merged pull requests appear, and the suite is green.
+"""
+
+
+def test_a_heavy_escalation_is_for_critical_work_and_one_at_a_time():
+    """Owner, 2026-09-24: agents may escalate heavy work to the stronger model, but "only critical consuming work
+    decided by agent, not any work". "Only ask when it matters" is not a rule anybody can be held to, so the limit
+    is structural - one open escalation per agent - and the agent must say what it already tried. Work nobody has
+    attempted is not heavy work; it is work not started."""
+    none_open = Forge()
+    none_open.issues_reply = []
+    F.heavy_check("heavy: swarm-proof publishes dead links", GOOD_HEAVY, http=lambda *a, **k: (200, []))
+
+    def refused(body, needle, http=lambda *a, **k: (200, [])):
+        try:
+            F.heavy_check("heavy: swarm-proof publishes dead links", body, http=http)
+        except F.Refused as ex:
+            assert needle in str(ex), (needle, str(ex))
+            return
+        raise AssertionError(f"not refused: {needle}")
+
+    assert F.heavy_check("build: a repo", "short", http=lambda *a, **k: (200, [])) is None, "only heavy: is checked"
+    refused("## What it is\nsomething\n", "missing")
+    refused(GOOD_HEAVY.replace(GOOD_HEAVY.split("## What I already tried")[1].split("## What done")[0],
+                               "\nNothing yet.\n\n"), "what you actually attempted")
+    refused(GOOD_HEAVY.replace("The journal on this box has drifted", "I need a new repository that"),
+            "goes through `build:`")
+    refused(GOOD_HEAVY.replace("The journal on this box has drifted",
+                               "I want a pull request on their repo, upstream, that"), "goes through `patch:`")
+
+    # one at a time: an open escalation of this agent's own blocks the next
+    open_one = [{"number": 77, "title": f"[{F.ME}] heavy: an earlier one",
+                 "labels": [{"name": "heavy-request"}]}]
+    refused(GOOD_HEAVY, "you already have an open escalation, #77", http=lambda *a, **k: (200, open_one))
+    # somebody else's open escalation does not block this agent
+    other = [{"number": 78, "title": "[someone-else] heavy: theirs", "labels": [{"name": "heavy-request"}]}]
+    F.heavy_check("heavy: swarm-proof publishes dead links", GOOD_HEAVY, http=lambda *a, **k: (200, other))
+    # a forge that cannot be read never stops an agent asking for help
+    def broken(*a, **k):
+        raise OSError("forge down")
+    F.heavy_check("heavy: swarm-proof publishes dead links", GOOD_HEAVY, http=broken)
+    print("PASS heavy escalation: a real one passes; a missing section, nothing tried, a disguised build or patch, "
+          "and a second one while the first is open are refused; another agent's does not block, and an unreadable "
+          "forge never blocks")
+
+
 if __name__ == "__main__":
+    test_a_heavy_escalation_is_for_critical_work_and_one_at_a_time()
+    test_a_patch_request_is_refused_until_a_worker_could_write_it_upstream()
     test_a_build_spec_is_refused_until_a_builder_could_finish_it_without_asking()
     test_an_agent_is_told_to_carry_two_or_three_cards_at_once()
     test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move()
