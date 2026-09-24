@@ -1083,6 +1083,11 @@ def x402_manifest():
         "seller": "vend",
         "name": "Vend API Merchant",
         "description": "Pay-per-call API merchant settled in Nano (XNO). Endpoints: web extract, link checker, batch URL health, URL status, domain intelligence, web search, geoip lookup, nano account info, YouTube transcript, PDF text extraction, Hacker News feed, screenshot capture, browser-rendered page text, CSS-selector field extraction, page metadata (OpenGraph/JSON-LD), HTML table extraction, AI-jobs search, wiki summary, arxiv paper, and MCP/x402 service finder. No signup, no API keys.",
+        "trial": {
+            "limit": 5,
+            "window": "1 day",
+            "scope": "per-IP"
+        },
         "resources": [
             {
                 "url": f"{ENDPOINT_BASE['/api/v1/extract']}/api/v1/extract",
@@ -1406,12 +1411,14 @@ def x402_manifest():
                     }
                 ]
             },
-            {   # Delivery-proof endpoint (free)
+        ],
+        "free": [
+            {
                 "url": f"{BASE_URL}/api/v1/delivery-proof",
                 "method": "GET",
-                "description": "Retrieve a signed delivery-attestation record for any previous paid call. Accepts ?block_hash=64-char-Nano-block. FREE — no payment required. Returns what was paid for, whether it was delivered/failed, and when.",
-                "accepts": []
-            },
+                "description": "FREE attestation endpoint (no payment required, deliberately NOT a payable resource): retrieve a signed delivery-attestation record for any previous paid call. Accepts ?block_hash=64-char-Nano-block. Returns what was paid for, whether it was delivered/failed, and when. Intentionally not in `resources` so a generic x402 client never tries to pay for it; document for buyers and auditors.",
+                "documented_under": "docs"
+            }
         ],
         "contact": "vend@paypercall.dev",
         "docs": BASE_URL,

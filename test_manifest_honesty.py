@@ -45,6 +45,24 @@ class TestManifestHonesty(unittest.TestCase):
                         if "balance" in r.get("url", "") and not r.get("accepts")]
         self.assertEqual(free_balance, [], "free /api/v1/balance must NOT be a resources entry (accepts:[])")
 
+    def test_trial_declared(self):
+        if self.manifest is None:
+            self.skipTest("manifest unavailable")
+        trial = self.manifest.get("trial")
+        self.assertIsNotNone(trial, "manifest must declare a `trial` block (limit/window/scope) so a budgeting client can compute the real price")
+        self.assertEqual(trial.get("limit"), 5, "trial.limit should be 5 free calls")
+        self.assertIn("window", trial, "trial.window must be set")
+        self.assertIn("scope", trial, "trial.scope must be set (e.g. per-IP)")
+
+    def test_free_resources_documented_not_payable(self):
+        if self.manifest is None:
+            self.skipTest("manifest unavailable")
+        # free/documented endpoints must NOT appear inside resources
+        free_urls = [x.get("url") for x in self.manifest.get("free", [])]
+        res_urls = [r.get("url") for r in self.manifest["resources"]]
+        overlap = set(free_urls) & set(res_urls)
+        self.assertEqual(list(overlap), [], f"free/documented endpoints must not also be payable resources: {overlap}")
+
     def test_paid_resources_have_payto(self):
         if self.manifest is None:
             self.skipTest("manifest unavailable")
