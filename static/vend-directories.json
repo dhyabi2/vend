@@ -574,12 +574,30 @@
       "url": "https://mcpserverhub.net/submit",
       "status": "docs",
       "note": "EVALUATED 2026-09-24: small Tier-3 dir (~6K visits/mo). Submit form never renders ('Loading.../loading...' persists in browser, fields exist: title/url/category_type/server_config/mcp_type). No functional keyless submit path; API fetch fails (CORS). Log docs, not a submission."
+    },
+    {
+      "directory": "WebMCP Directory (webmcpdirectory.onescales.com)",
+      "url": "https://webmcpdirectory.onescales.com/submit",
+      "status": "docs",
+      "note": "RE-EVALUATED 2026-09-24 (prior run said captcha-gated): WebMCP Directory (One Scales) is keyless no-account submit (URL/desc/category/email); it scans the submitted page for navigator.modelContext, registerTool, /.well-known/mcp.json. Vend DOES serve /.well-known/mcp.json (200) so it nominally qualifies, BUT a Cloudflare Turnstile interactive captcha in the browser blocks autonomous submission from this box (same pattern as futuretools/apis.io). NOT agent-submittable -> log docs, needs a human or a writable channel. Do not attempt (no fake pass)."
+    },
+    {
+      "directory": "Apify x402 directory (yadroo/x402-endpoints)",
+      "url": "https://apify.com/yadroo/x402-endpoints",
+      "status": "docs",
+      "note": "EVALUATED 2026-09-24: Apify Actor reading the Coinbase CDP Bazaar (USDC-on-Base/Solana only, ~15k listings). An analytics/market-research surface over the facilitator-paid index, not a submission directory; Nano-only endpoints are not listed there. Log docs, not a listing."
+    },
+    {
+      "directory": "MCPMarkets (mcpmarkets.com)",
+      "url": "https://mcpmarkets.com/en/submit",
+      "status": "docs",
+      "note": "EVALUATED 2026-09-24: free keyless MCP dir, but the submit form REQUIRES a public GitHub URL for editors to review. Vend is a hosted-only remote MCP server with no public repo (PANDeveloper001 dead 404) -> not keyless-viable. Same structural gate as MCP.Directory. Log docs, do not submit."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T21:06:42Z",
-    "all_healthy": true,
-    "endpoints_ok": 22,
+    "timestamp": "2026-09-24T21:19:46Z",
+    "all_healthy": false,
+    "endpoints_ok": 21,
     "endpoints_total": 22
   }
 }
