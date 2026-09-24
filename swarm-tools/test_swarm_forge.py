@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Laws for swarm-forge. The forge is PUBLIC (owner, 2026-09-20), so the first law is that a secret never posts."""
-import os, sys, tempfile
+import os, re, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 os.environ["RAI_SWARM_MEMBER"] = "atlas"
@@ -372,7 +372,88 @@ def test_an_agent_is_told_to_carry_two_or_three_cards_at_once():
           "writes stay one at a time; at the floor it is left alone; over the ceiling it is told to finish, not start")
 
 
+GOOD_SPEC = """## What it is
+A settlement-receipt verifier for the Tollstile pay-per-call runtime, called by the maintainer's own CI.
+
+## Where Nano comes in
+It proves a Nano (XNO) send block settled a call, so a seller can charge per request without an EVM wallet.
+
+## Interface
+`verify(block_hash: str, expect_raw: int, account: str) -> Receipt`
+Returns `Receipt(settled: bool, amount_raw: int, height: int)`.
+Raises `NotFound` when the node has no such block, `Mismatch` when the amount differs from expect_raw.
+
+## Data
+Node reply: `{"block_account": "nano_3abc", "amount": "1000000000000000000000000", "confirmed": "true", "height": 42}`
+Receipt returned: `{"settled": true, "amount_raw": 1000000000000000000000000, "height": 42}`
+
+## Workflow (pseudocode)
+```
+verify(block_hash, expect_raw, account):
+    reply = rpc("block_info", json_block=true, hash=block_hash)
+    if reply has key "error":            raise NotFound(block_hash)
+    if reply["confirmed"] != "true":     return Receipt(settled=false, amount_raw=0, height=0)
+    if int(reply["amount"]) != expect_raw: raise Mismatch(int(reply["amount"]), expect_raw)
+    if reply["block_account"] != account: raise Mismatch(reply["block_account"], account)
+    return Receipt(settled=true, amount_raw=int(reply["amount"]), height=int(reply["height"]))
+```
+
+## Acceptance tests
+- GIVEN a confirmed block of 10^24 raw WHEN verify(hash, 10**24, account) THEN Receipt(settled=True, amount_raw=10**24, height=42)
+- GIVEN an unconfirmed block WHEN verify(hash, 10**24, account) THEN Receipt(settled=False, amount_raw=0, height=0)
+- GIVEN the node replies {"error": "Block not found"} WHEN verify(hash, 1, account) THEN raises NotFound
+
+## Runtime
+python 3.11, standard library only, no third-party dependency.
+
+## Out of scope
+No signing, no sending, no wallet handling, no retry loop.
+
+## Where it ships
+Repository `nano-settlement-verify`, published, and the Tollstile maintainer is told on their issue #44.
+"""
+
+
+def test_a_build_spec_is_refused_until_a_builder_could_finish_it_without_asking():
+    """Owner, 2026-09-24: agents write "technical pseudo code, with all technical workflows ... enough for claude
+    agent to make it 100%, and let them write it with zero ambiguity", and a cloud builder turns it into the repo.
+
+    That only works if the spec is complete BEFORE it is sent: the builder runs in a sandbox and cannot ask a
+    question, so a spec that is 90% clear is not 90% useful - it is a wasted run. Every refusal here is one question
+    the builder would otherwise have had to come back and ask."""
+    ok = ("build: Nano settlement receipt verifier", GOOD_SPEC)
+    F.spec_check(*ok)                                     # complete: passes silently
+
+    def refused(title, body, needle):
+        try:
+            F.spec_check(title, body)
+        except F.Refused as ex:
+            assert needle in str(ex), (needle, str(ex))
+            return
+        raise AssertionError(f"not refused: {needle}")
+
+    assert F.spec_check("announce: a thing went live", "short") is None, "only a build: issue is a spec"
+    refused("build: a verifier", "## What it is\nA verifier.\n", "is missing")
+    refused("build: a verifier", GOOD_SPEC.replace("## Out of scope", "## Notes"), "`## out of scope`")
+    refused("build: a verifier", GOOD_SPEC.replace("```", "", 2), "there is no pseudocode")
+    refused("build: a verifier", GOOD_SPEC.replace("python 3.11, standard library only, no third-party dependency.",
+                                                   "whatever fits best."), "must name the language")
+    thin = GOOD_SPEC.replace("- GIVEN an unconfirmed block WHEN verify(hash, 10**24, account) THEN Receipt(settled=False, amount_raw=0, height=0)\n", "")
+    thin = thin.replace("- GIVEN the node replies {\"error\": \"Block not found\"} WHEN verify(hash, 1, account) THEN raises NotFound\n", "")
+    refused("build: a verifier", thin, "acceptance test")
+    refused("build: a verifier", GOOD_SPEC.replace("no retry loop.", "no retry loop, etc."), "hides behind `etc`")
+    refused("build: a verifier", GOOD_SPEC.replace("sending, no wallet handling", "sending, TBD"), "`tbd`")
+    # every mention stripped, not a few: the spec's own heading says "Nano" and would have satisfied the check
+    no_nano = re.sub(r"(?i)\b(nano|xno)\b", "USDC", GOOD_SPEC).replace("nano_3abc", "0xabc")
+    refused("build: a verifier", no_nano, "where Nano (XNO) is in this")
+    assert "## Acceptance tests" in F.SPEC_TEMPLATE and "zero" not in F.SPEC_TEMPLATE.lower()
+    assert F.SPEC_TEMPLATE.startswith("build: "), "the template shows the prefix that makes it a spec"
+    print("PASS build spec: a complete spec passes; a missing section, no pseudocode, no runtime, too few "
+          "acceptance tests, a hedging word and a spec with no Nano in it are each refused, naming what to fix")
+
+
 if __name__ == "__main__":
+    test_a_build_spec_is_refused_until_a_builder_could_finish_it_without_asking()
     test_an_agent_is_told_to_carry_two_or_three_cards_at_once()
     test_the_board_line_is_measured_and_tells_every_agent_to_add_and_move()
     test_throttled_account_is_measured_and_the_brief_orders_drafts_not_calls()

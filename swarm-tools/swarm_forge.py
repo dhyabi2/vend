@@ -106,7 +106,8 @@ def report(text, http=call):
 # no labels at all: the rules told them which prefix to write and nothing turned a prefix into a label, so the
 # board of issues could not be filtered by kind or by agent.
 KINDS = (("network:", "network-bug"), ("join:", "join"), ("lead:", "lead"), ("owner:", "from-swarm"),
-         ("announce:", "announce"))  # owner, 2026-09-22: any agent may announce on X through the rail
+         ("announce:", "announce"),  # owner, 2026-09-22: any agent may announce on X through the rail
+         ("build:", "build-spec"))  # owner, 2026-09-24: a spec a cloud builder turns into a repo
 
 
 def labels_for(title, http=call):
@@ -121,6 +122,7 @@ def labels_for(title, http=call):
 def issue(title, body, to="", http=call):
     publish_ok(title, body)
     announce_check(title, body)  # owner, 2026-09-23: refuse what the X rail would refuse, before the issue exists
+    spec_check(title, body)      # owner, 2026-09-24: a build spec is refused unless it is unambiguous
     if len(title.strip()) < 8:
         raise Refused("give the issue a title someone can act on")
     ids, names = labels_for(title, http)
@@ -454,6 +456,105 @@ def merge_queue_line(http=call):
 ANNOUNCE_MAX_WORDS = 10
 OWNED_LINK_RE = re.compile(r"https?://(?:www\.)?github\.com/(?:PANDeveloper001|dhyabi2)/", re.I)
 LINK_RE = re.compile(r"https://[^\s)>\]\"']+")
+
+
+NANO_WORD_RE = re.compile(r"(?i)\b(nano|xno)\b")
+
+
+SPEC_MIN_CHARS = 1200
+SPEC_MIN_TESTS = 3
+SPEC_SECTIONS = ("## what it is", "## interface", "## data", "## workflow", "## acceptance tests",
+                 "## runtime", "## out of scope", "## where it ships")
+# The words a specification hides behind. Each one is a question the builder would have to come back and ask, and a
+# round trip costs a whole cloud run - so they are refused at the door rather than discovered at the end.
+VAGUE_RE = re.compile(r"(?i)\b(tbd|to be decided|to be determined|todo|and so on|as needed|as appropriate|"
+                      r"something like|or similar|etc\.?|and more|amongst others|we(?:'| a)?ll decide|"
+                      r"figure (?:it )?out|handle appropriately|sensible default|reasonable default)\b")
+TEST_RE = re.compile(r"(?im)^\s*(?:[-*]|\d+[.)])\s*(?:given\b.*\bthen\b|when\b.*\bthen\b|.+->.+|"
+                     r"input\s*[:=].+expect)")
+FENCE_RE = re.compile(r"```[\s\S]{80,}?```")
+RUNTIME_RE = re.compile(r"(?i)\b(python|node|typescript|javascript|go|rust|bash)\b")
+
+
+def spec_check(title, body):
+    """Refuse a `build:` spec that a builder could not finish without asking a question.
+
+    The rule the owner set is zero ambiguity: this is the only issue kind whose WHOLE VALUE is that somebody else -
+    a stronger model, in a sandbox, with no way to ask you anything - can turn it into a working repository in one
+    pass. A spec that is 90% clear is not 90% useful; it is a run that comes back with a question.
+    """
+    low = (title or "").strip().lower()
+    if not low.startswith("build:"):
+        return
+    b = body or ""
+    bl = b.lower()
+    missing = [s for s in SPEC_SECTIONS if s not in bl]
+    if missing:
+        raise Refused("build: the spec is missing " + ", ".join(f"`{m}`" for m in missing) +
+                      ". Run `swarm-forge spec-template` and fill every section - the builder cannot ask you "
+                      "what you left out.")
+    if len(b.strip()) < SPEC_MIN_CHARS:
+        raise Refused(f"build: the spec is {len(b.strip())} characters. A repository somebody else can build "
+                      f"without one question is not shorter than {SPEC_MIN_CHARS}. Write the workflow out.")
+    if not FENCE_RE.search(b):
+        raise Refused("build: there is no pseudocode. `## Workflow (pseudocode)` needs a fenced ``` block with the "
+                      "real steps - names, arguments, branches, what is returned and what is raised.")
+    # Only the `## Runtime` section may answer this. Searching the whole body let "the Nano NODE has no such
+    # block" pass as a declaration that the runtime is Node - caught by the law, not by reading.
+    rt = re.search(r"(?is)##\s*runtime\s*\n(.*?)(?=\n##\s|\Z)", b)
+    if not (rt and RUNTIME_RE.search(rt.group(1))):
+        raise Refused("build: `## Runtime` must name the language and version (python, node, typescript, go, rust, "
+                      "bash) and every dependency - the builder must not guess what to write it in.")
+    tests = TEST_RE.findall(b)
+    if len(tests) < SPEC_MIN_TESTS:
+        raise Refused(f"build: {len(tests)} acceptance test(s); at least {SPEC_MIN_TESTS} are needed, each one "
+                      "checkable: `GIVEN <input> WHEN <call> THEN <exact output>`, or `<input> -> <expected>`. "
+                      "These are how the builder knows it is finished, and how you know it is right.")
+    vague = sorted({m.group(0).lower() for m in VAGUE_RE.finditer(b)})
+    if vague:
+        raise Refused("build: the spec hides behind " + ", ".join(f"`{v}`" for v in vague) +
+                      ". Every one of those is a question the builder would have to ask and cannot. Say the actual "
+                      "value, the actual default, the actual list.")
+    if not NANO_WORD_RE.search(b):
+        raise Refused("build: say where Nano (XNO) is in this - what it settles, pays or proves. We build nothing "
+                      "that does not carry the mission.")
+
+
+SPEC_TEMPLATE = """build: <what the repository is, in eight words>
+
+## What it is
+<One paragraph: what it does, who calls it, and why they would. Name the real project or maintainer it is for.>
+
+## Where Nano comes in
+<What XNO settles, pays or proves here. One or two sentences.>
+
+## Interface
+<Every function or endpoint the builder must produce. Exact names, arguments with types, return shape, and the
+errors raised. Nothing implied.>
+
+## Data
+<Every shape that crosses a boundary, as real JSON with real values - not field names in prose.>
+
+## Workflow (pseudocode)
+```
+<The steps, in order, as pseudocode: names, arguments, branches, what is returned, what is raised.
+Anything a reader could resolve two ways is not finished.>
+```
+
+## Acceptance tests
+- GIVEN <input> WHEN <call> THEN <exact output>
+- GIVEN <input> WHEN <call> THEN <exact output>
+- GIVEN <failure> WHEN <call> THEN <exact error>
+
+## Runtime
+<python / node / typescript / go / rust / bash, the version, and every dependency by name.>
+
+## Out of scope
+<What the builder must NOT do. This is as important as the rest: it is how a one-pass build stays one pass.>
+
+## Where it ships
+<The repository name to create, whether it is published, and who is told when it is live.>
+"""
 
 
 def announce_check(title, body):
