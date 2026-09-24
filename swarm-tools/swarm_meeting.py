@@ -23,7 +23,10 @@ import vend_swarm as S  # noqa: E402
 
 API = "http://127.0.0.1:3000/api/v1"
 REPO = "swarm/vend"
-AUTOCLOSE_S = 25 * 60   # owner, 2026-09-24: meetings are every 30 minutes - one must close inside its own half hour
+AUTOCLOSE_S = 20 * 60   # owner, 2026-09-24: meetings are every 30 minutes - one must close inside its own half hour.
+# 25 minutes was too close to the edge: `open` runs at :00/:30 and `sweep` every 5, so at :30 the open found the
+# meeting still running and skipped, and the sweep closed it ONE SECOND later - losing the whole next slot.
+# Measured on Rai 2026-09-24: #221 opened 18:00, skipped at 18:30:01, closed 18:30:02, nothing until 19:00.
 
 
 def forge(method, path, payload=None):
