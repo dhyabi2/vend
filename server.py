@@ -1308,12 +1308,6 @@ def x402_manifest():
                     }
                 ]
             },
-            {   # Balance endpoint (free check)
-                "url": f"{BASE_URL}/api/v1/balance",
-                "method": "GET",
-                "description": "Prepaid balance check. Free (no payment required). Accepts ?account=nano_... or X-BALANCE header.",
-                "accepts": []
-            },
             {   # Balance top-up endpoint
                 "url": f"{BASE_URL}/api/v1/balance/top-up",
                 "method": "POST",
