@@ -220,6 +220,13 @@
       "note": "Free GitHub URL form submitted. MCP Server type, GitHub repo distribution, 4 categories (API Development, Web Scraping & Data Collection, Developer Tools, Research). 'Submitted for review \u2014 usually within a day.'"
     },
     {
+      "directory": "x402dash.com",
+      "url": "https://api.x402dash.com/v1/endpoints?q=extract.paypercall.dev",
+      "status": "verified",
+      "verified_at": "2026-09-24",
+      "note": "Keyless x402 endpoint registry (Nano-supported but scores liveness 0.0 since its probe settles USDC - honest, not rejected). 17/24 manifest resources indexed. Gap: address-verdict + delivery-proof NOT yet registered (register 429 rate-limited 5/hr) - scheduled cron 474046f796e2 to register when limit clears. All subdomain hosts (check/domain/search/geoip) indexed."
+    },
+    {
       "directory": "MCP Registry (vend-mcp)",
       "url": "https://extract.paypercall.dev/mcp",
       "status": "live",
@@ -503,7 +510,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T05:48:19Z",
+    "timestamp": "2026-09-24T06:20:29Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
