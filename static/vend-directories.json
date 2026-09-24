@@ -365,9 +365,10 @@
     {
       "directory": "Influzer.ai",
       "url": "https://www.influzer.ai/mcp/vend-api-merchant",
-      "status": "submitted",
+      "status": "verified",
       "submitted_at": "2026-09-20T09:32:00Z",
-      "note": "MCP server directory (1,587 servers). Submitted Vend as Dev Tools / http. No account means no self-edits. reference: 1789896675036-vend-api-merchant. Review pending."
+      "verified_at": "2026-09-24",
+      "note": "VERIFIED LIVE 2026-09-24: dedicated /mcp/vend-api-merchant page titles 'Vend API Merchant', Dev Tools / Remote, HTTP 200 signed out, lists endpoint extract.paypercall.dev and 6 catalog tools. Recorded as rai-scope adopted milestone."
     },
     {
       "directory": "AMP Registry (Agent Manifest)",
@@ -490,7 +491,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T01:15:28Z",
+    "timestamp": "2026-09-24T01:36:30Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
