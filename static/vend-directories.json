@@ -513,11 +513,47 @@
       "url": "https://agenticskills.io/mcp",
       "status": "submitted",
       "submitted_at": "2026-09-24T09:0Z",
-      "note": "New keyless MCP directory (193 servers, 22 categories). Submitted Vend remote MCP URL (extract.paypercall.dev/mcp), Finance & Payments, via web form. Form showed Creating Review Issue then reset; review ~48h. Verify live page in later run."
+      "note": "Keyless MCP directory accepting REMOTE MCP URL, submitted 2026-09-24. Re-checked 2026-09-24 live /mcp page: NOT yet listed (only \"vendor\" in footer) - 48h human review pending. Verify again next run."
+    },
+    {
+      "directory": "Stork.ai",
+      "url": "https://stork.ai/mcp/submit",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: major MCP directory (mirrors Official MCP Registry). Submit requires Google/GitHub sign-in -> NOT keyless. Vend in Official Registry so auto-mirrored; check search in later run."
+    },
+    {
+      "directory": "MCP Repository",
+      "url": "https://mcprepository.com/submit",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: submit form requires GitHub Repository URL. Remote endpoint Vend cannot submit."
+    },
+    {
+      "directory": "ClawTools",
+      "url": "https://clawtools.com",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: OpenClaw tools directory. /submit 404; requires Business login. Not keyless, niche framework."
+    },
+    {
+      "directory": "FutureTools.io",
+      "url": "https://futuretools.io/submit-a-tool",
+      "status": "blocked",
+      "note": "CONFIRMED 2026-09-24 Turnstile interactive captcha renders no widget host (cf-turnstile-response stays 0, no iframe) -> agent cannot complete -> NOT submittable honestly. 3M visits/mo human-curated."
+    },
+    {
+      "directory": "Creati.ai",
+      "url": "https://creati.ai",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: /submit returns 404; paid tier. Skip."
+    },
+    {
+      "directory": "AllYourTech",
+      "url": "https://allyourtech.ai",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: featured-projects showcase (AI tools/MCP/APIs/skills). No keyless submit path. Not a listing surface."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T09:11:19Z",
+    "timestamp": "2026-09-24T09:38:27Z",
     "all_healthy": false,
     "endpoints_ok": 21,
     "endpoints_total": 22
