@@ -30493,7 +30493,399 @@
   },
   "46": {
    "status": "pending",
-   "attempts": []
+   "attempts": [
+    {
+     "kind": "verify",
+     "ok": false,
+     "refusable": true,
+     "results": [
+      {
+       "id": "L0",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L1",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L2",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L3",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L4",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L5",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L6",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L7",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L8",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L10",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L12",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L15",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L16",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L17",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L19",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L20",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L21",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L22",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L23",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L24",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L25",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L26",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L27",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L28",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L29",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L30",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L31",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L32",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L33",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L34",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L35",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L36",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L37",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L38",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L39",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L40",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L41",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L42",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L43",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L44",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L45",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L46",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L47",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L48",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L49",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L50",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L51",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L52",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L53",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L54",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L55",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L56",
+       "pass": false,
+       "too_broad": true
+      },
+      {
+       "id": "L57",
+       "pass": false,
+       "too_broad": true
+      }
+     ],
+     "pre_sig": "27bad8fe8cb938727b1c4e91c47b4a6ea204c42f48fe85d53b91fc854cabf295",
+     "tier": "strong",
+     "coverage_gaps": [
+      "GEMINI.md",
+      "RUN_33.md",
+      "RUN_35.md",
+      "RUN_BRIEF.md",
+      "a2a_handler.py",
+      "address_verdict.py",
+      "ai_jobs.py",
+      "ar_home.html",
+      "arxiv_paper.py",
+      "batch_status.py",
+      "channels-map.json",
+      "drafts/APIs-guru--openapi-directory.md",
+      "drafts/airwallex--ai-agent-payments.md",
+      "drafts/api-directory-submission-map.md",
+      "drafts/apis-io--submit-vend.md",
+      "drafts/archtools--x402-directory-submission.md",
+      "drafts/atxp--protocols-compared.md",
+      "drafts/b2bcentr-comparison.md",
+      "drafts/bananabanana--x402-ai-gen-api.md",
+      "drafts/blockchain0x--crypto-payments-to-api.md",
+      "drafts/blockscout--x402-payments-docs.md",
+      "drafts/botpress-vend-integration/README.md",
+      "drafts/botpress-vend-integration/hub.md",
+      "drafts/botpress-vend-integration/src/index.ts",
+      "drafts/custena--agent-payment-protocols.md",
+      "drafts/dify-vend-tool-plugin/PRIVACY.md",
+      "drafts/dify-vend-tool-plugin/PR_BODY.md",
+      "drafts/dify-vend-tool-plugin/README.md",
+      "drafts/dify-vend-tool-plugin/_assets/icon-dark.svg",
+      "drafts/dify-vend-tool-plugin/_assets/icon.svg",
+      "drafts/dify-vend-tool-plugin/icon.svg",
+      "drafts/dify-vend-tool-plugin/manifest.yaml",
+      "drafts/dify-vend-tool-plugin/package.json",
+      "drafts/dify-vend-tool-plugin/package/vend_api_merchant.difypkg",
+      "drafts/dify-vend-tool-plugin/privacy.md",
+      "drafts/dify-vend-tool-plugin/provider/__init__.py",
+      "drafts/dify-vend-tool-plugin/provider/vend_api_merchant.py",
+      "drafts/dify-vend-tool-plugin/provider/vend_api_merchant.yaml",
+      "drafts/dify-vend-tool-plugin/requirements.txt",
+      "drafts/dify-vend-tool-plugin/tools/__init__.py",
+      "drafts/dify-vend-tool-plugin/tools/vend_extract.py",
+      "drafts/dify-vend-tool-plugin/tools/vend_extract.yaml",
+      "drafts/dify-vend-tool-plugin/tools/vend_web_search.py",
+      "drafts/dify-vend-tool-plugin/tools/vend_web_search.yaml",
+      "drafts/dreamingpress--ap2-vs-x402-vs-acp.md",
+      "drafts/fiatdock--x402-mcp-marketplace.md",
+      "drafts/fluxapay-xyz.md",
+      "drafts/gigs-sh--agent-to-agent-payments.md",
+      "drafts/goodmeta--agent-payments-landscape.md",
+      "drafts/hypawave-blog.md",
+      "drafts/josenobile--agent-payments.md",
+      "drafts/laso-finance-guide.md",
+      "drafts/michielpost--x402-dev.md",
+      "drafts/mpp-best--awesome-mpp.md",
+      "drafts/mpp-best--awesome_mpp.md",
+      "drafts/nevermined--agentic-settlements.md",
+      "drafts/openhermit--2026-agent-payments-guide.md",
+      "drafts/otto-ai--cross-rail-first-contact.md",
+      "drafts/payperbyte--smithery-cross-rail-first-contact.md",
+      "drafts/quicknode--x402-vs-mpp.md",
+      "drafts/systemprompt--monetize-mcp-x402.md",
+      "drafts/x402-discovery-index--listing-issue.md",
+      "drafts/x402docs-com.md",
+      "drafts/x402pay-io.md",
+      "drafts/xpaysh--awesome-x402.md",
+      "drafts/zinc--mpp-vs-x402.md",
+      "drafts/zuplo--agentic-payments-guide.md",
+      "gemini-extension.json",
+      "heartbeat.log",
+      "hn_news.py",
+      "links_endpoint.py",
+      "mcp_find.py",
+      "meta_endpoint.py",
+      "pdf_extract.py",
+      "rai-status-output.txt",
+      "render.py",
+      "screenshot.py",
+      "select_endpoint.py",
+      "static/tutorial-call-x402-from-agent.md",
+      "static/x402-rail-comparison.md",
+      "swarm-tools/SWARM.md",
+      "swarm-tools/bridge.py",
+      "swarm-tools/merge_journals.py",
+      "swarm-tools/swarm_forge.py",
+      "swarm-tools/swarm_meeting.py",
+      "swarm-tools/territories.txt",
+      "swarm-tools/test_bridge.py",
+      "swarm-tools/test_merge.py",
+      "swarm-tools/test_swarm_forge.py",
+      "swarm-tools/vend_swarm.py",
+      "table_endpoint.py",
+      "test_a2a_local.py",
+      "test_balance.py",
+      "test_batch_status.py",
+      "test_links_endpoint.py",
+      "test_manifest_honesty.py",
+      "test_mcp_find.py",
+      "test_meta_endpoint.py",
+      "test_pdf_extract.py",
+      "test_render.py",
+      "test_screenshot.py",
+      "test_select_endpoint.py",
+      "test_table_endpoint.py",
+      "tests/test_address_verdict.py",
+      "tests/test_ai_jobs.py",
+      "tests/test_arxiv_paper.py",
+      "tests/test_delivery_proof.py",
+      "tests/test_hn_news.py",
+      "tests/test_payment_signature.py",
+      "tests/test_wiki_summary.py",
+      "vend_mcp.py",
+      "web_search.py",
+      "wiki_summary.py"
+     ],
+     "injection": [],
+     "at": "2026-09-24T05:41:52+00:00"
+    }
+   ]
   }
  },
  "contested": [],
@@ -30568,6 +30960,11 @@
    "at": "2026-09-19T12:44:32+00:00",
    "block": 37.0,
    "text": "ledger.split-method: library-split-every-block → split-only-the-block's-own-failing-laws"
+  },
+  {
+   "block": 46.0,
+   "text": "address_verdict endpoint: required account param validated by FastAPI before payment gate (returned 422 on bare probe) -> declared account optional, validated after payment (returns 402 challenge on bare probe, 400 if missing after payment)",
+   "at": "2026-09-24T05:43:54+00:00"
   }
  ],
  "events": [
@@ -34741,6 +35138,37 @@
    "at": "2026-09-21T01:55:24+00:00",
    "prev": "bd4b008661c4724754b4327fcfcc9fe79cbc180375a24cfeff887b190f073e3a",
    "receipt": "628af482341485fd0948878398ce7953361127c53e364c490782fed36c719729"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L57",
+    "block": "46",
+    "statement_sha": "29c0603582c1b0674570850fcd25a91bf570ace0b8191b4e1c614c77ddaee072"
+   },
+   "at": "2026-09-24T05:41:29+00:00",
+   "prev": "628af482341485fd0948878398ce7953361127c53e364c490782fed36c719729",
+   "receipt": "7ff7e5ca45e7fa8d626219b3f671fb6c3f69e96f66c8fd45454377956f92a87e"
+  },
+  {
+   "kind": "verify",
+   "payload": {
+    "block": "46",
+    "ok": false
+   },
+   "at": "2026-09-24T05:41:52+00:00",
+   "prev": "7ff7e5ca45e7fa8d626219b3f671fb6c3f69e96f66c8fd45454377956f92a87e",
+   "receipt": "1cfb91a52ef989430fa60a50db25526d9f0c681bf599a27badfa8d88d62c81c3"
+  },
+  {
+   "kind": "delta",
+   "payload": {
+    "block": "46",
+    "sha": "a20752b8552e731124b97e3280af7ef513611cb2a9630d14b481794c2a7f88c3"
+   },
+   "at": "2026-09-24T05:43:54+00:00",
+   "prev": "1cfb91a52ef989430fa60a50db25526d9f0c681bf599a27badfa8d88d62c81c3",
+   "receipt": "f23e5a70b13ca1e792aa387b2cb716dd70acf5c621a7f16db5e2c9b66256c9b1"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -35715,6 +36143,21 @@
    "grounding": "oracle",
    "version": 1,
    "minted": "2026-09-21T01:55:24+00:00"
+  },
+  {
+   "id": "L57",
+   "block": 46.0,
+   "statement": "A bare probe of /api/v1/address-verdict (no params, no payment) answers HTTP 402 with the Nano x402 challenge, so x402 discovery finds it as a paid resource.",
+   "test": "bash .ledger/oracle_L57.sh https://extract.paypercall.dev",
+   "scope": [
+    "server.py"
+   ],
+   "oracle": "bash .ledger/oracle_L57.sh",
+   "expect": "L57_VERDICT402_PASS",
+   "source": null,
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-24T05:41:29+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",

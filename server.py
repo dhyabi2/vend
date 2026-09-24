@@ -3254,7 +3254,7 @@ async def hn_news_endpoint(
 @app.get("/api/v1/address-verdict")
 async def address_verdict_endpoint(
     request: Request,
-    account: str = Query(..., description="Nano address (nano_ or xrb_ prefix) to classify"),
+    account: str = Query(None, description="Nano address (nano_ or xrb_ prefix) to classify"),
 ):
     """Return an on-chain trust verdict for a Nano address. Priced 0.0001 XNO.
 
@@ -3266,7 +3266,11 @@ async def address_verdict_endpoint(
     unreachable) with the raw signals underneath — it never claims to know an
     account's human intent.
 
-    A bare probe (no payment, no valid account) returns the 402 challenge.
+    The *account* parameter is declared optional so that an unauthenticated
+    probe (no payment, no parameter) reaches the 402 challenge *before*
+    request validation rejects it — required by the x402scan discovery spec,
+    same as the extract/status endpoints. Missing account is validated only
+    after payment is confirmed.
     """
     paid, response = await require_payment(
         "/api/v1/address-verdict",
@@ -3276,7 +3280,14 @@ async def address_verdict_endpoint(
     if not paid:
         return response
 
-    # Payment confirmed — compute the verdict.
+    # Payment confirmed — validate input
+    if not account:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "account parameter is required"},
+        )
+
+    # Payment confirmed and account provided — compute the verdict.
     return run_paid_work(
         request, address_verdict,
         account=account,
