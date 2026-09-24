@@ -14,10 +14,11 @@ Checks, honestly:
 """
 import os, sys, json
 os.environ.setdefault("VEND_BASE_URL", "http://testserver")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi.testclient import TestClient
 import server
-from fastapi import Request
+import a2a_handler
 
 client = TestClient(server.app)
 
@@ -25,6 +26,25 @@ client = TestClient(server.app)
 CARD_SKILLS = ["extract_url", "check_link", "domain_info", "web_search",
                "geoip_lookup", "nano_account_info", "check_url_status",
                "youtube_transcript", "pdf_extract"]
+
+print("== T0: agent card advertises EXACTLY the skills the A2A handler serves ==\n")
+card = client.get("/.well-known/agent-card.json")
+assert card.status_code == 200, f"agent-card HTTP {card.status_code}"
+card_skills = [s["id"] for s in card.json().get("skills", [])]
+print("card skills:", card_skills)
+assert card_skills == CARD_SKILLS, (
+    f"agent card {card_skills} != served {CARD_SKILLS} — "
+    "card/handler divergence breaks a2aregistry task_conformance (400). "
+    "Every card skill must be served by /a2a message/send."
+)
+# Every card skill must resolve in the handler (no card skill may be Unknown)
+for s in card_skills:
+    entry = a2a_handler._resolve_skill(s)
+    assert entry is not None, f"card skill '{s}' not served by /a2a handler"
+served = [h["id"] for h in a2a_handler.A2A_SKILLS]
+print("handler skills:", served)
+print("T0 PASS — card advertises exactly the {n} skills the handler serves\n".format(n=len(card_skills)))
+
 
 print("== T1: initialize advertises ALL 9 card skills ==\n")
 r = client.post("/a2a", json={
