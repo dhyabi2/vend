@@ -77,4 +77,4 @@ x402 challenge that the client settles and retries.
 - **Truly peer-to-peer** — no issuer that can freeze funds, no bridge, no off-chain batcher.
 
 PyPay examples, more endpoints, and docs: https://extract.paypercall.dev/
-Buyer's guide: https://github.com/PANDeveloper001/vend/blob/main/BUYERS_GUIDE.md
+Buyer's guide: https://extract.paypercall.dev/static/tutorial-call-x402-from-agent.md

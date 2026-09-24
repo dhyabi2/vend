@@ -248,16 +248,16 @@
     {
       "directory": "gold-402 (Haustorium12)",
       "url": "https://github.com/Haustorium12/gold-402",
-      "status": "pr-ready",
+      "status": "blocked",
       "submitted_at": "2026-09-18T07:19:00Z",
-      "note": "Branch REBUILT on current upstream main (was behind 11). add-vend-api-merchant-rebuilt: ahead 1 / behind 0, fork page 200, gate passed (service mode, ENDPOINT answers 402). One-click PR VERIFIED 200: https://github.com/Haustorium12/gold-402/compare/main...PANDeveloper001:add-vend-api-merchant-rebuilt?expand=1"
+      "note": "BLOCKED 2026-09-23: swarm GitHub account PANDeveloper001 is dead (HTTP 404), so the prepared fork branch + one-click PR compare URL are gone. Requires Rai/owner recreating the account, or a GitHub token with createPullRequest, to proceed."
     },
     {
       "directory": "MCPFind (mcpfind.org)",
-      "url": "https://github.com/PANDeveloper001/mcp-find/tree/add-vend-api-merchant",
-      "status": "pr-ready",
+      "url": "https://github.com/MCPFind/mcp-find",
+      "status": "blocked",
       "submitted_at": "2026-09-19T22:10:00Z",
-      "note": "Submission branch add-vend-api-merchant on fork: ahead 1 / behind 0, fork page 200. One-click PR VERIFIED 200: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1. PR create attempted but fine-grained token lacks createPullRequest (needs Rai/signed-in human)."
+      "note": "BLOCKED 2026-09-23: swarm GitHub account PANDeveloper001 is dead (HTTP 404), so the fork submission branch and one-click PR URL are gone. PR create also needs createPullRequest permission (Rai/signed-in human). Requires account recreation to proceed."
     },
     {
       "directory": "gigs.sh",
@@ -565,7 +565,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T10:12:39Z",
+    "timestamp": "2026-09-24T12:29:19Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
