@@ -193,7 +193,7 @@
       "url": "https://api.x402dash.com/v1/endpoints?q=extract.paypercall.dev",
       "status": "verified",
       "verified_at": "2026-09-24",
-      "note": "Keyless x402 endpoint registry (Nano-supported but scores liveness 0.0 since its probe settles USDC - honest, not rejected). All paid paid endpoints under extract host indexed (18); address-verdict registered 2026-09-24. delivery-proof/balance-top-up are FREE/funding endpoints, not paid - correctly not in paid index."
+      "note": "24 manifest resources on nano:mainnet (verified 2026-09-24). Added 4 more paid endpoints to the index (check-link/domain-info/web-search/geoip) via keyless POST /v1/register; hit 5/hr rate limit on last 2. Nano liveness_score=0 (their probe settles USDC-on-Base only) but indexed & findable."
     },
     {
       "directory": "BANK OF AI x402 catalog",
@@ -550,12 +550,24 @@
       "url": "https://allyourtech.ai",
       "status": "blocked",
       "note": "EVALUATED 2026-09-24: featured-projects showcase (AI tools/MCP/APIs/skills). No keyless submit path. Not a listing surface."
+    },
+    {
+      "directory": "OpenClaw Tools (openclawtools.dev)",
+      "url": "https://openclawtools.dev/api/tools",
+      "status": "docs",
+      "note": "Keyless register+submit API works (registered agent, got api key), but /api/submit REQUIRES a github.com/owner/repo URL. Vend is hosted-only (PANDeveloper001 dead) -> no honest github URL to submit. Log docs, not submitted."
+    },
+    {
+      "directory": "wmcp.sh (WebMCP directory)",
+      "url": "https://wmcp.sh/directory/submit",
+      "status": "docs",
+      "note": "Free keyless listing for remote MCP/site URLs. BUT POST /api/v1/directory/submit returns HTTP 500 'Submit failed' (server-side backend error, D1-style fragility) both via curl and browser. Not logged as submitted - cannot verify a live listing."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T09:38:27Z",
-    "all_healthy": false,
-    "endpoints_ok": 21,
+    "timestamp": "2026-09-24T10:12:39Z",
+    "all_healthy": true,
+    "endpoints_ok": 22,
     "endpoints_total": 22
   }
 }
