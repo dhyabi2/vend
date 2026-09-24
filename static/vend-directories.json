@@ -50,18 +50,6 @@
   ],
   "listings": [
     {
-      "directory": "401agents.xyz",
-      "url": "https://www.402agents.xyz/",
-      "status": "no-match",
-      "note": "x402 Agent Registry \u2014 lists AI AGENTS, not API merchants. All entries are crypto/DeFi agents (Solana/Base). Vend API merchant does not fit."
-    },
-    {
-      "directory": "A2A Registry",
-      "url": "https://www.a2a-registry.org/agent/dev.paypercall.vend_api_merchant",
-      "status": "verified",
-      "note": "Auto-detected from agent-card.json. 6 skills listed (extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info). Registered Sep 18, 2026. Unclaimed but discoverable. Category: Business/Utilities."
-    },
-    {
       "directory": "Agent Directory API",
       "url": "https://agent-directory-api.vercel.app/api/agents",
       "status": "removed",
@@ -79,10 +67,16 @@
       "note": "Auto-indexed via x402 crawl. 9 tools, nano:mainnet, health=1.0, routable=true. Verified 2026-09-20."
     },
     {
-      "directory": "AgentBoard",
-      "url": "https://agents-launch.lovable.app/agents/vend-api-merchant",
-      "status": "live",
-      "note": "verified live: agents-launch.lovable.app/agents/vend-api-merchant"
+      "directory": "Agent Almanac",
+      "url": "https://agentalmanac.org/mcp",
+      "status": "auto-discovery",
+      "note": "Auto-indexed Vend's MCP Registry entry 'dev.paypercall.extract/vend-api-merchant' (reverse-DNS of extract.paypercall.dev) on /mcp 'Recently updated MCP servers' (updated 2026-09-19). Third-party catalog outside the Nano world. JS-rendered page; rai-scope could not curl-verify, so not counted as a listing milestone."
+    },
+    {
+      "directory": "Agentic.Market",
+      "url": "https://agentic.market",
+      "status": "blocked",
+      "note": "2782 services, USDC Base only. Nano unsupported. 2026-09-21."
     },
     {
       "directory": "AgentIndexed",
@@ -100,13 +94,13 @@
       "url": "https://agentndx.ai/submit",
       "status": "submitted",
       "submitted_at": "2026-09-20T00:16:00Z",
-      "note": "Submitted via main web form (2026-09-20). 'Submission received within 48h'. Curated MCP/A2A/x402 directory (1336 servers). MCP+x402 protocols."
+      "note": "Submitted via API POST /api/submit. id=81, status=received. Review pending. Registered: Vend API Merchant (14 endpoints, MCP + x402). Verified 2026-09-24."
     },
     {
-      "directory": "AgentRank",
-      "url": "https://theagentrank.com",
-      "status": "submitted",
-      "submitted_at": "2026-09-18T00:50:00Z"
+      "directory": "AgentBoard",
+      "url": "https://agents-launch.lovable.app/agents/vend-api-merchant",
+      "status": "live",
+      "note": "verified live: agents-launch.lovable.app/agents/vend-api-merchant"
     },
     {
       "directory": "Agents.NET",
@@ -117,10 +111,37 @@
       "note": "Vend API Merchant live at /directory/226 and /directory/225 (two API listing pages, titles 'Vend API Merchant \u2014 Engineering Agent'), plus /directory/244. All HTTP 200 signed out and name Vend. Verified 2026-09-24."
     },
     {
+      "directory": "AgentShare MCP Registry",
+      "url": "https://agentshare.dev/registry",
+      "status": "live",
+      "verified_at": "2026-09-20",
+      "submission_id": "37",
+      "note": "VERIFIED LIVE 2026-09-20: Curated registry listing under Data & Commerce. Detail page shows 'reviewed' badge with 3 opens (1 MCP, 1 Website, 1 GitHub). Description: 'Pay-per-call API marketplace settled in Nano (XNO). 7 x402 endpoints.'"
+    },
+    {
       "directory": "AgentStore (agentstore.tools)",
       "url": "https://agentstore.tools/agent/vend-api-merchant.vend-api-merchant",
       "status": "removed",
       "note": "CORRECTED 2026-09-20: Page HTTP 200 but body empty (0 chars). JS-rendered SPA that doesn't show Vend content. Unverifiable listing."
+    },
+    {
+      "directory": "AiAgents.Directory",
+      "url": "https://aiagents.directory/submit/success/",
+      "status": "submitted",
+      "note": "keyless Django form submitted 2026-09-18, 496 agents listed, pending review"
+    },
+    {
+      "directory": "AI Agents Listing",
+      "url": "https://aiagentslisting.com/submit",
+      "status": "human-gated",
+      "note": "SPA directory launched Sep 2026. Agent-first MCP endpoint for search/submit. Submit requires Google or email sign-in. Not yet submitted."
+    },
+    {
+      "directory": "AI Agents Live",
+      "url": "https://aiagentslive.com/my/listings",
+      "status": "submitted",
+      "submitted_at": "2026-09-18T02:12:00Z",
+      "note": "keyless 4-step wizard, free path, logo uploaded, under review (weeks)"
     },
     {
       "directory": "AI Agent Tools Directory",
@@ -132,24 +153,11 @@
       "note": "Resubmitted via POST /api/submit. id mu9o2csc7n0o0. Pending review (24-48h)."
     },
     {
-      "directory": "AI Agents Live",
-      "url": "https://aiagentslive.com/my/listings",
-      "status": "submitted",
-      "submitted_at": "2026-09-18T02:12:00Z",
-      "note": "keyless 4-step wizard, free path, logo uploaded, under review (weeks)"
-    },
-    {
       "directory": "AI Kendra",
       "url": "https://aikendra.com/ai-tools/tool/vend-api-merchant",
       "status": "live",
       "verified_at": "2026-09-19",
       "note": "Vend API Merchant listed at aikendra.com/ai-tools/tool/vend-api-merchant. Category: Coding & Development. Pricing: Paid. Tags: x402, API marketplace, pay-per-call, Nano, XNO."
-    },
-    {
-      "directory": "AiAgents.Directory",
-      "url": "https://aiagents.directory/submit/success/",
-      "status": "submitted",
-      "note": "keyless Django form submitted 2026-09-18, 496 agents listed, pending review"
     },
     {
       "directory": "AllMCPs.com",
@@ -158,6 +166,34 @@
       "note": "Agent registered via email; awaiting confirmation code at vend@paypercall.dev to complete submission",
       "notes": "AllMCPs has x402-vend-webintel (different project, USDC). Our Vend not indexed despite MCP Registry.",
       "verified": false
+    },
+    {
+      "directory": "AMP Registry (Agent Manifest)",
+      "url": "https://api.agent-manifest.com/listings/cmu9q46yz002kpjtcqyrgmyor",
+      "status": "live",
+      "listing_id": "cmu9q46yz002kpjtcqyrgmyor",
+      "verified_at": "2026-09-20",
+      "submission_id": "sub_1789903140790_wfzm8414k",
+      "note": "VERIFIED LIVE 2026-09-20: AMP v0.3 compliant manifest served at /.well-known/agent-manifest.json. Vend is the first Nano-only AMP-listed API with payment-ready badge. 6 endpoints (extract, check-link, domain-info, web-search, geoip, nano-info) listed with per_request x-XNO payment, real_time settlement via Nano. Also serves /amp/onboard endpoint. 94 total APIs in registry."
+    },
+    {
+      "directory": "Ampersend-Marketplace",
+      "url": "https://api.ampersend.ai/api/v1/agents/marketplace",
+      "status": "blocked",
+      "note": "USDC x402 catalog (Base/Solana only). Nano unsupported. Verified 2026-09-21. Anvil territory."
+    },
+    {
+      "directory": "Circle-Discovery-API",
+      "url": "https://api.circle.com/v2/x402/discovery/resources",
+      "status": "blocked",
+      "note": "USDC-gated buyer-side index (1143 resources, EVM/Solana USDC only). Nano:mainnet unsupported. Verified 2026-09-21. Anvil territory."
+    },
+    {
+      "directory": "x402dash.com",
+      "url": "https://api.x402dash.com/v1/endpoints?q=extract.paypercall.dev",
+      "status": "verified",
+      "verified_at": "2026-09-24",
+      "note": "Keyless x402 endpoint registry (Nano-supported but scores liveness 0.0 since its probe settles USDC - honest, not rejected). All paid paid endpoints under extract host indexed (18); address-verdict registered 2026-09-24. delivery-proof/balance-top-up are FREE/funding endpoints, not paid - correctly not in paid index."
     },
     {
       "directory": "BANK OF AI x402 catalog",
@@ -178,24 +214,36 @@
       "note": "Submitted as agent (auto-imported from agent-card.json, preview name: Vend API Merchant) and as x402 service (extract.paypercall.dev, price: 0.0001 XNO). Both queued for manual review."
     },
     {
-      "directory": "Dynamite AI",
-      "url": "https://www.dynamite-ai.com/submit",
+      "directory": "CheckMCP",
+      "url": "https://checkmcp.dev/mcp",
       "status": "submitted",
-      "note": "website already submitted, awaiting review"
+      "submitted_at": "2026-09-20T13:16:00Z",
+      "note": "Free MCP server directory + independent audit. Submitted 2026-09-20. 'Submission received \u2014 you're in the queue'. Queued for audit (OWASP MCP Top 10, quality, context-cost)."
     },
     {
-      "directory": "Glama",
-      "url": "https://glama.ai/mcp/servers?query=author%3Avend-api-merchant",
-      "status": "verified",
-      "verified_at": "2026-09-20",
-      "note": "VERIFIED LIVE 2026-09-20: Glama serves 'MCP Servers by vend-api-merchant' (author:vend-api-merchant match). Propagated from Official MCP Registry v0.3.30."
+      "directory": "x402 Endpoint (x402jp)",
+      "url": "https://endpoint.x402jp.com",
+      "status": "blocked",
+      "note": "Cross-directory catalog (17,089 endpoints) aggregating 6+ USDC dirs. extract.paypercall absent (nano invisible). PR-driven kato9292929/endpoint. USDC-gated. 2026-09-21."
     },
     {
-      "directory": "gigs.sh",
-      "url": "https://github.com/gigs-sh/gigs-sh",
-      "status": "outreach",
-      "submitted_at": "2026-09-20",
-      "note": "Filed [gig] Vend api-monetization issue on fork PANDeveloper001/gigs-sh#1 (upstream writes 403). Content per gigs.sh CONTRIBUTING, cites real payer block 8546D8DF...FAD9."
+      "directory": "MCP Registry (vend-mcp)",
+      "url": "https://extract.paypercall.dev/mcp",
+      "status": "live",
+      "note": "v0.3.17 published 2026-09-20. Propagating to downstream directories Glama, mcp.directory, PulseMCP, AllMCPs (24-48h)."
+    },
+    {
+      "directory": "mcpub.dev",
+      "url": "https://extract.paypercall.dev/mcp",
+      "status": "live",
+      "verified_at": "2026-09-19",
+      "note": "Keyless MCP directory (no account, no review). Registered via JSON-RPC tools/call submit. Requires /.well-known/mcp.json (now served by server.py). Confirmed in archive via get tool: source:archive, submitted_at 1789862061, status live."
+    },
+    {
+      "directory": "vend-client Python package",
+      "url": "https://extract.paypercall.dev/vend-client",
+      "status": "published",
+      "note": "vend-client v0.1.0 pip-installable package with x402 support. Served as downloadable .whl + source from paypercall.dev."
     },
     {
       "directory": "gold-402 (Haustorium12)",
@@ -205,12 +253,45 @@
       "note": "Branch REBUILT on current upstream main (was behind 11). add-vend-api-merchant-rebuilt: ahead 1 / behind 0, fork page 200, gate passed (service mode, ENDPOINT answers 402). One-click PR VERIFIED 200: https://github.com/Haustorium12/gold-402/compare/main...PANDeveloper001:add-vend-api-merchant-rebuilt?expand=1"
     },
     {
-      "directory": "MadeWithStack",
-      "url": "https://www.madewithstack.com/submit",
+      "directory": "MCPFind (mcpfind.org)",
+      "url": "https://github.com/PANDeveloper001/mcp-find/tree/add-vend-api-merchant",
+      "status": "pr-ready",
+      "submitted_at": "2026-09-19T22:10:00Z",
+      "note": "Submission branch add-vend-api-merchant on fork: ahead 1 / behind 0, fork page 200. One-click PR VERIFIED 200: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1. PR create attempted but fine-grained token lacks createPullRequest (needs Rai/signed-in human)."
+    },
+    {
+      "directory": "gigs.sh",
+      "url": "https://github.com/gigs-sh/gigs-sh",
+      "status": "outreach",
+      "submitted_at": "2026-09-20",
+      "note": "Filed [gig] Vend api-monetization issue on fork PANDeveloper001/gigs-sh#1 (upstream writes 403). Content per gigs.sh CONTRIBUTING, cites real payer block 8546D8DF...FAD9."
+    },
+    {
+      "directory": "Glama",
+      "url": "https://glama.ai/mcp/servers?query=author%3Avend-api-merchant",
+      "status": "verified",
+      "verified_at": "2026-09-20",
+      "note": "VERIFIED LIVE 2026-09-20: Glama serves 'MCP Servers by vend-api-merchant' (author:vend-api-merchant match). Propagated from Official MCP Registry v0.3.30."
+    },
+    {
+      "directory": "MCP.Directory",
+      "url": "https://mcp.directory/submit",
       "status": "submitted",
-      "submission_id": "vend-api-merchant",
-      "submitted_at": "2026-09-18T01:06:15Z",
-      "note": "POST /api/v1/submit -> UNDER_EDITORIAL_REVIEW (agent-first directory, manual review)"
+      "note": "Vend MCP server (6 tools), GitHub auto-detect, review within 24h to vend@paypercall.dev"
+    },
+    {
+      "directory": "mcp.so",
+      "url": "https://mcp.so/servers?q=paypercall",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: mcp.so (238K visits/mo, ~19K servers). Vend not listed. All submit routes (/add, /submit, /servers/new, /publish, /submit-server) return 503; search shows no keyless form. One guide reports $39 premium is the only submission path. No keyless submission possible. Log docs."
+    },
+    {
+      "directory": "mcpagents.ai (MCP Agent Directory)",
+      "url": "https://mcpagents.ai/agents/vend-api-merchant",
+      "status": "live",
+      "api_id": 1125,
+      "verified_at": "2026-09-20",
+      "note": "Keyless POST /api/agents \u2014 instant API listing (ID 1125). Listed in public GET /api/agents. Dedicated page at /agents/vend-api-merchant returns HTTP 200; frontend SPA may show 404 (client-side routing). Discoverable via API search."
     },
     {
       "directory": "MCP Agents Market",
@@ -220,23 +301,25 @@
       "note": "Free GitHub URL form submitted. MCP Server type, GitHub repo distribution, 4 categories (API Development, Web Scraping & Data Collection, Developer Tools, Research). 'Submitted for review \u2014 usually within a day.'"
     },
     {
-      "directory": "x402dash.com",
-      "url": "https://api.x402dash.com/v1/endpoints?q=extract.paypercall.dev",
-      "status": "verified",
-      "verified_at": "2026-09-24",
-      "note": "Keyless x402 endpoint registry (Nano-supported but scores liveness 0.0 since its probe settles USDC - honest, not rejected). All paid paid endpoints under extract host indexed (18); address-verdict registered 2026-09-24. delivery-proof/balance-top-up are FREE/funding endpoints, not paid - correctly not in paid index."
+      "directory": "mcpbeat.com",
+      "url": "https://mcpbeat.com/mcp-servers/paypercall-extract/vend-api-merchant/",
+      "status": "indexed",
+      "note": "VERIFIED auto-discovery 2026-09-23 via external proxy: dedicated page names Vend API Merchant, 8 tools, 100% uptime 91/91 checks 24h, remote streamable-http, connect configs. mcpbeat INGESTS the official MCP registry (was only blocked for manual submission). Our egress Cloudflare-403 so rai-scope/distribution tools refuse (honest: not a counted listing). Page flags dead GitHub repo (PANDeveloper001) as maintained-warning."
     },
     {
-      "directory": "MCP Registry (vend-mcp)",
-      "url": "https://extract.paypercall.dev/mcp",
-      "status": "live",
-      "note": "v0.3.17 published 2026-09-20. Propagating to downstream directories Glama, mcp.directory, PulseMCP, AllMCPs (24-48h)."
-    },
-    {
-      "directory": "MCP.Directory",
-      "url": "https://mcp.directory/submit",
+      "directory": "MCP Collection",
+      "url": "https://mcpcollection.com/mcp",
       "status": "submitted",
-      "note": "Vend MCP server (6 tools), GitHub auto-detect, review within 24h to vend@paypercall.dev"
+      "submitted_at": "2026-09-20T13:22:00Z",
+      "note": "Free forever MCP directory, dedicated indexable page per listing. Submitted 2026-09-20 (Web & Search category). 'Submitted! We review every listing by hand \u2014 you'll hear from us at vend@paypercall.dev once it's live.'"
+    },
+    {
+      "directory": "MCPSafe (Security-First MCP Directory)",
+      "url": "https://mcpsafe.dev",
+      "status": "submitted",
+      "submitted_at": "2026-09-19",
+      "submission_id": "c514fa00-9335-42bb-8277-87d515523141",
+      "note": "Security-first MCP server directory. Keyless POST /api/v1/submissions (type url). Pending security scan. Vend MCP at extract.paypercall.dev/mcp submitted."
     },
     {
       "directory": "mcpservers.org (Awesome MCP)",
@@ -245,10 +328,23 @@
       "note": "Remote MCP server, free tier, review within 2 weeks to vend@paypercall.dev"
     },
     {
+      "directory": "MCP Trove (mcptrove)",
+      "url": "https://mcptrove.com",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T13:40:00Z",
+      "note": "MCP Directory (mcptrove.com). Free listing, reviewed before live. 'Thanks \u2014 submitted! We'll review your server and add it to the directory shortly.' Transport HTTP remote."
+    },
+    {
       "directory": "minia2a.uk",
       "url": "https://minia2a.uk",
       "status": "blocked",
       "note": "Agent-first x402 marketplace. POST /api/v1/register-simple requires EVM wallet + signature. Blocked: needs EVM wallet."
+    },
+    {
+      "directory": "mocopo.ai",
+      "url": "https://mocopo.ai/servers/dev.paypercall.extract--vend-api-merchant",
+      "status": "auto-discovery",
+      "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed)."
     },
     {
       "directory": "Neuronto ARD Registry",
@@ -263,10 +359,92 @@
       "note": "ALL 9 Vend endpoints VERIFIED as of 2026-09-23: extract(614f2572-bd5), geoip(2a406239-a41), check-link(d7c5f05d-332), domain-info(f11a7489-f87), web-search(71b91915-047), pdf-extract(ae24ff9b-2e6), youtube-transcript(512371a9-964), nano-info(d1d432b1-3bd), url-status(143db98b-8e1). Nano-capable x402 directory (chain: nano). The 4 newest endpoints (submitted 2026-09-23) flipped to verified after 3 consecutive probe passes."
     },
     {
+      "directory": "pay.sh",
+      "url": "https://pay.sh/api/catalog",
+      "status": "blocked",
+      "note": "Solana Foundation pay-skills registry, 74 providers, USDC Solana/Base. Nano unsupported. 2026-09-21."
+    },
+    {
+      "directory": "Official MCP Registry",
+      "url": "https://registry.modelcontextprotocol.io",
+      "server_name": "dev.paypercall.extract/vend-api-merchant",
+      "mcp_url": "https://extract.paypercall.dev/mcp",
+      "status": "published",
+      "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
+      "published_at": "2026-09-20",
+      "note": "v0.3.21 published 2026-09-20 after another preview data reset. Propagating to Glama, mcp.directory, PulseMCP (24-48h)."
+    },
+    {
       "directory": "Satring",
       "url": "https://satring.com/submit",
       "status": "blocked",
       "note": "Curated paid API directory (836 services). Requires 0.05 USD L402/x402/MPP payment + Base EVM wallet address to submit. Blocked: no VEND_USDC_ADDRESS."
+    },
+    {
+      "directory": "Smithery.ai",
+      "url": "https://smithery.ai/servers?q=paypercall",
+      "status": "blocked",
+      "note": "EVALUATED 2026-09-24: Smithery = 446K visits/mo, the most-used MCP platform among builders; Vend NOT present while USDC x402 competitor PayPerByte is. Publish /servers/new redirects to authk.smithery.ai sign-in (email/Google/GitHub) \u2014 account-gated, no credential, no fake accounts. No keyless path. Log docs, do not count."
+    },
+    {
+      "directory": "AgentRank",
+      "url": "https://theagentrank.com",
+      "status": "submitted",
+      "submitted_at": "2026-09-18T00:50:00Z"
+    },
+    {
+      "directory": "MCP Index (themcpindex)",
+      "url": "https://themcpindex.com",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T13:30:00Z",
+      "note": "MCP Index, synced from official MCP Registry within a day. Manually submitted GitHub URL. 'RECEIVED \u2014 Submissions reviewed within a day or two.'"
+    },
+    {
+      "name": "Vibedonalds",
+      "url": "https://vibedonalds.com/submit",
+      "status": "submitted",
+      "submitted_at": "2026-09-20T08:30:00Z",
+      "note": "Open keyless directory for AI-made things. Free review 3-7 days. Category: ai-agents-general, kind: tool."
+    },
+    {
+      "directory": "Vivioo Agent Directory",
+      "url": "https://vivioo.io/showcase/vend-api-merchant",
+      "status": "verified",
+      "note": "verified live 2026-09-18: /showcase/vend-api-merchant (200) and /showcase/vend (200) both live"
+    },
+    {
+      "directory": "401agents.xyz",
+      "url": "https://www.402agents.xyz/",
+      "status": "no-match",
+      "note": "x402 Agent Registry \u2014 lists AI AGENTS, not API merchants. All entries are crypto/DeFi agents (Solana/Base). Vend API merchant does not fit."
+    },
+    {
+      "directory": "A2A Registry",
+      "url": "https://www.a2a-registry.org/agent/dev.paypercall.vend_api_merchant",
+      "status": "verified",
+      "note": "Auto-detected from agent-card.json. 6 skills listed (extract_url, check_link, domain_info, web_search, geoip_lookup, nano_account_info). Registered Sep 18, 2026. Unclaimed but discoverable. Category: Business/Utilities."
+    },
+    {
+      "directory": "Dynamite AI",
+      "url": "https://www.dynamite-ai.com/submit",
+      "status": "submitted",
+      "note": "website already submitted, awaiting review"
+    },
+    {
+      "directory": "Influzer.ai",
+      "url": "https://www.influzer.ai/mcp/vend-api-merchant",
+      "status": "verified",
+      "submitted_at": "2026-09-20T09:32:00Z",
+      "verified_at": "2026-09-24",
+      "note": "VERIFIED LIVE 2026-09-24: dedicated /mcp/vend-api-merchant page titles 'Vend API Merchant', Dev Tools / Remote, HTTP 200 signed out, lists endpoint extract.paypercall.dev and 6 catalog tools. Recorded as rai-scope adopted milestone."
+    },
+    {
+      "directory": "MadeWithStack",
+      "url": "https://www.madewithstack.com/submit",
+      "status": "submitted",
+      "submission_id": "vend-api-merchant",
+      "submitted_at": "2026-09-18T01:06:15Z",
+      "note": "POST /api/v1/submit -> UNDER_EDITORIAL_REVIEW (agent-first directory, manual review)"
     },
     {
       "directory": "TheNextAI",
@@ -276,21 +454,21 @@
       "note": "Free Basic listing submitted, 24-48h review. Category: Developer Tools."
     },
     {
-      "directory": "vend-client Python package",
-      "url": "https://extract.paypercall.dev/vend-client",
-      "status": "published",
-      "note": "vend-client v0.1.0 pip-installable package with x402 support. Served as downloadable .whl + source from paypercall.dev."
-    },
-    {
-      "directory": "Vivioo Agent Directory",
-      "url": "https://vivioo.io/showcase/vend-api-merchant",
-      "status": "verified",
-      "note": "verified live 2026-09-18: /showcase/vend-api-merchant (200) and /showcase/vend (200) both live"
-    },
-    {
       "directory": "x402-list.com",
       "url": "https://x402-list.com",
       "status": "submitted"
+    },
+    {
+      "directory": "x402.be dashboard",
+      "url": "https://x402.be",
+      "status": "blocked",
+      "note": "Independent x402 dashboard (5925 servers), aggregates CDP+PayAI Bazaar. paypercall absent. USDC-gated. Discovered 2026-09-21."
+    },
+    {
+      "directory": "x402hub",
+      "url": "https://x402hub-coral.vercel.app",
+      "status": "blocked",
+      "note": "x402 dev directory built on CDP Bazaar, 6209 services. USDC Base only. Nano unsupported. Verified 2026-09-21. Anvil territory."
     },
     {
       "directory": "x402hub.ai",
@@ -298,6 +476,12 @@
       "status": "unreachable",
       "verified_at": "2026-09-20",
       "note": "SSL certificate verify failed \u2014 server not reachable. Not viable. Do not retry."
+    },
+    {
+      "directory": "x402looker.com / AgentIndex",
+      "url": "https://x402looker.com",
+      "status": "blocked",
+      "note": "Static directory, chains Base+Solana only. Nano-only not listed. PR-based. 2026-09-21."
     },
     {
       "directory": "x402register.com",
@@ -313,49 +497,6 @@
       "note": "Keyless URL registration, auto-probes live 402. Not accepted: supported settlement networks are [base, solana] only. Nano:mainnet endpoints return 'No supported networks. Got: [nano:mainnet]'. Blocked until hybrid USDC rail goes live."
     },
     {
-      "directory": "zPlatform.ai",
-      "url": "https://zplatform.ai/submit-ai-tool/",
-      "status": "submitted"
-    },
-    {
-      "directory": "Official MCP Registry",
-      "url": "https://registry.modelcontextprotocol.io",
-      "server_name": "dev.paypercall.extract/vend-api-merchant",
-      "mcp_url": "https://extract.paypercall.dev/mcp",
-      "status": "published",
-      "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
-      "published_at": "2026-09-20",
-      "note": "v0.3.21 published 2026-09-20 after another preview data reset. Propagating to Glama, mcp.directory, PulseMCP (24-48h)."
-    },
-    {
-      "directory": "MCPSafe (Security-First MCP Directory)",
-      "url": "https://mcpsafe.dev",
-      "status": "submitted",
-      "submitted_at": "2026-09-19",
-      "submission_id": "c514fa00-9335-42bb-8277-87d515523141",
-      "note": "Security-first MCP server directory. Keyless POST /api/v1/submissions (type url). Pending security scan. Vend MCP at extract.paypercall.dev/mcp submitted."
-    },
-    {
-      "directory": "MCPFind (mcpfind.org)",
-      "url": "https://github.com/PANDeveloper001/mcp-find/tree/add-vend-api-merchant",
-      "status": "pr-ready",
-      "submitted_at": "2026-09-19T22:10:00Z",
-      "note": "Submission branch add-vend-api-merchant on fork: ahead 1 / behind 0, fork page 200. One-click PR VERIFIED 200: https://github.com/MCPFind/mcp-find/compare/main...PANDeveloper001:add-vend-api-merchant?expand=1. PR create attempted but fine-grained token lacks createPullRequest (needs Rai/signed-in human)."
-    },
-    {
-      "directory": "mcpub.dev",
-      "url": "https://extract.paypercall.dev/mcp",
-      "status": "live",
-      "verified_at": "2026-09-19",
-      "note": "Keyless MCP directory (no account, no review). Registered via JSON-RPC tools/call submit. Requires /.well-known/mcp.json (now served by server.py). Confirmed in archive via get tool: source:archive, submitted_at 1789862061, status live."
-    },
-    {
-      "directory": "AI Agents Listing",
-      "url": "https://aiagentslisting.com/submit",
-      "status": "human-gated",
-      "note": "SPA directory launched Sep 2026. Agent-first MCP endpoint for search/submit. Submit requires Google or email sign-in. Not yet submitted."
-    },
-    {
       "name": "x402scan.com",
       "url": "https://x402scan.com/resources/register",
       "status": "submitted",
@@ -363,156 +504,15 @@
       "note": "Keyless URL registration. Scanner found Vend, recognized Nano settlement. 0 valid resources (scanner rejects Nano-only x402). Discoverable."
     },
     {
-      "name": "Vibedonalds",
-      "url": "https://vibedonalds.com/submit",
-      "status": "submitted",
-      "submitted_at": "2026-09-20T08:30:00Z",
-      "note": "Open keyless directory for AI-made things. Free review 3-7 days. Category: ai-agents-general, kind: tool."
-    },
-    {
-      "directory": "Influzer.ai",
-      "url": "https://www.influzer.ai/mcp/vend-api-merchant",
-      "status": "verified",
-      "submitted_at": "2026-09-20T09:32:00Z",
-      "verified_at": "2026-09-24",
-      "note": "VERIFIED LIVE 2026-09-24: dedicated /mcp/vend-api-merchant page titles 'Vend API Merchant', Dev Tools / Remote, HTTP 200 signed out, lists endpoint extract.paypercall.dev and 6 catalog tools. Recorded as rai-scope adopted milestone."
-    },
-    {
-      "directory": "AMP Registry (Agent Manifest)",
-      "url": "https://api.agent-manifest.com/listings/cmu9q46yz002kpjtcqyrgmyor",
-      "status": "live",
-      "listing_id": "cmu9q46yz002kpjtcqyrgmyor",
-      "verified_at": "2026-09-20",
-      "submission_id": "sub_1789903140790_wfzm8414k",
-      "note": "VERIFIED LIVE 2026-09-20: AMP v0.3 compliant manifest served at /.well-known/agent-manifest.json. Vend is the first Nano-only AMP-listed API with payment-ready badge. 6 endpoints (extract, check-link, domain-info, web-search, geoip, nano-info) listed with per_request x-XNO payment, real_time settlement via Nano. Also serves /amp/onboard endpoint. 94 total APIs in registry."
-    },
-    {
-      "directory": "AgentShare MCP Registry",
-      "url": "https://agentshare.dev/registry",
-      "status": "live",
-      "verified_at": "2026-09-20",
-      "submission_id": "37",
-      "note": "VERIFIED LIVE 2026-09-20: Curated registry listing under Data & Commerce. Detail page shows 'reviewed' badge with 3 opens (1 MCP, 1 Website, 1 GitHub). Description: 'Pay-per-call API marketplace settled in Nano (XNO). 7 x402 endpoints.'"
-    },
-    {
-      "directory": "mcpagents.ai (MCP Agent Directory)",
-      "url": "https://mcpagents.ai/agents/vend-api-merchant",
-      "status": "live",
-      "api_id": 1125,
-      "verified_at": "2026-09-20",
-      "note": "Keyless POST /api/agents \u2014 instant API listing (ID 1125). Listed in public GET /api/agents. Dedicated page at /agents/vend-api-merchant returns HTTP 200; frontend SPA may show 404 (client-side routing). Discoverable via API search."
-    },
-    {
-      "directory": "CheckMCP",
-      "url": "https://checkmcp.dev/mcp",
-      "status": "submitted",
-      "submitted_at": "2026-09-20T13:16:00Z",
-      "note": "Free MCP server directory + independent audit. Submitted 2026-09-20. 'Submission received \u2014 you're in the queue'. Queued for audit (OWASP MCP Top 10, quality, context-cost)."
-    },
-    {
-      "directory": "MCP Collection",
-      "url": "https://mcpcollection.com/mcp",
-      "status": "submitted",
-      "submitted_at": "2026-09-20T13:22:00Z",
-      "note": "Free forever MCP directory, dedicated indexable page per listing. Submitted 2026-09-20 (Web & Search category). 'Submitted! We review every listing by hand \u2014 you'll hear from us at vend@paypercall.dev once it's live.'"
-    },
-    {
-      "directory": "MCP Index (themcpindex)",
-      "url": "https://themcpindex.com",
-      "status": "submitted",
-      "submitted_at": "2026-09-20T13:30:00Z",
-      "note": "MCP Index, synced from official MCP Registry within a day. Manually submitted GitHub URL. 'RECEIVED \u2014 Submissions reviewed within a day or two.'"
-    },
-    {
-      "directory": "MCP Trove (mcptrove)",
-      "url": "https://mcptrove.com",
-      "status": "submitted",
-      "submitted_at": "2026-09-20T13:40:00Z",
-      "note": "MCP Directory (mcptrove.com). Free listing, reviewed before live. 'Thanks \u2014 submitted! We'll review your server and add it to the directory shortly.' Transport HTTP remote."
-    },
-    {
-      "directory": "Agent Almanac",
-      "url": "https://agentalmanac.org/mcp",
-      "status": "auto-discovery",
-      "note": "Auto-indexed Vend's MCP Registry entry 'dev.paypercall.extract/vend-api-merchant' (reverse-DNS of extract.paypercall.dev) on /mcp 'Recently updated MCP servers' (updated 2026-09-19). Third-party catalog outside the Nano world. JS-rendered page; rai-scope could not curl-verify, so not counted as a listing milestone."
-    },
-    {
-      "directory": "Circle-Discovery-API",
-      "url": "https://api.circle.com/v2/x402/discovery/resources",
-      "status": "blocked",
-      "note": "USDC-gated buyer-side index (1143 resources, EVM/Solana USDC only). Nano:mainnet unsupported. Verified 2026-09-21. Anvil territory."
-    },
-    {
-      "directory": "Ampersend-Marketplace",
-      "url": "https://api.ampersend.ai/api/v1/agents/marketplace",
-      "status": "blocked",
-      "note": "USDC x402 catalog (Base/Solana only). Nano unsupported. Verified 2026-09-21. Anvil territory."
-    },
-    {
-      "directory": "x402hub",
-      "url": "https://x402hub-coral.vercel.app",
-      "status": "blocked",
-      "note": "x402 dev directory built on CDP Bazaar, 6209 services. USDC Base only. Nano unsupported. Verified 2026-09-21. Anvil territory."
-    },
-    {
-      "directory": "x402.be dashboard",
-      "url": "https://x402.be",
-      "status": "blocked",
-      "note": "Independent x402 dashboard (5925 servers), aggregates CDP+PayAI Bazaar. paypercall absent. USDC-gated. Discovered 2026-09-21."
-    },
-    {
-      "directory": "x402 Endpoint (x402jp)",
-      "url": "https://endpoint.x402jp.com",
-      "status": "blocked",
-      "note": "Cross-directory catalog (17,089 endpoints) aggregating 6+ USDC dirs. extract.paypercall absent (nano invisible). PR-driven kato9292929/endpoint. USDC-gated. 2026-09-21."
-    },
-    {
-      "directory": "x402looker.com / AgentIndex",
-      "url": "https://x402looker.com",
-      "status": "blocked",
-      "note": "Static directory, chains Base+Solana only. Nano-only not listed. PR-based. 2026-09-21."
-    },
-    {
-      "directory": "Agentic.Market",
-      "url": "https://agentic.market",
-      "status": "blocked",
-      "note": "2782 services, USDC Base only. Nano unsupported. 2026-09-21."
-    },
-    {
-      "directory": "pay.sh",
-      "url": "https://pay.sh/api/catalog",
-      "status": "blocked",
-      "note": "Solana Foundation pay-skills registry, 74 providers, USDC Solana/Base. Nano unsupported. 2026-09-21."
-    },
-    {
-      "directory": "mcpbeat.com",
-      "url": "https://mcpbeat.com/mcp-servers/paypercall-extract/vend-api-merchant/",
-      "status": "indexed",
-      "note": "VERIFIED auto-discovery 2026-09-23 via external proxy: dedicated page names Vend API Merchant, 8 tools, 100% uptime 91/91 checks 24h, remote streamable-http, connect configs. mcpbeat INGESTS the official MCP registry (was only blocked for manual submission). Our egress Cloudflare-403 so rai-scope/distribution tools refuse (honest: not a counted listing). Page flags dead GitHub repo (PANDeveloper001) as maintained-warning."
-    },
-    {
-      "directory": "mocopo.ai",
-      "url": "https://mocopo.ai/servers/dev.paypercall.extract--vend-api-merchant",
-      "status": "auto-discovery",
-      "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed)."
-    },
-    {
-      "directory": "Smithery.ai",
-      "url": "https://smithery.ai/servers?q=paypercall",
-      "status": "blocked",
-      "note": "EVALUATED 2026-09-24: Smithery = 446K visits/mo, the most-used MCP platform among builders; Vend NOT present while USDC x402 competitor PayPerByte is. Publish /servers/new redirects to authk.smithery.ai sign-in (email/Google/GitHub) \u2014 account-gated, no credential, no fake accounts. No keyless path. Log docs, do not count."
-    },
-    {
-      "directory": "mcp.so",
-      "url": "https://mcp.so/servers?q=paypercall",
-      "status": "blocked",
-      "note": "EVALUATED 2026-09-24: mcp.so (238K visits/mo, ~19K servers). Vend not listed. All submit routes (/add, /submit, /servers/new, /publish, /submit-server) return 503; search shows no keyless form. One guide reports $39 premium is the only submission path. No keyless submission possible. Log docs."
+      "directory": "zPlatform.ai",
+      "url": "https://zplatform.ai/submit-ai-tool/",
+      "status": "submitted"
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T06:48:37Z",
-    "all_healthy": true,
-    "endpoints_ok": 22,
+    "timestamp": "2026-09-24T08:20:01Z",
+    "all_healthy": false,
+    "endpoints_ok": 21,
     "endpoints_total": 22
   }
 }
