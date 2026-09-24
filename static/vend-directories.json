@@ -617,10 +617,22 @@
       "url": "https://mcp-marketplace.io/submit",
       "status": "blocked",
       "note": "Security-scanned MCP marketplace. /submit requires Sign In (account-gated), not keyless. Evaluated 2026-09-24."
+    },
+    {
+      "directory": "mcpi.app",
+      "url": "https://mcpi.app/servers/vend-api-merchant",
+      "status": "verified",
+      "note": "Auto-indexed from official MCP Registry. Dedicated per-server page, server-rendered (name in raw HTML 6x). 100% of 18 checks passed in 30 days, 493ms initialize. Connects on Claude Code/Cursor/ChatGPT/continue.dev/Copilot. Verified 2026-09-24."
+    },
+    {
+      "directory": "punkpeye/awesome-remote-mcp-servers",
+      "url": "https://github.com/punkpeye/awesome-remote-mcp-servers",
+      "status": "verified",
+      "note": "Vend listed in Search & Data Extraction category with Glama score badge. PR #552 (PANDeveloper001 fork) was merged. Verified live in README 2026-09-24."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-24T22:49:16Z",
+    "timestamp": "2026-09-24T23:04:22Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
