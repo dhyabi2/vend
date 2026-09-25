@@ -677,10 +677,16 @@
       "url": "https://glimind.com/search?q=extract.paypercall",
       "status": "auto-discovery",
       "note": "auto-discovery 2026-09-25: SentinelOracle liveness-only probe; JS-rendered, could not curl-verify a stable listing page. Not counted as listing milestone."
+    },
+    {
+      "directory": "zevruna.com (zevruna-monitor)",
+      "url": "https://zevruna.com",
+      "status": "auto-discovery",
+      "note": "auto-discovery 2026-09-25: zevruna-monitor UA probes us (liveness); site is 'ship reliable AI agents' reliability layer with a /mcp + directory surface. Probe-only, no stable external listing page verified. Not counted as listing milestone."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T16:53:54Z",
+    "timestamp": "2026-09-25T17:12:00Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
