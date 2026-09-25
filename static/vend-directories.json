@@ -185,7 +185,7 @@
       "url": "https://api.x402dash.com/v1/endpoints?q=extract.paypercall.dev",
       "status": "verified",
       "verified_at": "2026-09-24",
-      "note": "24 manifest resources on nano:mainnet (verified 2026-09-24). Added 4 more paid endpoints to the index (check-link/domain-info/web-search/geoip) via keyless POST /v1/register; hit 5/hr rate limit on last 2. Nano liveness_score=0 (their probe settles USDC-on-Base only) but indexed & findable."
+      "note": "All 22 paid manifest endpoints on nano:mainnet registered (re-verified 2026-09-25). Subdomain endpoints (check-link/domain-info/web-search/geoip) registered on both their subdomain host and extract host. top-up correctly excluded (funding rail, not a discovery target). Nano liveness_score=0 (their probe settles USDC-on-Base only) but indexed & findable."
     },
     {
       "directory": "BANK OF AI x402 catalog",
@@ -336,7 +336,7 @@
       "directory": "mocopo.ai",
       "url": "https://mocopo.ai/servers/dev.paypercall.extract--vend-api-merchant",
       "status": "auto-discovery",
-      "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed)."
+      "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed). (Re-check 2026-09-25: dedicated page now HTTP 404, path likely changed; was auto-discovery mirror, not a counted listing. Re-verify via site search in later run.)"
     },
     {
       "directory": "Neuronto ARD Registry",
@@ -628,10 +628,17 @@
       "status": "live",
       "note": "LIVE verified 2026-09-25: allmcps.com/mcp/vend-api-merchant is a full listing page (title 'Vend API Merchant MCP: Config & Tools | AllMCPs', 200 signed-out, content confirms Nano x402). rai-scope adopted milestone recorded.",
       "verified": true
+    },
+    {
+      "directory": "GateTurbo.com",
+      "url": "https://gateturbo.com/mcp-servers",
+      "status": "submitted",
+      "submitted_at": "2026-09-23T08:22:00Z",
+      "note": "Submitted via /submit 2026-09-23 (Vend /mcp scanned Grade A 100/100, 8/8 tools, nothing flagged; form opened with confirmation 'Submitted \u2014 thank you. Grade A (100/100)'). Re-check 2026-09-25: directory now 9,999 remote servers (9,947 official registry) but Vend NOT listed (search 0 for paypercall, no card) \u2014 review ~72h from 09-23 so still pending. Do not resubmit; re-check later."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T04:46:13Z",
+    "timestamp": "2026-09-25T04:58:17Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
