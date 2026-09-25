@@ -364,7 +364,7 @@
       "status": "published",
       "auth_method": "HTTP auth (Ed25519 key on extract.paypercall.dev/.well-known/mcp-registry-auth)",
       "published_at": "2026-09-20",
-      "note": "REGRESSED 2026-09-25: live entry now v0.1.0 WITH repository.url=github.com/PANDeveloper001/vend (404, dead). Clean local mcp-registry-server.json is v1.0.2 (no repo). Republish blocked: mcp-publisher 401 token-expired; served .well-known/mcp-registry-auth pub key (GFmf...) != local key (uqPm...) so no keyless renew. Dead repo likely excludes Vend from repo-gating mirrors (GateTurbo 9999, mcp.so) while non-repo-gating mirrors still show it (Glama, mcpi.app, AllMCPs, CheckMCP). Fix needs domain owner token on forge #209."
+      "note": "v1.0.3 republished clean 2026-09-25: dead repository.url github.com/PANDeveloper001/vend REMOVED (verified via /v0.1/servers/dev.paypercall.extract%2Fvend-api-merchant/versions, 1.0.3 isLatest=true, repository absent). Key MATCHES served GFmf... (earlier key-mismatch claim was WRONG); login http works, dns blocked by no TXT record. Unblocks repo-gating mirrors (GateTurbo 9999, mcp.so, MCPFind). Mirrors import daily so propagation lags; observed 2026-09-25: mcp.so q=paypercall SPA shell only, gateturbo 'No server matches', mcpfind no match - re-check a later run."
     },
     {
       "directory": "Satring",
@@ -638,7 +638,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T07:38:07Z",
+    "timestamp": "2026-09-25T07:51:12Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
