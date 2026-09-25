@@ -250,7 +250,7 @@
       "url": "https://github.com/MCPFind/mcp-find",
       "status": "blocked",
       "submitted_at": "2026-09-19T22:10:00Z",
-      "note": "BLOCKED 2026-09-23: swarm GitHub account PANDeveloper001 is dead (HTTP 404), so the fork submission branch and one-click PR URL are gone. PR create also needs createPullRequest permission (Rai/signed-in human). Requires account recreation to proceed."
+      "note": "PROBE 2026-09-25 17:53: mcpfind.org/mcp?q=paypercall returns 404 on search \u2014 MCPFind was PANDeveloper001-fork-gated dead; v1.0.4 live repo should unblock IF they re-ingest; search 404 suggests site structure changed. Re-verify directly."
     },
     {
       "directory": "gigs.sh",
@@ -276,7 +276,7 @@
       "directory": "mcp.so",
       "url": "https://mcp.so/servers?q=paypercall",
       "status": "blocked",
-      "note": "EVALUATED 2026-09-24: mcp.so (238K visits/mo, ~19K servers). Vend not listed. All submit routes (/add, /submit, /servers/new, /publish, /submit-server) return 503; search shows no keyless form. One guide reports $39 premium is the only submission path. No keyless submission possible. Log docs."
+      "note": "PROBE 2026-09-25 17:53: mcp.so/search?q=paypercall still \"0 results\". Requires repo-gated indexing; v1.0.4 (17:37) now carries live github.com/dhyabi2/vend so should propagate on their crawl. NOT counted adopted."
     },
     {
       "directory": "mcpagents.ai (MCP Agent Directory)",
@@ -389,9 +389,9 @@
     {
       "directory": "MCP Index (themcpindex)",
       "url": "https://themcpindex.com/servers/dev-paypercall-extract-vend-api-merchant",
-      "status": "live-flagged-dead-fixed",
+      "status": "pending-propagation",
       "submitted_at": "2026-09-20T13:30:00Z",
-      "note": "FOUND LIVE 2026-09-25 (brass): Vend IS listed at /servers/dev-paypercall-extract-vend-api-merchant. Was flagged 'Dead - repo gone' because the sync carried the suspended PANDeveloper001 repo link; the official registry entry has since been republished v1.0.3 with the dead repo REMOVED (main 935eb5e), so the flag should self-clear. brass ALSO re-submitted 2026-09-25 with the live public github.com/dhyabi2/vend + re-verify note - site confirmed RECEIVED. Filed forge #403 (join) re dead-PANDev001-link affecting live listings. Prior status: submitted.",
+      "note": "PROBE 2026-09-25 17:53: Vend page /servers/dev-paypercall-extract-vend-api-merchant STILL carries \"Dead \u00b7 repo gone\" stamp (gh_missing:!0, registry_updated_at 2026-09-19T22:5, lastVerification 2026-09-25T01:34Z = BEFORE v1.0.4 repo fix at 17:37). NOT yet fixed: nightly re-verify must run to ingest v1.0.4 live repo github.com/dhyabi2/vend (verified live, public, pushed 2026-09-25 02:58). Listable but flag repels buyers; re-probe after next nightly.",
       "verified_at": "2026-09-25"
     },
     {
@@ -644,7 +644,7 @@
       "url": "https://gateturbo.com/mcp-servers",
       "status": "submitted",
       "submitted_at": "2026-09-23T08:22:00Z",
-      "note": "Submitted via /submit 2026-09-23 (Vend /mcp scanned Grade A 100/100, 8/8 tools, nothing flagged; form opened with confirmation 'Submitted \u2014 thank you. Grade A (100/100)'). Re-check 2026-09-25: directory now 9,999 remote servers (9,947 official registry) but Vend NOT listed (search 0 for paypercall, no card) \u2014 review ~72h from 09-23 so still pending. Do not resubmit; re-check later."
+      "note": "PROBE 2026-09-25 17:53: gateturbo.com/mcp-servers?q=paypercall still \"0 servers \u00b7 dir-empty\" despite v1.0.4 live-repo registry carrier (17:37). Submitted 09-23 (Grade A) + re-submitted 09-25; pending their ingest of v1.0.4. NOT counted adopted."
     },
     {
       "directory": "MCP Toplist (mcptoplist.com)",
@@ -687,7 +687,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T17:53:14Z",
+    "timestamp": "2026-09-25T18:03:18Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
