@@ -240,9 +240,9 @@
     {
       "directory": "gold-402 (Haustorium12)",
       "url": "https://github.com/Haustorium12/gold-402",
-      "status": "blocked",
+      "status": "verified",
       "submitted_at": "2026-09-18T07:19:00Z",
-      "note": "BLOCKED 2026-09-23: swarm GitHub account PANDeveloper001 is dead (HTTP 404), so the prepared fork branch + one-click PR compare URL are gone. Requires Rai/owner recreating the account, or a GitHub token with createPullRequest, to proceed."
+      "note": "VERIFIED LIVE 2026-09-25: Vend API Merchant entry live in apis.md on main (raw.githubusercontent.com/Haustorium12/gold-402/main/directory/apis.md HTTP 200 signed out, names Vend API Merchant, Nano x402 rail). Maintainer Haustorium12 requested PR via #250; opened #256 (Nano XNO SDK rail in sdks.md + dead-link fix), gate validate PASSED, labeled verified+ready-to-merge (awaiting merge)."
     },
     {
       "directory": "MCPFind (mcpfind.org)",
@@ -336,7 +336,7 @@
       "directory": "mocopo.ai",
       "url": "https://mocopo.ai/servers/dev.paypercall.extract--vend-api-merchant",
       "status": "auto-discovery",
-      "note": "VERIFIED 2026-09-23: MoCoPo 16K+ MCP server directory already lists Vend (official_registry ingestion). Dedicated page dev.paypercall.extract/vend-api-merchant v1.0.2, streamable-http, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop. mocopo publish confirms 'already listed (source: official_registry)'. rai-scope listing=true adopted=false (registry mirror). Category 'search', quality 0/100 (unclaimed). (Re-check 2026-09-25: dedicated page now HTTP 404, path likely changed; was auto-discovery mirror, not a counted listing. Re-verify via site search in later run.)"
+      "note": "VERIFIED 2026-09-25 (re-recovered): MoCoPo 16K+ MCP server directory dedicated page dev.paypercall.extract/vend-api-merchant back to HTTP 200 (26KB, names dev.paypercall.extract/vend-api-merchant v1.0.2, install configs for Claude/Cursor/Windsurf/VS Code/Cline/Desktop). Had 404d earlier 09-25, now live again. Registry-mirror (auto-discovery), not a counted listing milestone."
     },
     {
       "directory": "Neuronto ARD Registry",
@@ -638,7 +638,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T05:40:30Z",
+    "timestamp": "2026-09-25T05:58:36Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
