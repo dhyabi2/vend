@@ -782,6 +782,16 @@ async def rails_comparison():
     )
 
 
+@app.get("/mcp-metering")
+async def mcp_metering_guide():
+    """Operator's guide to running and listing a paid (metered) MCP server."""
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "mcp-metering-guide.md"),
+        media_type="text/markdown; charset=utf-8",
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
 # Mount static/packages for downloadable artifacts (wheels, sdists).

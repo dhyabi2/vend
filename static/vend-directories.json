@@ -387,10 +387,11 @@
     },
     {
       "directory": "MCP Index (themcpindex)",
-      "url": "https://themcpindex.com",
-      "status": "submitted",
+      "url": "https://themcpindex.com/servers/dev-paypercall-extract-vend-api-merchant",
+      "status": "live-flagged-dead-fixed",
       "submitted_at": "2026-09-20T13:30:00Z",
-      "note": "MCP Index, synced from official MCP Registry within a day. Manually submitted GitHub URL (dead after PANDeveloper001 deletion). RE-CHECKED 2026-09-25: /servers?q=paypercall shows '0 ENTRIES MATCHING' - NOT live yet. Registry-sync is the likely carrier; re-check /servers?q=paypercall in a later run."
+      "note": "FOUND LIVE 2026-09-25 (brass): Vend IS listed at /servers/dev-paypercall-extract-vend-api-merchant. Was flagged 'Dead - repo gone' because the sync carried the suspended PANDeveloper001 repo link; the official registry entry has since been republished v1.0.3 with the dead repo REMOVED (main 935eb5e), so the flag should self-clear. brass ALSO re-submitted 2026-09-25 with the live public github.com/dhyabi2/vend + re-verify note - site confirmed RECEIVED. Filed forge #403 (join) re dead-PANDev001-link affecting live listings. Prior status: submitted.",
+      "verified_at": "2026-09-25"
     },
     {
       "name": "Vibedonalds",
@@ -643,6 +644,27 @@
       "status": "submitted",
       "submitted_at": "2026-09-23T08:22:00Z",
       "note": "Submitted via /submit 2026-09-23 (Vend /mcp scanned Grade A 100/100, 8/8 tools, nothing flagged; form opened with confirmation 'Submitted \u2014 thank you. Grade A (100/100)'). Re-check 2026-09-25: directory now 9,999 remote servers (9,947 official registry) but Vend NOT listed (search 0 for paypercall, no card) \u2014 review ~72h from 09-23 so still pending. Do not resubmit; re-check later."
+    },
+    {
+      "directory": "MCP Toplist (mcptoplist.com)",
+      "url": "https://mcptoplist.com/mcp-server-list",
+      "status": "discovered",
+      "verified_at": "2026-09-25",
+      "note": "DISCOVERED 2026-09-25 (brass): aggregate of ~116k MCP servers ranked by composite score, crawled from Official MCP Registry, Glama, Smithery, mcp.so, PulseMCP. Vend not on first (top-997) page; no submission form. Record only."
+    },
+    {
+      "directory": "MCPmeter (mcpmeter.com/marketplace)",
+      "url": "https://mcpmeter.com/marketplace",
+      "status": "discovered",
+      "verified_at": "2026-09-25",
+      "note": "DISCOVERED 2026-09-25 (brass): marketplace + metering gateway for MCP (52 listings, $0.0002/call proxy, publisher Submit a server). STRIPE-METERED (proxy.mcpmeter.com) - per XNO-only rule (OWNER-RULES #2) Vend cannot advertise a non-XNO rail; NOT a submission target. Buyers here are operators of metered MCP servers (brass profile) - read-only."
+    },
+    {
+      "directory": "Cline MCP Marketplace (cline/mcp-marketplace)",
+      "url": "https://github.com/cline/mcp-marketplace",
+      "status": "discovered",
+      "verified_at": "2026-09-25",
+      "note": "DISCOVERED 2026-09-25 (brass): official repo to get an MCP server discoverable/one-click-install by Cline users (785 stars) via GitHub issue (repo URL + 400x400 logo + reason). One-click-install = Cline clones+sets up from README; Vend is REMOTE streamable-http (claude mcp add --transport http, no clone) so it does not fit; vetting scrutinises crypto tools. Not submitted; knowledge only."
     }
   ],
   "probe": {
