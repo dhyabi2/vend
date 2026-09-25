@@ -101,7 +101,7 @@ INPUT_SPECS = {
                     "offset": {"type": "integer", "description": "Pagination offset (default 0)"},
                 },
             },
-            "example": {"q": "OpenAI", "remote": "1", "limit": "5"},
+            "example": {"q": "OpenAI", "remote": "1", "limit": 5},
         },
     },
     "/api/v1/geoip": {
@@ -224,7 +224,7 @@ INPUT_SPECS = {
                               "description": "Optional minimum score filter"},
                 },
             },
-            "example": {"list": "top", "limit": "5"},
+            "example": {"list": "top", "limit": 5},
         },
     },
     "/api/v1/address-verdict": {
@@ -241,6 +241,173 @@ INPUT_SPECS = {
                 "required": ["account"],
             },
             "example": {"account": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"},
+        },
+    },
+    "/api/v1/select": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to extract from"},
+                    "selector": {"type": "string",
+                                 "description": "CSS selector (e.g. h1, .price, table tr)"},
+                    "attr": {"type": "string",
+                             "description": "Optional attribute to read instead of text (e.g. href, src)"},
+                    "limit": {"type": "integer",
+                              "description": "Max matches to return (default 50, cap 200)"},
+                },
+                "required": ["url", "selector"],
+            },
+            "example": {"url": "https://example.com", "selector": "h1"},
+        },
+    },
+    "/api/v1/links": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to extract links from"},
+                    "limit": {"type": "integer",
+                              "description": "Max links to return (default 200, cap 1000)"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://example.com"},
+        },
+    },
+    "/api/v1/meta": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to read page metadata from"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://example.com/article"},
+        },
+    },
+    "/api/v1/table": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to extract HTML tables from"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://example.com/prices"},
+        },
+    },
+    "/api/v1/wiki-summary": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "q": {"type": "string",
+                          "description": "Entity or topic to look up (e.g. 'Nano', 'OpenAI', 'Python')"},
+                },
+                "required": ["q"],
+            },
+            "example": {"q": "Nano cryptocurrency"},
+        },
+    },
+    "/api/v1/arxiv-paper": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "arxiv_id": {"type": "string",
+                                 "description": "arXiv paper ID, e.g. '2106.09685'"},
+                    "query": {"type": "string",
+                              "description": "Full-text search terms (used when arxiv_id is absent)"},
+                    "max_results": {"type": "integer",
+                                    "description": "Max results for a free-text query (1-5)"},
+                },
+            },
+            "example": {"arxiv_id": "2106.09685"},
+        },
+    },
+    "/api/v1/batch-status": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "urls": {"type": "string",
+                             "description": "Comma-separated list of URLs to health-check (1-50)"},
+                    "method": {"type": "string",
+                               "description": "HTTP method: HEAD (fast, default) or GET"},
+                },
+                "required": ["urls"],
+            },
+            "example": {"urls": "https://example.com,https://httpbin.org/status/200"},
+        },
+    },
+    "/api/v1/screenshot": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to capture a screenshot of"},
+                    "format": {"type": "string",
+                               "description": "Image format: png or jpeg (default png)"},
+                    "full_page": {"type": "boolean",
+                                  "description": "Capture full scrollable page (default true)"},
+                    "width": {"type": "integer",
+                              "description": "Viewport width in pixels, 320-3840 (default 1280)"},
+                    "height": {"type": "integer",
+                               "description": "Viewport height in pixels, 240-2160 (default 720)"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://example.com", "format": "png", "full_page": True},
+        },
+    },
+    "/api/v1/render": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to render in a headless browser"},
+                    "max_chars": {"type": "integer",
+                                  "description": "Cap on the markdown returned, 100-500000 (default 200000)"},
+                },
+                "required": ["url"],
+            },
+            "example": {"url": "https://example.com", "max_chars": 200000},
         },
     },
 }
