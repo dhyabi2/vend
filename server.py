@@ -3605,14 +3605,15 @@ async def delivery_proof(block_hash: str = Query(..., description="Nano block ha
 
     FREE (no payment required) -- the proof of delivery costs nothing.
     """
-    # Validate block hash format
-    if not parse_block_hash(block_hash):
+    # Validate block hash format (parse normalizes to upper case)
+    norm_hash = parse_block_hash(block_hash)
+    if not norm_hash:
         return JSONResponse(
             status_code=400,
             content={"error": "invalid_block_hash", "message": "Not a valid Nano block hash"},
         )
 
-    rec = store.get_redemption(block_hash)
+    rec = store.get_redemption(norm_hash)
     if rec is None:
         return JSONResponse(
             status_code=404,

@@ -191,14 +191,18 @@ def get_redemption(block_hash: str) -> dict | None:
     """Return full redemption record for *block_hash*, or None if unknown.
 
     Returns a dict with keys: block_hash, amount_raw, source, endpoint, status, created_at.
+    Block hashes are hex and case-insensitive, so the lookup normalises to
+    upper case — a buyer who queries their paid block in lower case must not
+    get a 404 when the redemption exists (hit live: paid block stored upper,
+    buyer queried lower -> 'No payment found').
     """
     init()
     conn = _connect()
     try:
         cur = conn.execute(
             "SELECT block_hash, amount_raw, source, endpoint, status, created_at "
-            "FROM redemptions WHERE block_hash = ?",
-            (block_hash,),
+            "FROM redemptions WHERE UPPER(block_hash) = ?",
+            (block_hash.upper(),),
         )
         row = cur.fetchone()
         if row is None:

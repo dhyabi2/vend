@@ -58,9 +58,26 @@ def test_get_redemption_after_failed():
     print("PASS test_get_redemption_after_failed")
 
 
+def test_get_redemption_case_insensitive():
+    """A buyer who queries a paid block in a different case still finds it.
+    (Hit live 2026-09-25: paid block stored upper-case, buyer queried lower-case
+    '7ca569da...' and got a false 404 -> 'No payment found'.)"""
+    bh = "0A1B" * 16  # 64 hex chars, mixed-known case
+    store.redeem(bh, endpoint="/api/v1/geoip", amount_raw="100000000000000000000000000", source="nano_test4")
+    # Query in lower case — must still resolve to the same (upper-stored) record
+    rec = store.get_redemption(bh.lower())
+    assert rec is not None, "lower-case block query must resolve"
+    assert rec["block_hash"] == bh
+    assert rec["endpoint"] == "/api/v1/geoip"
+    # And the upper-case form still works
+    assert store.get_redemption(bh.upper()) is not None
+    print("PASS test_get_redemption_case_insensitive")
+
+
 if __name__ == "__main__":
     test_get_redemption_roundtrip()
     test_get_redemption_status_resolves()
     test_get_redemption_unknown()
     test_get_redemption_after_failed()
+    test_get_redemption_case_insensitive()
     print("\nAll delivery-proof store tests PASSED")
