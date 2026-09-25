@@ -303,7 +303,7 @@
       "url": "https://mcpcollection.com/mcp",
       "status": "submitted",
       "submitted_at": "2026-09-20T13:22:00Z",
-      "note": "Free forever MCP directory, dedicated indexable page per listing. Submitted 2026-09-20 (Web & Search category). 'Submitted! We review every listing by hand \u2014 you'll hear from us at vend@paypercall.dev once it's live.'"
+      "note": "Free forever MCP directory, dedicated indexable page per listing. Submitted 2026-09-20 (Web & Search). RE-CHECKED 2026-09-25: /mcp page renders empty (no listing surfaced) - still pending human review."
     },
     {
       "directory": "MCPSafe (Security-First MCP Directory)",
@@ -324,7 +324,7 @@
       "url": "https://mcptrove.com",
       "status": "submitted",
       "submitted_at": "2026-09-20T13:40:00Z",
-      "note": "MCP Directory (mcptrove.com). Free listing, reviewed before live. 'Thanks \u2014 submitted! We'll review your server and add it to the directory shortly.' Transport HTTP remote."
+      "note": "MCP Directory (mcptrove.com). Free listing, reviewed before live. Transport HTTP remote. RE-CHECKED 2026-09-25: search?q=paypercall shows '0 results' - NOT live yet; still pending human review."
     },
     {
       "directory": "minia2a.uk",
@@ -389,7 +389,7 @@
       "url": "https://themcpindex.com",
       "status": "submitted",
       "submitted_at": "2026-09-20T13:30:00Z",
-      "note": "MCP Index, synced from official MCP Registry within a day. Manually submitted GitHub URL. 'RECEIVED \u2014 Submissions reviewed within a day or two.'"
+      "note": "MCP Index, synced from official MCP Registry within a day. Manually submitted GitHub URL (dead after PANDeveloper001 deletion). RE-CHECKED 2026-09-25: /servers?q=paypercall shows '0 ENTRIES MATCHING' - NOT live yet. Registry-sync is the likely carrier; re-check /servers?q=paypercall in a later run."
     },
     {
       "name": "Vibedonalds",
@@ -638,7 +638,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T06:25:45Z",
+    "timestamp": "2026-09-25T06:45:52Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
