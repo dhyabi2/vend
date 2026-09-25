@@ -80,6 +80,7 @@ the result.
 
 - **Official MCP Registry** — `dev.paypercall.extract/vend-api-merchant`
 - **mcpi.app** — dedicated page, 100% of 18 MCP checks over 30 days
+- **CheckMCP** — independent audit, MCP Score 92/100 grade A, OWASP Top 10 clean
 - **punkpeye/awesome-remote-mcp-servers** — Search & Data Extraction
 - AI Kendra, Influzer.ai, AgentBoard, Glama, AgentShare, mcpagents.ai, mcpservers.org,
   AgenticSkills, nohumans.directory, agent-tools.cloud, Agent402.Tools, Vivioo, A2A
