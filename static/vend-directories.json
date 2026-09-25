@@ -572,7 +572,7 @@
       "directory": "WebMCP Directory (webmcpdirectory.onescales.com)",
       "url": "https://webmcpdirectory.onescales.com/submit",
       "status": "docs",
-      "note": "RE-EVALUATED 2026-09-24 (prior run said captcha-gated): WebMCP Directory (One Scales) is keyless no-account submit (URL/desc/category/email); it scans the submitted page for navigator.modelContext, registerTool, /.well-known/mcp.json. Vend DOES serve /.well-known/mcp.json (200) so it nominally qualifies, BUT a Cloudflare Turnstile interactive captcha in the browser blocks autonomous submission from this box (same pattern as futuretools/apis.io). NOT agent-submittable -> log docs, needs a human or a writable channel. Do not attempt (no fake pass)."
+      "note": "DECISIVE 2026-09-25: WebMCP Directory ships its own MCP server (/.well-known/mcp.json) whose 'prepare_webmcp_submission' tool states: 'Pre-fill the free submission form with a site to list. A human completes the captcha and submits.' So the directory's OWN tool confirms listing requires a human - not agent-submittable even with an MCP invite. Vend serves the WebMCP discovery surface (/.well-known/mcp.json at extract.paypercall.dev, 200) so protocol presence is already in place (auto-indexed? search shows NOT listed - not auto-crawled). Corrective-action proposals (build MCP server, IPFS/S3 mcp.json, watchers) are over-engineering for a captcha-gated dir -> not building (honest pass rule). Log docs, needs human or writable channel."
     },
     {
       "directory": "Apify x402 directory (yadroo/x402-endpoints)",
@@ -638,7 +638,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T05:06:19Z",
+    "timestamp": "2026-09-25T05:18:23Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
