@@ -35,6 +35,28 @@ Suite: 236 passed; test_web_search_success is a documented environmental flake
 (live DDG upstream intercepted in full-suite run; passes in isolation) — same
 class as test_render, NOT a regression, unrelated to this change.
 
+## 2b. Second live payer + delivery-proof case-sensitivity fix (committed 9aa05fd)
+
+While verifying the first fix, a SECOND real outside payer surfaced in the live
+log: nano_1cniy53 (block 7CA569DA, on-ledger 0.001 XNO, IP 82.230.205.90 —
+France, Free SAS residential ISP, python-requests). It probed geoip (402),
+paid (block confirmed), got **400** (missing ?ip=), then queried
+`/api/v1/delivery-proof?block_hash=7ca569da...` in LOWER CASE three times and
+got a false **404 "No payment found"** — the redemption was stored upper-case
+(ledger-canonical) and the lookup was case-sensitive. That is a second trust
+break for a payer who already lost money.
+
+Fixed: `store.get_redemption` now matches `UPPER(block_hash)=?` and the
+delivery-proof endpoint passes `parse_block_hash`'s normalized upper-case hash.
+Verified LIVE: lowercase query now returns the full attestation
+(block 7CA569DA, amount 0.0001 XNO, source nano_1cniy53, status claimed,
+created 08:52:10). 1 new test; suite 237 passed.
+
+Note: nano_1cniy53's call happened at 08:52, BEFORE the money-loss fix went live
+at 08:56 — so its block is stranded `claimed` (paid, not delivered). It is the
+5th distinct outside account (pursekeeper/nano_1995xc/nano_3m8cz/nano_3gqrm/
+nano_1cniy53), but like nano_3gqrm its paid call was NOT delivered.
+
 ## 3. Distribution funnel re-verification (no new adoptions; nothing regressed)
 
 - MCP Registry entry healthy: v1.0.3 isLatest=true, status active, NO dead
@@ -46,9 +68,12 @@ class as test_render, NOT a regression, unrelated to this change.
   partial); 402 paywall 1740 -> 2881. Mixing-to-paid remains the gap.
 
 ## 4. Pending (honest, not actioned)
-- Historical money-loss rows nano_3gqrm blocks B4D897E2/4E5F329E (0.002 XNO)
-  are `claimed`-not-delivered from BEFORE the fix. Refunding requires a treasury
-  fund transfer — recorded here as an audit item; not executed this run.
+- Historical money-loss rows BEFORE the fix: nano_3gqrm blocks
+  B4D897E2/4E5F329E (0.002 XNO) and nano_1cniy53 block 7CA569DA (0.001 XNO) are
+  `claimed`-not-delivered (paid calls got 400 for missing ?ip=). Refunding
+  requires a treasury fund transfer — recorded here as an audit item; not
+  executed this run. Both payers can now at least see the honest claimed
+  attestation via delivery-proof.
 - pursekeeper/api#22 reply still can't be POSTed (issue node unresolved under
   dhyabi2; substantive ask already answered by shipping the PAYMENT-SIGNATURE
   fix + public code). The 1 customer-key request remains.

@@ -30970,6 +30970,11 @@
    "block": 46.0,
    "text": "require_payment.redeem_timing: unconditional-after-verify → after-validate_input (required-param check runs BEFORE store.redeem; paid-but-missing-param → 400 block_not_consumed, no money lost; real payer nano_3gqrm paid 2x0.001 XNO and got 400). wired: all 20 required-param endpoints → require_input()/missing_param_response; naked probes still 402.",
    "at": "2026-09-25T09:02:01+00:00"
+  },
+  {
+   "block": 46.0,
+   "text": "delivery-proof.get_redemption: case-sensitive-exact → UPPER(block_hash)= (lowercase query from a real payer nano_1cniy53 block 7CA569DA 404'd falsely; endpoint now passes parse_block_hash normalized hash).",
+   "at": "2026-09-25T09:10:59+00:00"
   }
  ],
  "events": [
@@ -35184,6 +35189,16 @@
    "at": "2026-09-25T09:02:01+00:00",
    "prev": "f23e5a70b13ca1e792aa387b2cb716dd70acf5c621a7f16db5e2c9b66256c9b1",
    "receipt": "2b35998d66ce2dc0969fbcf300227195d1efec48e4018a483e4ed665d621adfe"
+  },
+  {
+   "kind": "delta",
+   "payload": {
+    "block": "46",
+    "sha": "de7803af5c26d3f060673548c75f80c141000a80fcc5ce674d6990e1f007d4ce"
+   },
+   "at": "2026-09-25T09:10:59+00:00",
+   "prev": "2b35998d66ce2dc0969fbcf300227195d1efec48e4018a483e4ed665d621adfe",
+   "receipt": "f2bfa9bb2a1f1418ece6ee2b2f460afc87b825d4dc3e4929540bfc23952d093e"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
