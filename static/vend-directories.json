@@ -484,6 +484,13 @@
       "note": "Read-only auto-discovery (2,054 services rated, crawled from public x402 catalog). Vend not yet picked up \u2014 no submission available. Will populate as catalog grows."
     },
     {
+      "directory": "402index.io",
+      "url": "https://402index.io",
+      "status": "blocked",
+      "verified_at": "2026-09-25",
+      "note": "EVALUATED 2026-09-25: protocol-agnostic paid-API directory (L402/x402/MPP) for AI agents, self-serve keyless POST /api/v1/register (probed on submit). Vend NOT listed (services?q=paypercall empty). Register probe detected our 402 + accepts[0] nano:mainnet/XNO correctly (payTo verified), but validator rejects: 'assetKnown:false', 'paymentMethod:null' -> x402 verification FAILED 422. Directory's known-assets catalog is EVM/stablecoin-only, does not recognize XNO. Nano unsupported like x402scan/x402.be. Blocked until XNO asset recognized; do not re-register without a code change."
+    },
+    {
       "directory": "x402scan.com",
       "url": "https://x402scan.com/resources/register",
       "status": "blocked",
@@ -639,7 +646,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T09:50:49Z",
+    "timestamp": "2026-09-25T09:52:50Z",
     "all_healthy": false,
     "endpoints_ok": 21,
     "endpoints_total": 22
