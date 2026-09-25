@@ -114,9 +114,10 @@
       "directory": "AgentShare MCP Registry",
       "url": "https://agentshare.dev/registry",
       "status": "live",
-      "verified_at": "2026-09-20",
+      "verified_at": "2026-09-25",
       "submission_id": "37",
-      "note": "VERIFIED LIVE 2026-09-20: Curated registry listing under Data & Commerce. Detail page shows 'reviewed' badge with 3 opens (1 MCP, 1 Website, 1 GitHub). Description: 'Pay-per-call API marketplace settled in Nano (XNO). 7 x402 endpoints.'"
+      "note": "v1.0.4 published 2026-09-25: added repository.url = https://github.com/dhyabi2/vend (live public repo) to clear mirror 'Dead - repo gone' flags (themcpindex, GateTurbo, mcp.so, MCPFind). v1.0.3 had no repository (removed dead PANDeveloper001 link). Mirrors mirror-update daily ~24-48h.",
+      "version": "1.0.4"
     },
     {
       "directory": "AgentStore (agentstore.tools)",
@@ -686,7 +687,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T17:12:00Z",
+    "timestamp": "2026-09-25T17:43:10Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
