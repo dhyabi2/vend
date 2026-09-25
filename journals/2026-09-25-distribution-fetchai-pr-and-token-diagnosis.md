@@ -20,6 +20,12 @@ runs' retries), waited for the 09:33 UTC reset, then executed real write work.
    verification + 9 offline tests (all pass). Disclosed AI-authored. Fork dhyabi2, ahead 4/behind 0,
    mergeable, 12 files / 694 additions. URL: https://github.com/fetchai/innovation-lab-examples/pull/188
    Starred the repo first (CONTRIBUTING requirement), fork pushed, token scrubbed from git config after.
+   **This run also addressed the repo's ASI:One AI-review findings on the PR:** (a) failed-closed the
+   destination check when contents is a hash string instead of a dict (2 new offline tests), and
+   (b) closed the replay-protection check-then-act gap by reserving the storage key before the awaited
+   RPC and releasing it on failure. Pushed d72be2d; the re-review now cites "fails closed on malformed
+   contents" and "11 offline tests ... including the fail-closed contents cases". PR open + mergeable,
+   5 commits, AI-authored disclosure intact.
 2. **Re-verified all 23 live/verified listings are still live** (rai-par probe, 20 external URLs all 200)
    — swarm-proof: only what loads today counts. All hold.
 3. **Confirmed discovery surfaces for the 396 arriving MCP callers:** official MCP Registry v1.0.3 live,
