@@ -192,7 +192,7 @@ def extract_payment_block(request: Request) -> Optional[str]:
 
     NOTE: a spec-compliant ``PAYMENT-SIGNATURE`` header carrying an UNBROADCAST
     signed block (``payload.block`` is a dict) is NOT handled here — that route
-    is taken by ``require_payment`` via ``settle_signed_payment``.  We only
+    is taken by ``require_payment`` via ``confirm_signature_payment``.  We only
     extract a broadcast hash (a 64-hex string somewhere in the header value).
     """
     for header in ("x-payment", "payment", "x-payment-signature", "payment-signature"):
@@ -208,10 +208,8 @@ def has_signed_block(request: Request) -> bool:
     """True when the request carries an unbroadcast signed block to settle."""
     for header in ("x-payment-signature", "payment-signature"):
         val = request.headers.get(header)
-        if val:
-            from signed_payment import extract_signed_block
-            if extract_signed_block(val) is not None:
-                return True
+        if val and parse_payment_signature(val) is not None:
+            return True
     return False
 
 
@@ -317,7 +315,7 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
         # ``process`` (which validates signature/work/balance on-ledger), wait
         # for confirmation, then let the existing verify/redeem path handle the
         # now-on-ledger block exactly like a self-broadcast payment.
-        if not block_hash and not signed_present:
+        if not block_hash:
             pay_sig = (request.headers.get("payment-signature")
                        or request.headers.get("x-payment-signature"))
             sig_payload = parse_payment_signature(pay_sig) if pay_sig else None
@@ -428,21 +426,15 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
         # Two settlement modes, both guarded here:
         #   * self-broadcast dialect (block already on-ledger; X-PAYMENT hash) —
         #     verify_payment reads the ledger and confirms amount+destination.
-        #   * spec-compliant PAYMENT-SIGNATURE (unbroadcast signed block) —
-        #     settle_signed_payment validates destination/amount locally, has
-        #     the node broadcast the buyer's signed block (signature enforced
-        #     by the network at process time), confirms it, and only then
-        #     returns valid.  A forged/tampered block cannot move funds.
-        if signed_present:
-            from signed_payment import settle_signed_payment
-            verification = settle_signed_payment(
-                request.headers.get("x-payment-signature")
-                or request.headers.get("payment-signature", ""),
-                price_raw,
-                VEND_ACCOUNT,
-            )
-        else:
-            verification = verify_payment(block_hash, price_raw, VEND_ACCOUNT)
+        #   * spec-compliant PAYMENT-SIGNATURE (unbroadcast signed block) — the
+        #     block above (PAYMENT-SIGNATURE acceptance) already validated
+        #     destination/amount locally, had the node broadcast the buyer's
+        #     signed block (signature enforced by the network at process time),
+        #     and confirmed it on-ledger before setting block_hash.  A
+        #     forged/tampered block cannot move funds.  So by the time we reach
+        #     this branch a signed payment has a confirmed block_hash, and
+        #     verify_payment re-checks it against the ledger like any payment.
+        verification = verify_payment(block_hash, price_raw, VEND_ACCOUNT)
 
         if not verification["valid"]:
             # Payment invalid or insufficient

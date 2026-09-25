@@ -13,7 +13,7 @@ set -uo pipefail
 cd /root/vend
 FAIL=0
 
-out=$(python3 tests/test_payment_signature.py 2>&1) || FAIL=1
+out=$(.venv/bin/python tests/test_payment_signature.py 2>&1) || FAIL=1
 echo "$out"
 if ! echo "$out" | grep -q "All PAYMENT-SIGNATURE tests PASSED"; then
     FAIL=1
