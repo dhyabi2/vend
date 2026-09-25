@@ -210,10 +210,49 @@ def test_server_wiring_present():
     print("PASS test_server_wiring_present")
 
 
+def test_no_missing_module_import():
+    """server.py must not import the removed ``signed_payment`` module.
+
+    The earlier design wired PAYMENT-SIGNATURE settlement through a
+    ``signed_payment`` module that no longer exists in the repo, so any
+    request carrying a PAYMENT-SIGNATURE header crashed (ImportError -> 500)
+    before settling.  The accepted path now uses nano_verify's tested
+    ``confirm_signature_payment``; this guards the server wiring against the
+    dead import coming back.
+    """
+    from server import has_signed_block
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "server.py")).read()
+    assert "from signed_payment import" not in src, (
+        "server.py must not import the removed signed_payment module"
+    )
+    # A real base64 PaymentPayload is detected as a signed block ...
+    block = _send_block(2 * 10**26, 10**26)
+    header = _base64_payload(block)
+    from starlette.requests import Request
+    from starlette.datastructures import Headers
+    req = Request(scope={
+        "type": "http", "method": "GET", "path": "/",
+        "headers": [(b"payment-signature", header.encode())],
+        "query_string": b"", "server": ("test", 80), "client": ("1.2.3.4", 1234),
+    })
+    assert has_signed_block(req) is True
+    # ... while a bare hash or garbage is not.
+    for bad in ("ABCD" * 16, "not base64 !!"):
+        req2 = Request(scope={
+            "type": "http", "method": "GET", "path": "/",
+            "headers": [(b"payment-signature", bad.encode())],
+            "query_string": b"", "server": ("test", 80), "client": ("1.2.3.4", 1234),
+        })
+        assert has_signed_block(req2) is False, f"should reject {bad[:8]}..."
+    print("PASS test_no_missing_module_import")
+
+
 if __name__ == "__main__":
     test_parse_payment_signature()
     test_destination_mismatch_fastfail()
     test_broadcast_rejects_unsigned_block()
     test_full_confirm_signature_payment()
     test_server_wiring_present()
+    test_no_missing_module_import()
     print("\nAll PAYMENT-SIGNATURE tests PASSED")
