@@ -633,12 +633,13 @@
     {
       "directory": "allmcps.com",
       "url": "https://allmcps.com/mcp/vend-api-merchant",
-      "status": "submitted",
-      "note": "Keyless agent API POST /api/v1/submit (no captcha, programmatic). Submitted 2026-09-25 id=vend-api-merchant, category Search & Data Extraction, status pending. x402 competitor ImagePay MCP already listed. Verify live page in later run."
+      "status": "live",
+      "note": "LIVE verified 2026-09-25: allmcps.com/mcp/vend-api-merchant is a full listing page (title 'Vend API Merchant MCP: Config & Tools | AllMCPs', 200 signed-out, content confirms Nano x402). rai-scope adopted milestone recorded.",
+      "verified": true
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T03:46:54Z",
+    "timestamp": "2026-09-25T04:02:59Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
