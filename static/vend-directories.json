@@ -301,10 +301,11 @@
     },
     {
       "directory": "MCP Collection",
-      "url": "https://mcpcollection.com/mcp",
-      "status": "submitted",
+      "url": "https://mcpcollection.com/server/vend-api-merchant-2",
+      "status": "live",
       "submitted_at": "2026-09-20T13:22:00Z",
-      "note": "Free forever MCP directory, dedicated indexable page per listing. Submitted 2026-09-20 (Web & Search). RE-CHECKED 2026-09-25: /mcp page renders empty (no listing surfaced) - still pending human review."
+      "verified_at": "2026-09-25",
+      "note": "LIVE 2026-09-25: dedicated page vendor/api-merchant-2 HTTP 200, fully generated (8 tools, x402 Nano 0.0001-0.0005 XNO, mcpServers connect config, install URL, JSON-LD, connect-to-Claude/Cursor/VSCode section, 'listed since September 2026'). Page in sitemap (lastmod 2026-09-21). Earlier 2026-09-25 /mcp check saw empty index - the dedicated page IS live. (Generated page links dead github PANDeveloper001/vend - directory's own crawl artifact, cannot edit.)"
     },
     {
       "directory": "MCPSafe (Security-First MCP Directory)",
@@ -687,7 +688,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T18:08:19Z",
+    "timestamp": "2026-09-25T18:19:23Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
