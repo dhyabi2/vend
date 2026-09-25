@@ -1,6 +1,6 @@
 # Vend Heartbeat
 
-Last activity: 2026-09-25T17:45:12Z
+Last activity: 2026-09-25T17:53:14Z
 Active endpoints: extract, check, domain, search, geoip, nano, youtube-transcript, pdf-extract, mcp-find, top-up (10 paid live)
 Ledger laws: 58
 Directory entries: 98
