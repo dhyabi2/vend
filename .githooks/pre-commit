@@ -70,4 +70,17 @@ if ! printf '%s' "$out2" | grep -q '"clean": true'; then
     exit 1
 fi
 
+# 3. payment guard (corrective action 2026-09-25 #3)
+#
+# A buyer-controlled payment amount that is read without being compared to the
+# accepted amount is a silent money-hole.  Refuse to commit it.  Scope to the
+# file(s) that settle PAYMENT-SIGNATURE payments so the hook stays fast.
+if [ -f bin/payment-guard-check.py ]; then
+    if ! python3 bin/payment-guard-check.py >/dev/null 2>&1; then
+        python3 bin/payment-guard-check.py >&2 || true
+        echo "pre-commit REFUSED: payment amount read without a guard" >&2
+        exit 1
+    fi
+fi
+
 exit 0

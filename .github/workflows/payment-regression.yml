@@ -1,0 +1,31 @@
+name: payment-regression
+
+# Corrective action 2026-09-25 #5: a CI regression gate that runs the
+# payment-settlement tests (exact / under-pay / over-pay) plus the static
+# payment-guard check, so a change that silently drops the amount guard (or
+# breaks the PAYMENT-SIGNATURE flow) fails on every push / PR, not just on this
+# box.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  payment-tests:
+    name: payment guard + settlement tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx fastapi pydantic starlette uvicorn
+      - name: Static payment-guard check
+        run: python bin/payment-guard-check.py
+      - name: Run payment settlement tests (mock seller-buyer)
+        run: python tests/test_payment_signature.py
+      - name: Run full test suite
+        run: python -m pytest tests/ -q

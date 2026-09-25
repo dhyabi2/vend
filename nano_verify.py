@@ -286,6 +286,37 @@ def confirm_signature_payment(payload: dict, expected_price_raw: str = PRICE_RAW
             f"(expected {str(expected_destination)[:15]}...)"
         )
 
+    # Runtime amount guard (corrective action 2026-09-25 #1): the funds a
+    # buyer's signed block actually transfers MUST equal the amount this
+    # endpoint accepted (ACCEPTED_FUNDS[0].amount == expected_price_raw).  A
+    # buyer controls the block's balance fields, so we must not trust their
+    # word — compute the real decrement via the previous block's on-ledger
+    # balance and reject on ANY mismatch (under- OR over-pay), logging the
+    # exact divergence for audit.  This closes the "send the wrong amount but
+    # reach our destination" hole before any broadcast or RPC spend on work.
+    decrement = block_decrement_amount(block)
+    if decrement is None:
+        return _fail(
+            "Payment amount could not be derived from the signed block; "
+            "rejecting instead of trusting an unverifiable transfer"
+        )
+    try:
+        expected_raw = int(expected_price_raw)
+    except (ValueError, TypeError):
+        return _fail(f"Server misconfigured: expected price not a raw int ({expected_price_raw!r})")
+    if decrement != expected_raw:
+        divergence = decrement - expected_raw
+        import logging as _logging
+        _logging.getLogger("vend").warning(
+            "PAYMENT AMOUNT MISMATCH: block decrement=%s raw, expected=%s raw, "
+            "divergence=%+d raw (destination=%s)",
+            decrement, expected_raw, divergence, str(destination)[:15],
+        )
+        return _fail(
+            f"Payment amount mismatch: block transfers {decrement} raw but this "
+            f"endpoint accepted {expected_raw} raw (divergence {divergence:+d})"
+        )
+
     # Broadcast.  ``process`` validates signature/work/balance on-ledger and
     # rejects a forged or unsigned block, so a bad block stops here honestly.
     res = broadcast_block(block)

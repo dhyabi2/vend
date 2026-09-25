@@ -57,6 +57,7 @@ def _send_block(prev_balance, new_balance, destination=VEND_TEST_ACCOUNT, previo
         "link_as_account": destination,
         "signature": "3B" * 64,
         "work": "ffffffd2e1234567",
+        "prev_balance": str(prev_balance),  # helper so the stub can serve decrement lookups
     }
 
 
@@ -70,7 +71,6 @@ class StubNanoRPC:
         self.log = []
         self._httpd = None
         self.port = None
-
     def start(self):
         from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -106,6 +106,19 @@ class StubNanoRPC:
                             "contents": blk,
                             "hash": h,
                         })
+                    elif h in stub.prev_balance:
+                        # A registered `previous` block: serve its contents with
+                        # its balance so a decrement can be derived on-ledger.
+                        self._reply({
+                            "amount": "0",
+                            "contents": {
+                                "type": "state",
+                                "account": "nano_1hza3f7wiiqa7ig3jczyxj5yo86yegcmqk3criaz838j91sxcckpfhbhhra1",
+                                "balance": stub.prev_balance[h],
+                                "link_as_account": "",
+                            },
+                            "hash": h,
+                        })
                     else:
                         self._reply({"error": "Block not found"})
                 elif action == "account_info":
@@ -130,6 +143,15 @@ class StubNanoRPC:
     def stop(self):
         if self._httpd:
             self._httpd.shutdown()
+
+    def seed_previous(self, previous_hash, prev_balance):
+        """Register a `previous` block on-ledger so a decrement can be derived.
+
+        block_decrement_amount fetches the send block's `previous` and reads its
+        balance to derive the transfer amount.  Seed it with the balance the
+        buyer's send block is notionally spending from.
+        """
+        self.prev_balance[previous_hash] = str(prev_balance)
 
 
 def test_parse_payment_signature():
@@ -186,7 +208,11 @@ def test_full_confirm_signature_payment():
     nv.NANO_RPC_URL = f"http://127.0.0.1:{stub.port}"
     nv.PAYMENT_CONFIRM_TIMEOUT_S = 2
     try:
-        header = _base64_payload(_send_block(2 * 10**26, 10**26))
+        # The send block spends from a previous with balance 2*10**26 down to
+        # 10**26 => decrement = 10**26 == PRICE_RAW_1 (exact payment).
+        block = _send_block(2 * 10**26, 10**26)
+        stub.seed_previous(block["previous"], 2 * 10**26)
+        header = _base64_payload(block)
         payload = nv.parse_payment_signature(header)
         res = nv.confirm_signature_payment(payload, PRICE_RAW_1, VEND_TEST_ACCOUNT)
         assert res["valid"] is True, f"expected valid, got {res}"
@@ -198,6 +224,78 @@ def test_full_confirm_signature_payment():
         nv.PAYMENT_CONFIRM_TIMEOUT_S = old_confirm_timeout
         stub.stop()
     print("PASS test_full_confirm_signature_payment")
+
+
+def test_amount_mismatch_rejected_under_and_over():
+    """Corrective action 2026-09-25 #2: reject on ANY amount mismatch.
+
+    A buyer controls the signed block's balance fields.  The runtime guard in
+    confirm_signature_payment must reject a decrement that is NOT exactly the
+    accepted amount — both an under-pay and an over-pay — and reject nothing
+    when it IS exact.  The rejection must happen before any broadcast (no RPC
+    spend on work for a wrong amount).
+    """
+    stub = StubNanoRPC().start()
+    old_url = nv.NANO_RPC_URL
+    try:
+        nv.NANO_RPC_URL = f"http://127.0.0.1:{stub.port}"
+
+        # Case EXACT: spend 2*10**26 -> 10**26 = decrement 10**26 == price.
+        exact = _send_block(2 * 10**26, 10**26)
+        stub.seed_previous(exact["previous"], 2 * 10**26)
+        payload = nv.parse_payment_signature(_base64_payload(exact))
+        res = nv.confirm_signature_payment(payload, PRICE_RAW_1, VEND_TEST_ACCOUNT)
+        assert res["valid"] is True, f"exact should pass, got {res}"
+
+        # Case LESS: spend 2*10**26 -> 19*10**25 (decrement 10**25 < price).
+        stub = StubNanoRPC().start()
+        nv.NANO_RPC_URL = f"http://127.0.0.1:{stub.port}"
+        less = _send_block(2 * 10**26, 19 * 10**25)
+        stub.seed_previous(less["previous"], 2 * 10**26)
+        res = nv.confirm_signature_payment(
+            nv.parse_payment_signature(_base64_payload(less)), PRICE_RAW_1, VEND_TEST_ACCOUNT
+        )
+        assert res["valid"] is False, f"under-pay must be rejected, got {res}"
+        assert "amount mismatch" in res["message"].lower(), res["message"]
+        # The less case runs on a fresh stub, so process_calls is 0 here.
+        assert stub.process_calls == 0, "must not broadcast a wrong amount"
+
+        # Case MORE: spend 2*10**26 -> 0 (decrement 2*10**26 > price).
+        stub = StubNanoRPC().start()
+        nv.NANO_RPC_URL = f"http://127.0.0.1:{stub.port}"
+        more = _send_block(3 * 10**26, 10**26)
+        stub.seed_previous(more["previous"], 3 * 10**26)
+        res = nv.confirm_signature_payment(
+            nv.parse_payment_signature(_base64_payload(more)), PRICE_RAW_1, VEND_TEST_ACCOUNT
+        )
+        assert res["valid"] is False, f"over-pay must be rejected, got {res}"
+        assert "amount mismatch" in res["message"].lower(), res["message"]
+        assert stub.process_calls == 0, "must not broadcast a wrong amount"
+
+    finally:
+        nv.NANO_RPC_URL = old_url
+        stub.stop()
+    print("PASS test_amount_mismatch_rejected_under_and_over")
+
+
+def test_amount_inderivable_fails_closed():
+    """Corrective action 2026-09-25 #2: a decrement we cannot derive must fail closed."""
+    stub = StubNanoRPC().start()
+    old_url = nv.NANO_RPC_URL
+    try:
+        nv.NANO_RPC_URL = f"http://127.0.0.1:{stub.port}"
+        # Previous block absent from ledger -> decrement cannot be derived.
+        block = _send_block(2 * 10**26, 10**26)
+        res = nv.confirm_signature_payment(
+            nv.parse_payment_signature(_base64_payload(block)), PRICE_RAW_1, VEND_TEST_ACCOUNT
+        )
+        assert res["valid"] is False, f"unverifiable amount must fail closed, got {res}"
+        assert "could not be derived" in res["message"].lower(), res["message"]
+        assert stub.process_calls == 0
+    finally:
+        nv.NANO_RPC_URL = old_url
+        stub.stop()
+    print("PASS test_amount_inderivable_fails_closed")
 
 
 def test_server_wiring_present():
@@ -253,6 +351,8 @@ if __name__ == "__main__":
     test_destination_mismatch_fastfail()
     test_broadcast_rejects_unsigned_block()
     test_full_confirm_signature_payment()
+    test_amount_mismatch_rejected_under_and_over()
+    test_amount_inderivable_fails_closed()
     test_server_wiring_present()
     test_no_missing_module_import()
     print("\nAll PAYMENT-SIGNATURE tests PASSED")
