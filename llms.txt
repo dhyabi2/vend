@@ -127,7 +127,7 @@ signup or API keys (pay per call in Nano):
 - Directory index: https://extract.paypercall.dev/static/vend-directories.json
 - Nano × x402 directory (JSON): https://extract.paypercall.dev/nano-directory
 - Nano × x402 directory (HTML): https://extract.paypercall.dev/nano-services
-- Source: self-hosted — install/clone the wheel from https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl (MIT). The public GitHub mirror is currently offline.
+- Source: self-hosted — install/clone the wheel from https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl (MIT). Public source (incl. the x402 settlement + PAYMENT-SIGNATURE code): github.com/dhyabi2/vend.
 - Robots: https://paypercall.dev/robots.txt
 - Sitemap: https://paypercall.dev/sitemap.xml
 - Health: `/health` on each subdomain
