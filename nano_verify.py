@@ -516,10 +516,10 @@ def build_402_challenge(endpoint_path: str, price_xno: float = 0.0001,
                     "the metered amount, with no gas floor."
                 ),
                 "bootstrap": "pip install feeless402 && nano-pay init",
-                "topup": "nano-pay topup 5 --asset USDC-BASE --execute",
+                "topup": "fund in XNO only: send Nano to the pay_to address in accepts[], then POST /api/v1/balance/top-up with X-PAYMENT to credit a prepaid XNO balance; the accepts array is XNO-only",
                 "docs": "https://github.com/feeless402/feeless402",
                 "site": "https://feeless402.com",
-                "faucets": ["https://feeless402.com"],
+                "faucets": [],
                 "spec": "x402 exact scheme on nano:mainnet",
             }
         }
