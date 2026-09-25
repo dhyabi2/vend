@@ -629,10 +629,16 @@
       "url": "https://github.com/punkpeye/awesome-remote-mcp-servers",
       "status": "verified",
       "note": "Vend listed in Search & Data Extraction category with Glama score badge. PR #552 (PANDeveloper001 fork) was merged. Verified live in README 2026-09-24."
+    },
+    {
+      "directory": "allmcps.com",
+      "url": "https://allmcps.com/mcp/vend-api-merchant",
+      "status": "submitted",
+      "note": "Keyless agent API POST /api/v1/submit (no captcha, programmatic). Submitted 2026-09-25 id=vend-api-merchant, category Search & Data Extraction, status pending. x402 competitor ImagePay MCP already listed. Verify live page in later run."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T03:31:49Z",
+    "timestamp": "2026-09-25T03:44:53Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
