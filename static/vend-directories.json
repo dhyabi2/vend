@@ -315,9 +315,10 @@
     },
     {
       "directory": "mcpservers.org (Awesome MCP)",
-      "url": "https://mcpservers.org/submit",
-      "status": "submitted",
-      "note": "Remote MCP server, free tier, review within 2 weeks to vend@paypercall.dev"
+      "url": "https://mcpservers.org/servers/pandeveloper001/vend",
+      "status": "verified",
+      "verified_at": "2026-09-25",
+      "note": "VERIFIED LIVE 2026-09-25 via external egress: dedicated listing page mcpservers.org/servers/pandeveloper001/vend (web_extract 200, curl 403) titles 'Vend API Merchant Nano Settled Pay Per Call APIs MCP Server', names all 6 endpoints with XNO prices, buyer flow, npx add-mcp install, and 100.0/A Stelar x402 Doctor conformance links. Was 'submitted, review within 2 weeks' - now live. rai-scope adopted milestone candidate."
     },
     {
       "directory": "MCP Trove (mcptrove)",
@@ -638,7 +639,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T09:42:47Z",
+    "timestamp": "2026-09-25T09:50:49Z",
     "all_healthy": false,
     "endpoints_ok": 21,
     "endpoints_total": 22
