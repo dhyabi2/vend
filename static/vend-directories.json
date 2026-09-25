@@ -207,10 +207,10 @@
     },
     {
       "directory": "CheckMCP",
-      "url": "https://checkmcp.dev/mcp",
-      "status": "submitted",
+      "url": "https://checkmcp.dev/mcp/extract-paypercall-dev",
+      "status": "verified",
       "submitted_at": "2026-09-20T13:16:00Z",
-      "note": "Free MCP server directory + independent audit. Submitted 2026-09-20. 'Submission received \u2014 you're in the queue'. Queued for audit (OWASP MCP Top 10, quality, context-cost)."
+      "note": "Free MCP server directory + independent audit. Verified live 2026-09-25: dedicated page at /mcp/extract-paypercall-dev names Vend, MCP Score 92/A, 8 tools, serving https://extract.paypercall.dev/mcp (probed signed-out)."
     },
     {
       "directory": "x402 Endpoint (x402jp)",
