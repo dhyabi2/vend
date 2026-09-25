@@ -931,6 +931,7 @@ async def nohumans_claim(request: Request):
         "domain.paypercall.dev": "212e8a4a0b1ea6948ca41dbe359ecb68d00e53d9b6cca5e3",
         "search.paypercall.dev": "718a16e24c65d372718e87b7d12a5779e18ccab7f67f71be",
         "geoip.paypercall.dev": "8854fa47372cfb88fab3443202b9622c85e78786b24eda0d",
+        "extract.paypercall.dev": "7f9b4dae5c9bafba0478d99a22c0bec20dfdcbeb3fe3b00a",
     }
     token = _claim_tokens.get(host)
     if token:

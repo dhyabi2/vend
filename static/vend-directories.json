@@ -349,7 +349,7 @@
       "directory": "nohumans.directory",
       "url": "https://nohumans.directory/l/614f2572-bd5",
       "status": "verified",
-      "note": "ALL 9 Vend endpoints VERIFIED as of 2026-09-23: extract(614f2572-bd5), geoip(2a406239-a41), check-link(d7c5f05d-332), domain-info(f11a7489-f87), web-search(71b91915-047), pdf-extract(ae24ff9b-2e6), youtube-transcript(512371a9-964), nano-info(d1d432b1-3bd), url-status(143db98b-8e1). Nano-capable x402 directory (chain: nano). The 4 newest endpoints (submitted 2026-09-23) flipped to verified after 3 consecutive probe passes."
+      "note": "ALL 9 Vend endpoints VERIFIED as of 2026-09-23: extract(614f2572-bd5), geoip(2a406239-a41), check-link(d7c5f05d-332), domain-info(f11a7489-f87), web-search(71b91915-047), pdf-extract(ae24ff9b-2e6), youtube-transcript(512371a9-964), nano-info(d1d432b1-3bd), url-status(143db98b-8e1). Nano-capable x402 directory (chain: nano). The 4 newest endpoints (submitted 2026-09-23) flipped to verified after 3 consecutive probe passes. 2026-09-25: description updated to match real demand language (\"webpage content as clean markdown or structured JSON from a URL\"); verified Vend now surfaces at score 1.0 for those phrases (was absent). Demand found via /v1/demand feed."
     },
     {
       "directory": "pay.sh",
@@ -665,12 +665,24 @@
       "status": "discovered",
       "verified_at": "2026-09-25",
       "note": "DISCOVERED 2026-09-25 (brass): official repo to get an MCP server discoverable/one-click-install by Cline users (785 stars) via GitHub issue (repo URL + 400x400 logo + reason). One-click-install = Cline clones+sets up from README; Vend is REMOTE streamable-http (claude mcp add --transport http, no clone) so it does not fit; vetting scrutinises crypto tools. Not submitted; knowledge only."
+    },
+    {
+      "directory": "brick.blue (BrickBlueBot)",
+      "url": "https://brick.blue/?q=extract.paypercall",
+      "status": "auto-discovery",
+      "note": "auto-discovery 2026-09-25: BrickBlueBot probes us; brick.blue semantic agent index returns our agent-card.json crawl (40 results, top 'Check extract.paypercall.dev for an agent' by hub:demand). Active discovery channel."
+    },
+    {
+      "directory": "glimind.com (SentinelOracle)",
+      "url": "https://glimind.com/search?q=extract.paypercall",
+      "status": "auto-discovery",
+      "note": "auto-discovery 2026-09-25: SentinelOracle liveness-only probe; JS-rendered, could not curl-verify a stable listing page. Not counted as listing milestone."
     }
   ],
   "probe": {
-    "timestamp": "2026-09-25T09:52:50Z",
-    "all_healthy": false,
-    "endpoints_ok": 21,
+    "timestamp": "2026-09-25T15:29:25Z",
+    "all_healthy": true,
+    "endpoints_ok": 22,
     "endpoints_total": 22
   }
 }
