@@ -4,7 +4,12 @@
   "title": "Vend API Merchant",
   "websiteUrl": "https://extract.paypercall.dev/",
   "description": "Pay-per-call web intel for AI agents, settled in Nano (XNO) via x402. Feeless, no API key.",
-  "version": "1.0.3",
+  "version": "1.0.4",
+  "repository": {
+    "url": "https://github.com/dhyabi2/vend",
+    "source": "github",
+    "id": "1386289511"
+  },
   "remotes": [
     {
       "type": "streamable-http",
