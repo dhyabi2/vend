@@ -2825,54 +2825,84 @@ async def web_search_endpoint(
 async def demo_endpoint(
     type: str = Query("extract", description="Endpoint type to demo: extract, check-link, batch-status, status, domain-info, web-search, geoip, nano-info, youtube-transcript, screenshot, render, select, meta, table, pdf-extract, mcp-find, ai-jobs, wiki-summary, arxiv-paper, hn-news, address-verdict"),
 ):
-    """Free demo endpoint — now redirects to free trial on the real endpoint.
+    """Free demo endpoint — serves honest sample data for every advertised type.
 
-    Previously returned hardcoded sample data. Now it redirects to the real
-    endpoint with ?type=<type> so agents get real data from their first free
-    call.  The free trial system (5 calls/IP/day) handles the actual response.
+    A buyer reading the landing page / llms.txt sees 'Free demo endpoint —
+    preview the output format, no payment required'. That promise must hold for
+    a stranger on ANY shared/corporate IP, so the demo serves inline sample data
+    here and never redirects into the paid endpoint: a redirect burned the
+    per-IP free-trial budget on the real endpoint and, once the trial was spent,
+    the 'free preview' became a 402 paywall (join:#114 / join:#304). Serving
+    samples decouples the preview from the trial pool entirely.
 
-    For agents that cannot follow redirects, the redirect URL is in the body.
+    Every response carries price_xno and endpoint so an agent can decide whether
+    the real output is worth paying for, exactly as the docs promise.
     """
-    type_map = {
-        "extract": "/api/v1/extract?url=https://example.com",
-        "check-link": "/api/v1/check-link?url=https://example.com",
-        "batch-status": "/api/v1/batch-status?urls=https://example.com,https://httpbin.org/status/200",
-        "status": "/api/v1/status?url=https://example.com",
-        "domain-info": "/api/v1/domain-info?domain=example.com",
-        "web-search": "/api/v1/web-search?q=nano+cryptocurrency",
-        "geoip": "/api/v1/geoip?ip=8.8.8.8",
-        "nano-info": "/api/v1/nano-info?account=nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3",
-        "youtube-transcript": "/api/v1/youtube-transcript?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "screenshot": "/api/v1/screenshot?url=https://example.com",
-        "render": "/api/v1/render?url=https://example.com",
-        "select": "/api/v1/select?url=https://example.com&selector=h1",
-        "links": "/api/v1/links?url=https://example.com",
-        "meta": "/api/v1/meta?url=https://example.com",
-        "table": "/api/v1/table?url=https://example.com",
-        "pdf-extract": "/api/v1/pdf-extract?url=https://arxiv.org/pdf/1706.03762",
-        "mcp-find": "/api/v1/mcp-find?q=web+scraping&filter_rail=nano",
-        "ai-jobs": "/api/v1/ai-jobs?q=OpenAI&limit=5",
-        "wiki-summary": "/api/v1/wiki-summary?q=Nano",
-        "arxiv-paper": "/api/v1/arxiv-paper?arxiv_id=2106.09685",
-        "hn-news": "/api/v1/hn-news?list=top&limit=5",
-        "address-verdict": f"/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
-    }
-    target = type_map.get(type, type_map["extract"])
+    if type not in _DEMO_SAMPLES:
+        return JSONResponse(
+            content={"error": "unknown demo type", "valid": sorted(_DEMO_SAMPLES)},
+            headers={"Access-Control-Allow-Origin": "*"},
+            status_code=400,
+        )
+    payload = _DEMO_SAMPLES[type]
     return JSONResponse(
         content={
             "demo": True,
-            "message": "Free trial is now live — call the real endpoint without payment for real data (5 calls/IP/day).",
-            "redirect": target,
+            "type": type,
+            "message": "Sample output for preview only. Pay for real data via the endpoint price_xno below.",
             "x402_required": False,
-            "free_trial": True,
-            "trial_limit": 5,
+            "price_xno": _demo_price(type),
+            "endpoint": f"/api/v1/{type}",
+            "sample": payload,
         },
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Location": target,
-        },
-        status_code=307,
+        headers={"Access-Control-Allow-Origin": "*"},
+        status_code=200,
     )
+
+
+_PRICE_BY_TYPE = {
+    "extract": PRICE_XNO, "check-link": PRICE_XNO, "batch-status": PRICE_XNO,
+    "status": PRICE_XNO, "select": PRICE_XNO, "links": PRICE_XNO,
+    "meta": PRICE_XNO, "table": PRICE_XNO, "web-search": PRICE_XNO,
+    "geoip": PRICE_XNO, "mcp-find": PRICE_XNO, "wiki-summary": PRICE_XNO,
+    "arxiv-paper": PRICE_XNO, "hn-news": PRICE_XNO, "ai-jobs": PRICE_JOBS_XNO,
+    "address-verdict": PRICE_XNO,
+    "domain-info": PRICE_DOMAIN_XNO,
+    "nano-info": PRICE_NANO_XNO,
+    "youtube-transcript": PRICE_YT_XNO, "screenshot": PRICE_SCREENSHOT_XNO,
+    "render": PRICE_RENDER_XNO, "pdf-extract": PRICE_PDF_XNO,
+}
+
+
+def _demo_price(t: str) -> float:
+    p = _PRICE_BY_TYPE.get(t)
+    return p if p is not None else PRICE_XNO
+
+
+_DEMO_SAMPLES = {
+    "extract": {"title": "Example Domain", "text": "This domain is for use in illustrative examples in documents.", "char_count": 74, "url": "https://example.com"},
+    "check-link": {"url": "https://example.com", "status_code": 200, "response_time_ms": 42, "final_url": "https://example.com/", "redirect_chain": []},
+    "batch-status": {"results": [{"url": "https://example.com", "status_code": 200, "response_time_ms": 41}, {"url": "https://httpbin.org/status/200", "status_code": 500, "response_time_ms": 210}], "count": 2},
+    "status": {"url": "https://example.com", "status_code": 200, "final_url": "https://example.com/", "redirect_chain": [], "tls_valid": True, "response_time_ms": 39},
+    "domain-info": {"domain": "example.com", "dns": {"a": ["93.184.216.34"], "mx": ["mail.example.com"]}, "whois_created": "1992-01-01", "ssl_valid": True},
+    "web-search": {"query": "nano cryptocurrency", "results": [{"title": "Nano — Digital currency", "url": "https://nano.org", "snippet": "Nano is a digital currency with zero fees and instant transactions."}]},
+    "geoip": {"ip": "8.8.8.8", "country": "United States", "country_code": "US", "city": "Mountain View", "isp": "Google LLC", "asn": "AS15169"},
+    "nano-info": {"account": "nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3", "balance_raw": "1000000000000000000000000", "representative": "nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3", "block_count": "42"},
+    "youtube-transcript": {"video_id": "dQw4w9WgXcQ", "title": "Rick Astley - Never Gonna Give You Up", "transcript": "We're no strangers to love..."},
+    "screenshot": {"url": "https://example.com", "image_url": "https://extract.paypercall.dev/static/sample.png", "width": 1280, "height": 720},
+    "render": {"url": "https://example.com", "text": "Rendered text content from a JS-heavy page.", "title": "Example Domain"},
+    "select": {"url": "https://example.com", "selector": "h1", "matches": ["Example Domain"], "count": 1},
+    "links": {"url": "https://example.com", "links": [{"text": "More information...", "href": "https://www.iana.org/domains/example"}], "count": 1},
+    "meta": {"url": "https://example.com", "title": "Example Domain", "description": "", "og_image": "", "json_ld": []},
+    "table": {"url": "https://example.com", "tables": [{"rows": 1, "cells": [["header1", "header2"]]}], "count": 1},
+    "pdf-extract": {"url": "https://arxiv.org/pdf/1706.03762", "title": "Attention Is All You Need", "text": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks...", "page_count": 15},
+    "mcp-find": {"query": "web scraping", "results": [{"name": "vend-extract", "rail": "nano", "url": "https://extract.paypercall.dev/.well-known/x402"}]},
+    "ai-jobs": {"query": "OpenAI", "results": [{"title": "AI Engineer", "company": "Acme AI", "location": "Remote", "salary": "$150k-$200k"}]},
+    "wiki-summary": {"topic": "Nano (cryptocurrency)", "summary": "Nano is a cryptocurrency that uses a directed acyclic graph (block-lattice) for feeless, instant transactions.", "url": "https://en.wikipedia.org/wiki/Nano_(cryptocurrency)"},
+    "arxiv-paper": {"arxiv_id": "2106.09685", "title": "LoRA: Low-Rank Adaptation of Large Language Models", "authors": ["Edward J. Hu"], "abstract": "We propose Low-Rank Adaptation..."},
+    "hn-news": {"list": "top", "results": [{"title": "Nano: a feeless digital currency", "url": "https://news.ycombinator.com/item?id=1", "points": 1234}]},
+    "address-verdict": {"account": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7", "verdict": "active", "confidence": 0.99},
+}
 
 
 @app.get("/api/v1/geoip")
