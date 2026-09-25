@@ -246,12 +246,21 @@ def endpoint_input_spec(endpoint_path: str) -> dict:
     return em_input_spec(endpoint_path)
 
 
-def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw: str = PRICE_RAW):
+def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw: str = PRICE_RAW,
+                    validate_input=None):
     """
     Decorator-like handler to require Nano payment for an endpoint.
     Returns:
         - (True, None) if paid
         - (False, Response) if unpaid — the caller should return this Response
+
+    validate_input: optional callable(request) -> Optional[JSONResponse]. When a
+    valid on-ledger payment is present but the request's required parameters are
+    missing/malformed, this runs BEFORE the block is redeemed so a buyer who pays
+    but sends a bad request does NOT lose their money. It returns a 400 naming the
+    missing parameter and stating the block was not consumed (the buyer can retry
+    with the same block and correct params). Naked discovery probes (no payment)
+    still get the 402 challenge first, preserving x402 conformance.
     """
     async def checker(request: Request):
         # ── Free trial check ─────────────────────────────────────────
@@ -453,6 +462,18 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
 
         # Payment valid — record block as redeemed BEFORE doing work (replay prevention)
         verification["block_hash"] = block_hash
+
+        # Validate required request input BEFORE redeeming the block. A buyer
+        # who pays but sends a missing/incorrect required parameter must NOT
+        # lose their money: we return a 400 naming the problem and the block is
+        # left unconsumed so they can retry with the same block and correct
+        # params. (Naked discovery probes with no payment never reach here —
+        # they get the 402 challenge above.)
+        if validate_input is not None:
+            bad = validate_input(request)
+            if bad is not None:
+                return False, bad
+
         claimed = store.redeem(
             block_hash,
             endpoint=endpoint_path,
@@ -475,6 +496,33 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
         return True, None
 
     return checker
+
+
+def missing_param_response(param: str):
+    """Build a 400 that names a missing required parameter and tells the caller
+    the payment block was NOT consumed, so they can retry with the same block."""
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": f"{param} parameter is required",
+            "block_not_consumed": True,
+            "message": f"Your payment block was NOT redeemed. Add the required "
+                       f"'{param}' parameter and retry with the same X-PAYMENT block.",
+        },
+        headers={"X-PAYMENT-RESULT": "invalid_request_not_billed"},
+    )
+
+
+def require_input(param: str):
+    """Return a validate_input callable for require_payment that rejects a paid
+    request whose required *param* is missing, WITHOUT redeeming the block."""
+    def _validate(request: Request):
+        qp = request.query_params
+        val = qp.get(param)
+        if val is None or (isinstance(val, str) and not val.strip()):
+            return missing_param_response(param)
+        return None
+    return _validate
 
 
 def paid_response(result: dict, request: Request) -> JSONResponse:
@@ -2534,7 +2582,8 @@ async def extract(
     (no payment, no parameter) reaches the 402 challenge *before* request
     validation rejects it — required by the x402scan discovery spec.
     """
-    paid, response = await require_payment("/api/v1/extract")(request)
+    paid, response = await require_payment(
+        "/api/v1/extract", validate_input=require_input("url"))(request)
     if not paid:
         return response
 
@@ -2542,7 +2591,7 @@ async def extract(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     # Payment confirmed and URL provided — do the extraction
@@ -2563,14 +2612,15 @@ async def status_endpoint(
     reaches the 402 challenge *before* request validation rejects it —
     required by the x402scan discovery spec.
     """
-    paid, response = await require_payment("/api/v1/status")(request)
+    paid, response = await require_payment(
+        "/api/v1/status", validate_input=require_input("url"))(request)
     if not paid:
         return response
 
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     return run_paid_work(request, check_status, url, 15, previous_hash)
@@ -2591,7 +2641,8 @@ async def check_link_endpoint(
     reaches the 402 challenge *before* request validation rejects it —
     required by the x402scan discovery spec.
     """
-    paid, response = await require_payment("/api/v1/check-link")(request)
+    paid, response = await require_payment(
+        "/api/v1/check-link", validate_input=require_input("url"))(request)
     if not paid:
         return response
 
@@ -2599,7 +2650,7 @@ async def check_link_endpoint(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     # Payment confirmed and URL provided — do the check
@@ -2620,16 +2671,17 @@ async def batch_status_endpoint(
     Returns each URL's status_code, response_time_ms, final_url and error,
     checked concurrently so a slow target never blocks the rest. Cap 50 URLs.
     """
-    paid, response = await require_payment("/api/v1/batch-status")(request)
+    paid, response = await require_payment(
+        "/api/v1/batch-status", validate_input=require_input("urls"))(request)
     if not paid:
         return response
 
-    # Payment confirmed — validate input
+    # Payment confirmed — validate input (multi-urls may be a single nonempty value)
     url_list = [u.strip() for u in (urls or "").split(",") if u.strip()]
     if not url_list:
         return JSONResponse(
             status_code=400,
-            content={"error": "urls parameter is required (comma-separated)"},
+            content=missing_param_response("urls").body,
         )
     if len(url_list) > 50:
         return JSONResponse(
@@ -2656,7 +2708,10 @@ async def select_endpoint(
     fields it cares about (prices, headings, table rows, link hrefs) in one
     paid call instead of re-parsing the whole page.
     """
-    paid, response = await require_payment("/api/v1/select")(request)
+    paid, response = await require_payment(
+        "/api/v1/select",
+        validate_input=lambda req: (require_input("url")(req)
+                                    or require_input("selector")(req)))(request)
     if not paid:
         return response
 
@@ -2664,12 +2719,12 @@ async def select_endpoint(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
     if not selector:
         return JSONResponse(
             status_code=400,
-            content={"error": "selector parameter is required (e.g. h1, .price, table tr)"},
+            content=missing_param_response("selector").body,
         )
 
     return run_paid_work(request, select_from_url, url, selector, attr, limit)
@@ -2688,14 +2743,15 @@ async def links_endpoint(
     data/scraping/research agent can crawl a site, audit outbound links, or build
     a sitemap in one paid call instead of fetching and re-parsing the whole page.
     """
-    paid, response = await require_payment("/api/v1/links")(request)
+    paid, response = await require_payment(
+        "/api/v1/links", validate_input=require_input("url"))(request)
     if not paid:
         return response
 
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     return run_paid_work(request, links_from_url, url, limit)
@@ -2713,14 +2769,15 @@ async def meta_endpoint(
     data/scraping/research agent can unfurl a link into a preview card or read
     structured data without scraping and re-parsing the whole page.
     """
-    paid, response = await require_payment("/api/v1/meta")(request)
+    paid, response = await require_payment(
+        "/api/v1/meta", validate_input=require_input("url"))(request)
     if not paid:
         return response
 
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     return run_paid_work(request, meta_for_url, url)
@@ -2738,14 +2795,15 @@ async def table_endpoint(
     so a data/scraping agent can pull comparison tables, price lists, schedules
     or statistics as clean rows instead of re-parsing HTML.
     """
-    paid, response = await require_payment("/api/v1/table")(request)
+    paid, response = await require_payment(
+        "/api/v1/table", validate_input=require_input("url"))(request)
     if not paid:
         return response
 
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     return run_paid_work(request, tables_for_url, url)
@@ -2770,6 +2828,7 @@ async def domain_info_endpoint(
         "/api/v1/domain-info",
         price_xno=PRICE_DOMAIN_XNO,
         price_raw=PRICE_DOMAIN_RAW,
+        validate_input=require_input("domain"),
     )(request)
     if not paid:
         return response
@@ -2778,7 +2837,7 @@ async def domain_info_endpoint(
     if not domain:
         return JSONResponse(
             status_code=400,
-            content={"error": "domain parameter is required"},
+            content=missing_param_response("domain").body,
         )
 
     # Payment confirmed and domain provided — do the lookup
@@ -2803,6 +2862,7 @@ async def web_search_endpoint(
         "/api/v1/web-search",
         price_xno=PRICE_WEBSEARCH_XNO,
         price_raw=PRICE_WEBSEARCH_RAW,
+        validate_input=require_input("q"),
     )(request)
     if not paid:
         return response
@@ -2811,7 +2871,7 @@ async def web_search_endpoint(
     if not q:
         return JSONResponse(
             status_code=400,
-            content={"error": "q parameter is required"},
+            content=missing_param_response("q").body,
         )
 
     # Payment confirmed and query provided — do the search
@@ -2921,6 +2981,7 @@ async def geoip_endpoint(
         "/api/v1/geoip",
         price_xno=PRICE_GEO_XNO,
         price_raw=PRICE_GEO_RAW,
+        validate_input=require_input("ip"),
     )(request)
     if not paid:
         return response
@@ -2929,7 +2990,7 @@ async def geoip_endpoint(
     if not ip:
         return JSONResponse(
             status_code=400,
-            content={"error": "ip parameter is required"},
+            content=missing_param_response("ip").body,
         )
 
     # Payment confirmed and IP provided — do the lookup
@@ -2952,6 +3013,7 @@ async def nano_info_endpoint(
         "/api/v1/nano-info",
         price_xno=PRICE_NANO_XNO,
         price_raw=PRICE_NANO_RAW,
+        validate_input=require_input("account"),
     )(request)
     if not paid:
         return response
@@ -2960,7 +3022,7 @@ async def nano_info_endpoint(
     if not account:
         return JSONResponse(
             status_code=400,
-            content={"error": "account parameter is required"},
+            content=missing_param_response("account").body,
         )
 
     # Payment confirmed and account provided — do the lookup
@@ -2987,6 +3049,7 @@ async def youtube_transcript_endpoint(
         "/api/v1/youtube-transcript",
         price_xno=PRICE_YT_XNO,
         price_raw=PRICE_YT_RAW,
+        validate_input=require_input("url"),
     )(request)
     if not paid:
         return response
@@ -2995,7 +3058,7 @@ async def youtube_transcript_endpoint(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required (YouTube video URL)"},
+            content=missing_param_response("url").body,
         )
 
     # Payment confirmed and URL provided — fetch transcript
@@ -3026,6 +3089,7 @@ async def screenshot_endpoint(
         "/api/v1/screenshot",
         price_xno=PRICE_SCREENSHOT_XNO,
         price_raw=PRICE_SCREENSHOT_RAW,
+        validate_input=require_input("url"),
     )(request)
     if not paid:
         return response
@@ -3034,7 +3098,7 @@ async def screenshot_endpoint(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     # Payment confirmed and URL provided — capture screenshot
@@ -3064,6 +3128,7 @@ async def render_endpoint(
         "/api/v1/render",
         price_xno=PRICE_RENDER_XNO,
         price_raw=PRICE_RENDER_RAW,
+        validate_input=require_input("url"),
     )(request)
     if not paid:
         return response
@@ -3072,7 +3137,7 @@ async def render_endpoint(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required"},
+            content=missing_param_response("url").body,
         )
 
     # Payment confirmed and URL provided — render the page
@@ -3099,6 +3164,7 @@ async def pdf_extract_endpoint(
         "/api/v1/pdf-extract",
         price_xno=PRICE_PDF_XNO,
         price_raw=PRICE_PDF_RAW,
+        validate_input=require_input("url"),
     )(request)
     if not paid:
         return response
@@ -3107,7 +3173,7 @@ async def pdf_extract_endpoint(
     if not url:
         return JSONResponse(
             status_code=400,
-            content={"error": "url parameter is required (URL of a PDF)"},
+            content=missing_param_response("url").body,
         )
 
     # Payment confirmed and URL provided — extract the PDF text
@@ -3137,6 +3203,7 @@ async def mcp_find_endpoint(
         "/api/v1/mcp-find",
         price_xno=PRICE_MCPFIND_XNO,
         price_raw=PRICE_MCPFIND_RAW,
+        validate_input=require_input("q"),
     )(request)
     if not paid:
         return response
@@ -3145,7 +3212,7 @@ async def mcp_find_endpoint(
     if not q:
         return JSONResponse(
             status_code=400,
-            content={"error": "q parameter is required"},
+            content=missing_param_response("q").body,
         )
 
     # Payment confirmed and query provided — search the directories
@@ -3213,6 +3280,7 @@ async def wiki_summary_endpoint(
         "/api/v1/wiki-summary",
         price_xno=PRICE_WIKI_XNO,
         price_raw=PRICE_WIKI_RAW,
+        validate_input=require_input("q"),
     )(request)
     if not paid:
         return response
@@ -3244,6 +3312,10 @@ async def arxiv_paper_endpoint(
         "/api/v1/arxiv-paper",
         price_xno=PRICE_ARXIV_XNO,
         price_raw=PRICE_ARXIV_RAW,
+        validate_input=lambda req: (
+            require_input("arxiv_id")(req) if not (
+                req.query_params.get("arxiv_id") or req.query_params.get("query")
+            ) else None),
     )(request)
     if not paid:
         return response
@@ -3311,6 +3383,7 @@ async def address_verdict_endpoint(
         "/api/v1/address-verdict",
         price_xno=PRICE_VERDICT_XNO,
         price_raw=PRICE_VERDICT_RAW,
+        validate_input=require_input("account"),
     )(request)
     if not paid:
         return response
@@ -3319,7 +3392,7 @@ async def address_verdict_endpoint(
     if not account:
         return JSONResponse(
             status_code=400,
-            content={"error": "account parameter is required"},
+            content=missing_param_response("account").body,
         )
 
     # Payment confirmed and account provided — compute the verdict.

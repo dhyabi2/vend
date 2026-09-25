@@ -423,6 +423,80 @@ def test_geoip_lookup_empty():
     assert result.get("error"), f"Expected error for empty IP, got: {result}"
 
 
+@patch("server.verify_payment")
+@patch("server.store.redeem")
+def test_require_payment_validate_input_no_redeem(mock_redeem, mock_vp):
+    """A paid request with a missing required param returns 400 WITHOUT
+    redeeming the block, so the buyer can retry with the same block."""
+    import asyncio
+    from server import require_payment, require_input
+    from starlette.requests import Request
+
+    mock_vp.return_value = {
+        "valid": True,
+        "amount_raw": "100000000000000000000000000",
+        "source": "nano_3saqo6ww3k1k8qawxpk9f1y7m9oswn7pbkf1a6xzyut7np44rf83kk3ycr4n",
+    }
+    mock_redeem.return_value = True  # must NOT be reached
+
+    # Paid request (X-PAYMENT block) but NO ?ip= param → validation fails
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/v1/geoip",
+        "query_string": b"",
+        "headers": [(b"x-payment", b"A79C939E735C0A6199E29D1B1F8B976B571DB09F1E0A388EE765EFF0DC2A1D3B"),
+                    (b"host", b"geoip.paypercall.dev")],
+    }
+    req = Request(scope)
+    paid, response = asyncio.run(
+        require_payment("/api/v1/geoip", validate_input=require_input("ip"))(req)
+    )
+
+    assert not paid
+    assert response is not None
+    assert response.status_code == 400, f"Expected 400, got {response.status_code}"
+    body = json.loads(response.body.decode())
+    assert "ip" in body.get("error", "").lower()
+    assert body.get("block_not_consumed") is True
+    # The block must NOT be redeemed — the buyer keeps it for a valid retry
+    mock_redeem.assert_not_called()
+    mock_vp.assert_called_once()
+
+
+@patch("server.verify_payment")
+@patch("server.store.redeem")
+def test_require_payment_validate_input_allows_valid(mock_redeem, mock_vp):
+    """A paid request WITH the required param passes validation and is redeemed."""
+    import asyncio
+    from server import require_payment, require_input
+    from starlette.requests import Request
+
+    mock_vp.return_value = {
+        "valid": True,
+        "amount_raw": "100000000000000000000000000",
+        "source": "nano_3saqo6ww3k1k8qawxpk9f1y7m9oswn7pbkf1a6xzyut7np44rf83kk3ycr4n",
+    }
+    mock_redeem.return_value = True
+
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/v1/geoip",
+        "query_string": b"ip=8.8.8.8",
+        "headers": [(b"x-payment", b"A79C939E735C0A6199E29D1B1F8B976B571DB09F1E0A388EE765EFF0DC2A1D3B"),
+                    (b"host", b"geoip.paypercall.dev")],
+    }
+    req = Request(scope)
+    paid, response = asyncio.run(
+        require_payment("/api/v1/geoip", validate_input=require_input("ip"))(req)
+    )
+
+    assert paid
+    assert response is None
+    mock_redeem.assert_called_once()
+
+
 def test_nano_account_info_success():
     """nano_account_info returns structured Nano account data."""
     from server import nano_account_info
