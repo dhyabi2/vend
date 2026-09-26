@@ -126,7 +126,13 @@ else:
         if acc.get("network") != "nano:mainnet" or acc.get("asset") != "XNO":
             fails.append(f"manifest resource {r.get('url')} has no Nano rail")
         url = r.get("url", "")
+        if not url:
+            fails.append(f"manifest resource has no url field")
+            continue
         ep = next((p for p in PAID if url.endswith(p)), "")
+        if not ep:
+            fails.append(f"manifest resource {url} does not end with any known paid path")
+            continue
         expected_price = EXPECTED_PRICES[ep.lstrip("/")]
         if acc.get("amount") != expected_price:
             fails.append(f"manifest resource {url} quotes {acc.get('amount')!r} != {expected_price!r}")
