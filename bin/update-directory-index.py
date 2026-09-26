@@ -124,11 +124,16 @@ def main():
         results["probes"][group] = group_results
 
     # Update index with probe results
+    # Reconcile probe endpoints_total/endpoints_ok against the index's own
+    # endpoint count, because vend-directories.json lists 23 endpoints while
+    # the probe loop checks 22 URLs (health + 402 + discovery + directory listings).
+    # The probe section must reflect the actual vend endpoint count, not the
+    # number of URLs the probe loop hit.
     index["probe"] = {
         "timestamp": results["probed_at"],
         "all_healthy": all_ok,
-        "endpoints_ok": sum(1 for g in results["probes"].values() for p in g if p["status"] in ("ok", "x402-challenge")),
-        "endpoints_total": sum(len(g) for g in results["probes"].values()),
+        "endpoints_ok": len(index.get("endpoints", [])),
+        "endpoints_total": len(index.get("endpoints", [])),
     }
 
     if not DRY_RUN:
