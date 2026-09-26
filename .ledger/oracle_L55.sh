@@ -24,10 +24,11 @@ bases = {
     "geoip": "https://geoip.paypercall.dev",
     "nano": "https://extract.paypercall.dev",
     "youtube": "https://extract.paypercall.dev",
+    "pdf": "https://extract.paypercall.dev",
 }
 prices = {
     "extract": 0.0001, "domain": 0.0005, "websearch": 0.0001,
-    "geoip": 0.0001, "nano": 0.0005, "youtube": 0.0005,
+    "geoip": 0.0001, "nano": 0.0005, "youtube": 0.0005, "pdf": 0.0005,
 }
 spec = em.build_openapi_spec(bases, prices)
 
@@ -41,6 +42,7 @@ EXPECTED = sorted([
     "/api/v1/status",
     "/api/v1/nano-info",
     "/api/v1/youtube-transcript",
+    "/api/v1/pdf-extract",
 ])
 if api_paths != EXPECTED:
     print(f"FAIL: expected {len(EXPECTED)} API paths, got {len(api_paths)}")
