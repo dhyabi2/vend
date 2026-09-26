@@ -2133,7 +2133,7 @@
     "all_healthy": true,
     "endpoints_ok": 23,
     "endpoints_total": 23,
-    "timestamp": "2026-09-26T09:52:44Z",
+    "timestamp": "2026-09-26T09:58:30Z",
     "note": "Probe corrected to match actual endpoint count"
   }
 }
