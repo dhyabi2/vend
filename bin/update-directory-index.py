@@ -95,13 +95,17 @@ def probe_url(url, timeout=15, label=None):
         return "error", None, elapsed, str(e)[:80]
 
 def main():
-    # Load existing index
-    try:
-        with open(INDEX_PATH) as f:
-            index = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        print("Error: vend-directories.json not found", file=sys.stderr)
-        sys.exit(1)
+    # Load existing index through the hardened loader: never crashes on a
+    # missing/corrupt file (corrective #1); self-heals from git history (#6);
+    # quarantines malformed entries (#4).
+    sys.path.insert(0, os.path.join(PROJECT_ROOT, "bin"))
+    from directory_index import load_index, render_report
+    index, load_status = load_index(INDEX_PATH, use_git=True)
+    if load_status["recovered"]:
+        print(f"INFO: recovered index from {load_status['source']} "
+              f"(quarantined {load_status['quarantined']})", file=sys.stderr)
+    if load_status.get("error"):
+        print(f"WARN: {load_status['error']}", file=sys.stderr)
 
     results = {"probed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "probes": {}}
     all_ok = True

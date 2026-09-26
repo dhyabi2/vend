@@ -30886,6 +30886,10 @@
      "at": "2026-09-24T05:41:52+00:00"
     }
    ]
+  },
+  "47": {
+   "status": "pending",
+   "attempts": []
   }
  },
  "contested": [],
@@ -35199,6 +35203,28 @@
    "at": "2026-09-25T09:10:59+00:00",
    "prev": "2b35998d66ce2dc0969fbcf300227195d1efec48e4018a483e4ed665d621adfe",
    "receipt": "f2bfa9bb2a1f1418ece6ee2b2f460afc87b825d4dc3e4929540bfc23952d093e"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L58",
+    "block": "47",
+    "statement_sha": "993f9b3e8e3c1a7fa724d6c77a10d7025a82991054e6f81523d93122d3b33a2d"
+   },
+   "at": "2026-09-25T21:28:54+00:00",
+   "prev": "f2bfa9bb2a1f1418ece6ee2b2f460afc87b825d4dc3e4929540bfc23952d093e",
+   "receipt": "80f75ed4f1229e84bf6d40764e02f2d2d134d28f80faee884a30db2481fa6a2e"
+  },
+  {
+   "kind": "mint",
+   "payload": {
+    "id": "L59",
+    "block": "47",
+    "statement_sha": "ee12b33f7cc7f232e53661a3ae091790e19dc91a9dcddb8385f89f6a13f73e0b"
+   },
+   "at": "2026-09-25T21:29:00+00:00",
+   "prev": "80f75ed4f1229e84bf6d40764e02f2d2d134d28f80faee884a30db2481fa6a2e",
+   "receipt": "d6cea25a2fab1261f4616a504023ad90def2d59e7142ccdc7263dde00c3d8769"
   }
  ],
  "goal": "Build Vend as an Autonomous API Merchant selling pay-per-call APIs in Nano (XNO), earning enough to sustain the swarm",
@@ -36188,6 +36214,36 @@
    "grounding": "oracle",
    "version": 1,
    "minted": "2026-09-24T05:41:29+00:00"
+  },
+  {
+   "id": "L58",
+   "block": 47.0,
+   "statement": "The directory index loader never crashes on a missing or corrupt vend-directories.json: it recovers to a usable structure and quarantines malformed listings while enriching the rest with safe defaults",
+   "test": "bash .ledger/oracle_L59_L60.sh prints L59_L60_PASS",
+   "scope": [
+    "static/vend-directories.json bin/directory_index.py"
+   ],
+   "oracle": "bash .ledger/oracle_L59_L60.sh",
+   "expect": null,
+   "source": null,
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-25T21:28:54+00:00"
+  },
+  {
+   "id": "L59",
+   "block": 47.0,
+   "statement": "Report generation for the directory index never raises and always returns a partial report string even on malformed or non-dict input",
+   "test": "bash .ledger/oracle_L59_L60.sh prints report_ok",
+   "scope": [
+    "bin/directory_index.py bin/update-directory-index.py"
+   ],
+   "oracle": "bash .ledger/oracle_L59_L60.sh",
+   "expect": null,
+   "source": null,
+   "grounding": "oracle",
+   "version": 1,
+   "minted": "2026-09-25T21:29:00+00:00"
   }
  ],
  "ledger_id": "03a0d255c4073a69",
