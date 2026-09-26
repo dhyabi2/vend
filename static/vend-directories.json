@@ -8,44 +8,395 @@
   "contact": "vend@paypercall.dev",
   "endpoints": [
     {
-      "name": "extract",
-      "url": "https://extract.paypercall.dev",
-      "price_xno": 0.0001
+      "name": "Batch check HTTP status of up to 50 URLs in one call",
+      "url": "https://extract.paypercall.dev/api/v1/batch-status",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Batch check HTTP status of up to 50 URLs in one call. Accepts ?urls=url1,url2,... . Returns each URL's status_code, response_time_ms, final_url and error. 0.0001 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "check-link",
-      "url": "https://check.paypercall.dev",
-      "price_xno": 0.0001
+      "name": "CSS-selector structured extraction",
+      "url": "https://extract.paypercall.dev/api/v1/select",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "CSS-selector structured extraction. Accepts ?url= and ?selector= (e.g. h1, .price, table tr), optional ?attr= to read an attribute and ?limit=. Returns the matching elements' text/attributes, capped. ",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "domain-info",
-      "url": "https://domain.paypercall.dev",
-      "price_xno": 0.0005
+      "name": "Capture a screenshot of any public URL using headless browser rendering",
+      "url": "https://extract.paypercall.dev/api/v1/screenshot",
+      "method": "GET",
+      "price_xno": 0.0005,
+      "price_raw": "500000000000000000000000000",
+      "description": "Capture a screenshot of any public URL using headless browser rendering. Accepts ?url=, ?format=png|jpeg, ?full_page=true|false, ?width=, ?height=. Returns base64 image data URL. 0.0005 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "500000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "web-search",
-      "url": "https://search.paypercall.dev",
-      "price_xno": 0.0001
+      "name": "Check HTTP status, response time, redirect chain for a URL",
+      "url": "https://check.paypercall.dev/api/v1/check-link",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Check HTTP status, response time, redirect chain for a URL. Accepts ?url= parameter. Returns status_code, response_time_ms, final_url, redirect_chain.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "geoip",
-      "url": "https://geoip.paypercall.dev",
-      "price_xno": 0.0001
+      "name": "Extract captions and transcript from a YouTube video URL",
+      "url": "https://extract.paypercall.dev/api/v1/youtube-transcript",
+      "method": "GET",
+      "price_xno": 0.0005,
+      "price_raw": "500000000000000000000000000",
+      "description": "Extract captions and transcript from a YouTube video URL. Accepts ?url= and optional ?language=en. Returns timestamped segments and model-sized chunks with deep-linked citations. 0.0005 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "500000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "nano-info",
-      "url": "https://extract.paypercall.dev",
-      "price_xno": 0.0005
+      "name": "Extract clean text/markdown from a URL",
+      "url": "https://extract.paypercall.dev/api/v1/extract",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Extract clean text/markdown from a URL. Accepts ?url= parameter. Returns title, text, markdown, error.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "check-url-status",
-      "url": "https://extract.paypercall.dev",
-      "price_xno": 0.0001
+      "name": "Extract text from a PDF at a URL",
+      "url": "https://extract.paypercall.dev/api/v1/pdf-extract",
+      "method": "GET",
+      "price_xno": 0.0005,
+      "price_raw": "500000000000000000000000000",
+      "description": "Extract text from a PDF at a URL. Accepts ?url= parameter. Returns title, page_count, and page-structured text suitable for LLM consumption. 0.0005 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "500000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     },
     {
-      "name": "youtube-transcript",
-      "url": "https://extract.paypercall.dev",
-      "price_xno": 0.0005
+      "name": "Full domain intelligence: DNS records, WHOIS registration, SSL/TLS certificate, HTTP headers",
+      "url": "https://domain.paypercall.dev/api/v1/domain-info",
+      "method": "GET",
+      "price_xno": 0.0005,
+      "price_raw": "500000000000000000000000000",
+      "description": "Full domain intelligence: DNS records, WHOIS registration, SSL/TLS certificate, HTTP headers. Accepts ?domain= parameter. Returns structured JSON for agent decision-making.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "500000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Fund prepaid balance from Nano send to treasury",
+      "url": "https://extract.paypercall.dev/api/v1/balance/top-up",
+      "method": "POST",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Fund prepaid balance from Nano send to treasury. Requires X-PAYMENT header. Credits full send amount to sender's balance.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "HTML table extractor",
+      "url": "https://extract.paypercall.dev/api/v1/table",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "HTML table extractor. Accepts ?url=. Returns the page's tables as structured JSON: headers and rows keyed by column \u2014 for pulling comparison tables, price lists, schedules or statistics. 0.0001 XNO pe",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Hacker News top/new/best/ask/show/job feed \u2014 clean bounded JSON for tech-trend research, content monitoring, and curation agents",
+      "url": "https://extract.paypercall.dev/api/v1/hn-news",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Hacker News top/new/best/ask/show/job feed \u2014 clean bounded JSON for tech-trend research, content monitoring, and curation agents. Accepts ?list=<top|new|best|ask|show|job>&limit=<n>&score=<min>. Relia",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "IP geolocation lookup",
+      "url": "https://geoip.paypercall.dev/api/v1/geoip",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "IP geolocation lookup. Accepts ?ip=8.8.8.8. Returns country, city, coordinates, ISP, ASN, timezone and more. 0.0001 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Link extractor",
+      "url": "https://extract.paypercall.dev/api/v1/links",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Link extractor. Accepts ?url= and optional ?limit=. Returns every anchor link on the page as structured JSON: href, visible text, absolute URL, external flag, target and rel \u2014 for crawling, outbound-l",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Nano account intelligence: balance, representative, block count, frontier, weight, pending",
+      "url": "https://extract.paypercall.dev/api/v1/nano-info",
+      "method": "GET",
+      "price_xno": 0.0005,
+      "price_raw": "500000000000000000000000000",
+      "description": "Nano account intelligence: balance, representative, block count, frontier, weight, pending. Accepts ?account=nano_.... 0.0005 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "500000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Nano on-chain address verdict \u2014 is this payTo address a real active valuable counterparty or dust/wash? Accepts ?account=nano_",
+      "url": "https://extract.paypercall.dev/api/v1/address-verdict",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Nano on-chain address verdict \u2014 is this payTo address a real active valuable counterparty or dust/wash? Accepts ?account=nano_.... Returns label (high_value/active/dust/wash_likely/inactive/not_found)",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "One-call URL status: final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and whether the body changed (?previous_hash=)",
+      "url": "https://extract.paypercall.dev/api/v1/status",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "One-call URL status: final HTTP status, redirect chain, TLS validity and days-to-expiry, response time, and whether the body changed (?previous_hash=). Accepts ?url= parameter.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Page metadata extractor",
+      "url": "https://extract.paypercall.dev/api/v1/meta",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Page metadata extractor. Accepts ?url=. Returns title, meta description, Open Graph, Twitter Card, canonical URL, favicon and any JSON-LD blocks \u2014 for unfurling links into preview cards or reading str",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Render a JavaScript-heavy page in a real browser and return its content as Markdown",
+      "url": "https://extract.paypercall.dev/api/v1/render",
+      "method": "GET",
+      "price_xno": 0.0005,
+      "price_raw": "500000000000000000000000000",
+      "description": "Render a JavaScript-heavy page in a real browser and return its content as Markdown. Accepts ?url= and optional ?max_chars=. For SPA/dashboard pages where a plain fetch returns an empty shell. 0.0005 ",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "500000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Search 19,800+ live AI/AI-adjacent job postings",
+      "url": "https://extract.paypercall.dev/api/v1/ai-jobs",
+      "method": "GET",
+      "price_xno": 0.0002,
+      "price_raw": "200000000000000000000000000",
+      "description": "Search 19,800+ live AI/AI-adjacent job postings. Accepts ?q=<text>&company=<c>&category=<cat>&region=<reg>&level=<lvl>&remote=1&limit=<n>&offset=<n>. Returns clean structured jobs for labor-market res",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "200000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Search paid MCP/x402 service directories for a task",
+      "url": "https://extract.paypercall.dev/api/v1/mcp-find",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Search paid MCP/x402 service directories for a task. Accepts ?q= and optional ?limit= and ?filter_rail=nano. Returns matching services with settlement rails, prices, and x402 health. 0.0001 XNO per ca",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Web search using DuckDuckGo",
+      "url": "https://search.paypercall.dev/api/v1/web-search",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Web search using DuckDuckGo. Accepts ?q=search+query. Returns structured JSON results with titles, URLs, and snippets. 0.0001 XNO per call.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "Wikipedia entity summary \u2014 clean one-paragraph profile for any topic (company, person, technology)",
+      "url": "https://extract.paypercall.dev/api/v1/wiki-summary",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "Wikipedia entity summary \u2014 clean one-paragraph profile for any topic (company, person, technology). Accepts ?q=<topic>. Returns title, description, extract, thumbnail, wikidata_id. Reliable English Wi",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
+    },
+    {
+      "name": "arXiv paper metadata \u2014 clean JSON for any paper by arXiv ID or search query: title, authors, primary category, abstract, published date, DOI, PDF link",
+      "url": "https://extract.paypercall.dev/api/v1/arxiv-paper",
+      "method": "GET",
+      "price_xno": 0.0001,
+      "price_raw": "100000000000000000000000000",
+      "description": "arXiv paper metadata \u2014 clean JSON for any paper by arXiv ID or search query: title, authors, primary category, abstract, published date, DOI, PDF link. Accepts ?arxiv_id=<id> or ?query=<terms>. Reliab",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "nano:mainnet",
+          "asset": "XNO",
+          "amount": "100000000000000000000000000",
+          "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+        }
+      ]
     }
   ],
   "listings": [
@@ -1779,7 +2130,7 @@
     }
   ],
   "probe": {
-    "timestamp": "2026-09-26T08:33:34Z",
+    "timestamp": "2026-09-26T08:47:39Z",
     "all_healthy": true,
     "endpoints_ok": 22,
     "endpoints_total": 22
