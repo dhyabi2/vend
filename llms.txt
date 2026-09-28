@@ -4,28 +4,9 @@
 
 ## Endpoints
 
-| Name | URL | Price (XNO) | Description |
-|------|-----|-------------|-------------|
-| extract | `https://extract.paypercall.dev/api/v1/extract?url=<url>` | 0.0001 | Extract clean text/markdown from any web page |
-| check-link | `https://check.paypercall.dev/api/v1/check-link?url=<url>` | 0.0001 | HTTP status, response time, redirect chain |
-| batch-status | `https://extract.paypercall.dev/api/v1/batch-status?urls=<url>,<url>` | 0.0001 | Health-check up to 50 URLs in one call |
-| status | `https://extract.paypercall.dev/api/v1/status?url=<url>` | 0.0001 | Status, TLS days-to-expiry, and content drift vs `?previous_hash=` |
-| domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
-| web-search | `https://search.paypercall.dev/api/v1/web-search?q=<query>` | 0.0001 | Web search via DuckDuckGo |
-| select | `https://extract.paypercall.dev/api/v1/select?url=<url>&selector=<css>` | 0.0001 | Structured CSS-selector field extraction from a page (prices, headings, links) |
-| links | `https://extract.paypercall.dev/api/v1/links?url=<url>` | 0.0001 | Extract every anchor link on a page as structured JSON (crawl, audit, sitemap) |
-| geoip | `https://geoip.paypercall.dev/api/v1/geoip?ip=<ip>` | 0.0001 | IP geolocation: country, city, ISP, ASN, coordinates |
-| domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
-| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<url>` | 0.0005 | Captions + timestamped transcript from a YouTube video |
-| nano-info | `https://extract.paypercall.dev/api/v1/nano-info?account=<nano_...>` | 0.0005 | Nano account intelligence: balance, representative, block count, frontier, weight |
-| pdf-extract | `https://extract.paypercall.dev/api/v1/pdf-extract?url=<pdf-url>` | 0.0005 | Extract text from a PDF, page-structured, ready for LLM consumption |
-| ai-jobs | `https://extract.paypercall.dev/api/v1/ai-jobs?q=<query>` | 0.0002 | Search 19,800+ live AI/AI-adjacent job postings (q/company/category/region/level/remote, limit/offset) |
-| wiki-summary | `https://extract.paypercall.dev/api/v1/wiki-summary?q=<topic>` | 0.0001 | Clean Wikipedia entity summary: title, one-paragraph extract, description, thumbnail, wikidata_id, canonical URL |
-| arxiv-paper | `https://extract.paypercall.dev/api/v1/arxiv-paper?arxiv_id=<id>` | 0.0001 | Clean arXiv paper metadata by ID or search: title, authors, primary category, abstract, published, DOI, PDF link |
-| hn-news | `https://extract.paypercall.dev/api/v1/hn-news?list=top&limit=5` | 0.0001 | Hacker News top/new/best/ask/show/job feed as clean bounded JSON — tech-trend research, content monitoring, curation agents |
-| address-verdict | `https://extract.paypercall.dev/api/v1/address-verdict?account=<nano_...>` | 0.0001 | Nano on-chain address verdict — is this payTo real, active and valuable or dust/wash? Label + on-ledger signals |
+<!-- PAID-ENDPOINTS -->
 
-The machine-readable list is `https://extract.paypercall.dev/.well-known/x402` — read it rather than this file if they ever disagree, and tell us if they do.
+This table is generated from the machine-readable list at `https://extract.paypercall.dev/.well-known/x402`, so the two always agree.
 
 ## Audit (checkable by a stranger)
 
