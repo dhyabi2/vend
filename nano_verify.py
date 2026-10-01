@@ -429,20 +429,37 @@ def verify_payment(block_hash: str, expected_amount_raw: str = PRICE_RAW,
         result["destination"] = destination
         return result
 
-    # Check amount meets minimum
+    # Check amount meets minimum.
+    #
+    # Both sides have to parse as raw integers before the comparison can mean
+    # anything.  Swallowing a parse error here and carrying on marked the
+    # payment valid with the amount check never run, so a ledger response
+    # carrying no usable `amount` (an empty string, a null, a proxy that drops
+    # the field) bought an unlimited number of paid calls for nothing.  An
+    # amount we cannot read is a payment we cannot verify: refuse it.
     try:
-        if int(amount_raw) < int(expected_amount_raw):
-            actual_xno = raw_to_xno(amount_raw)
-            expected_xno = raw_to_xno(expected_amount_raw)
-            result["message"] = (
-                f"Payment too small: {actual_xno} XNO (expected at least {expected_xno} XNO)"
-            )
-            result["amount_raw"] = amount_raw
-            result["source"] = source
-            result["destination"] = destination
-            return result
+        actual_raw = int(amount_raw)
+        minimum_raw = int(expected_amount_raw)
     except (ValueError, TypeError):
-        pass
+        result["message"] = (
+            f"Cannot read the payment amount from this block (ledger reported "
+            f"{amount_raw!r}); payment not verified"
+        )
+        result["amount_raw"] = str(amount_raw)
+        result["source"] = source
+        result["destination"] = destination
+        return result
+
+    if actual_raw < minimum_raw:
+        actual_xno = raw_to_xno(amount_raw)
+        expected_xno = raw_to_xno(expected_amount_raw)
+        result["message"] = (
+            f"Payment too small: {actual_xno} XNO (expected at least {expected_xno} XNO)"
+        )
+        result["amount_raw"] = amount_raw
+        result["source"] = source
+        result["destination"] = destination
+        return result
 
     result["valid"] = True
     result["amount_raw"] = amount_raw
