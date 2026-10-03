@@ -64,6 +64,7 @@ from arxiv_paper import arxiv_paper
 from hn_news import hn_news
 from address_verdict import address_verdict
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
+from endpoint_meta import paid_from_manifest, complete_openapi, llms_endpoint_table, agent_tools_paid
 import cdp_verify
 from trial_tracker import get_tracker
 from a2a_handler import a2a_endpoint
@@ -744,9 +745,16 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/llms.txt")
 async def llms_txt():
-    """LLM-friendly catalog of Vend endpoints, payment flow, and directory listings."""
-    return FileResponse(
-        os.path.join(STATIC_DIR, "..", "llms.txt"),
+    """LLM-friendly catalog of Vend endpoints, payment flow, and directory listings.
+
+    The endpoint table is generated from the x402 manifest at request time
+    (the ``<!-- PAID-ENDPOINTS -->`` marker in llms.txt), so it always lists
+    exactly the paid resources /.well-known/x402 sells."""
+    with open(os.path.join(STATIC_DIR, "..", "llms.txt"), "r") as f:
+        text = f.read()
+    text = text.replace("<!-- PAID-ENDPOINTS -->", llms_endpoint_table(paid_catalog()))
+    return PlainTextResponse(
+        text,
         media_type="text/plain",
         headers={
             "Access-Control-Allow-Origin": "*",
@@ -1431,6 +1439,15 @@ def x402_manifest():
         "nano_directory": "https://extract.paypercall.dev/nano-directory",
         "updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
+
+
+def paid_catalog():
+    """THE list of paid endpoints: the x402 manifest's resources, flattened.
+
+    /openapi.json, /llms.txt and /.well-known/agent-tools.json are all derived
+    from this, so no discovery surface can advertise a different paid set than
+    /.well-known/x402 (issue #461: OpenAPI showed 9 of 23)."""
+    return paid_from_manifest(x402_manifest())
 
 
 @app.get("/.well-known/x402")
@@ -2294,8 +2311,11 @@ async def agents_txt():
 @app.get("/.well-known/agent-tools.json")
 async def well_known_agent_tools():
     """Agent-tools.cloud discovery manifest. Lets the agent-tools directory
-    index Vend automatically as an x402 paid service."""
-    return {
+    index Vend automatically as an x402 paid service.
+
+    The paid resources are derived from the x402 manifest (paid_catalog);
+    only the free entries listed below are kept from this hand-written list."""
+    doc = {
         "name": "Vend API Merchant",
         "description": "Pay-per-call URL-to-clean-text extraction settled in Nano (XNO). No signup, no API key.",
         "url": f"{BASE_URL}",
@@ -2483,12 +2503,16 @@ async def well_known_agent_tools():
         },
         "contact": "vend@paypercall.dev"
     }
+    free = [r for r in doc["x402"]["resources"] if r.get("free") is True]
+    doc["x402"]["resources"] = agent_tools_paid(paid_catalog()) + free
+    return doc
 
 
 @app.get("/openapi.json")
 async def openapi_spec():
-    """OpenAPI 3.1 discovery spec. Built from endpoint_meta for inspectability."""
-    return build_openapi_spec(
+    """OpenAPI 3.1 discovery spec. Built from endpoint_meta for inspectability;
+    its /api/v1 paths are completed from the x402 manifest (paid_catalog)."""
+    spec = build_openapi_spec(
         {
             "extract": EXTRACT_BASE,
             "check": CHECK_BASE,
@@ -2521,6 +2545,7 @@ async def openapi_spec():
             "pdf": PRICE_PDF_XNO,
         },
     )
+    return complete_openapi(spec, paid_catalog())
 
 
 @app.get("/api/v1/extract")

@@ -33,6 +33,33 @@ INPUT_SPECS = {
             "example": {"url": "https://example.com/article"},
         },
     },
+    # /api/v1/select is sold by the manifest, so complete_openapi() generates an
+    # operation for it from this table. Without an entry the operation went out with
+    # no `parameters` at all, and a buyer reading /openapi.json could not tell that
+    # the call it is about to pay for needs `url` and `selector`.
+    "/api/v1/select": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to extract from"},
+                    "selector": {"type": "string",
+                                 "description": "CSS selector (e.g. h1, .price, table tr)"},
+                    "attr": {"type": "string",
+                             "description": "Optional attribute to read instead of text "
+                                            "(e.g. href, src)"},
+                    "limit": {"type": "integer", "default": 50,
+                              "description": "Max matches to return (default 50, cap 200)"},
+                },
+                "required": ["url", "selector"],
+            },
+            "example": {"url": "https://example.com", "selector": "h1"},
+        },
+    },
     "/api/v1/check-link": {
         "type": "http",
         "method": "GET",
@@ -765,3 +792,151 @@ def build_openapi_spec(bases, prices):
             "ownershipProofs": [],
         },
     }
+
+
+# ── One list: every discovery surface is derived from the x402 manifest ──────
+#
+# Issue #461: /openapi.json listed 9 paid paths, llms.txt and agent-tools.json
+# missed others, while /.well-known/x402 listed 23. Each surface kept its own
+# hand-written list and they drifted. The x402 manifest's ``resources`` is the
+# single source of truth for what is paid and live; the helpers below turn it
+# into the OpenAPI paths, the llms.txt endpoint table and the agent-tools list,
+# so adding an endpoint to the manifest adds it everywhere and nothing else can.
+
+RAW_PER_XNO = 10 ** 30
+
+
+def raw_to_xno(raw) -> str:
+    """Raw units -> plain XNO decimal string (10**26 -> '0.0001')."""
+    from decimal import Decimal
+    d = Decimal(int(raw)) / Decimal(RAW_PER_XNO)
+    s = format(d.normalize(), "f")
+    return s
+
+
+def paid_from_manifest(manifest: dict) -> list:
+    """The paid catalogue, in manifest order, as flat records.
+
+    Only entries that carry an ``accepts`` list are paid; free endpoints live
+    under the manifest's ``free`` key and are never included here.
+    """
+    from urllib.parse import urlsplit
+    out = []
+    for r in manifest.get("resources", []):
+        accepts = r.get("accepts") or []
+        if not accepts:
+            continue
+        parts = urlsplit(r["url"])
+        a = accepts[0]
+        out.append({
+            "path": parts.path,
+            "url": r["url"],
+            "base": f"{parts.scheme}://{parts.netloc}",
+            "method": (r.get("method") or "GET").upper(),
+            "description": r.get("description", ""),
+            "amount_raw": str(a["amount"]),
+            "price_xno": raw_to_xno(a["amount"]),
+            "pay_to": a["payTo"],
+        })
+    return out
+
+
+def _first_sentence(text: str, limit: int = 140) -> str:
+    s = (text or "").split(". ")[0].strip().rstrip(".")
+    return s if len(s) <= limit else s[: limit - 1].rstrip() + "…"
+
+
+def _operation_id(path: str, method: str) -> str:
+    words = [w for w in path.replace("/api/v1/", "").replace("/", "-").split("-") if w]
+    name = words[0] + "".join(w.capitalize() for w in words[1:]) if words else "op"
+    return name if method == "GET" else f"{method.lower()}{name[0].upper()}{name[1:]}"
+
+
+def _generated_operation(item: dict) -> dict:
+    spec = INPUT_SPECS.get(item["path"], {})
+    schema = (spec.get("input") or {}).get("schema") or {}
+    required = set(schema.get("required") or [])
+    params = []
+    for name, prop in (schema.get("properties") or {}).items():
+        params.append({
+            "name": name,
+            "in": "query",
+            "required": name in required,
+            "schema": prop,
+        })
+    op = {
+        "operationId": _operation_id(item["path"], item["method"]),
+        "summary": _first_sentence(item["description"]),
+        "description": item["description"],
+        "tags": ["Paid"],
+        "servers": [{"url": item["base"]}],
+        "x-payment-info": {
+            "price": {"mode": "fixed", "currency": "USD",
+                      "amount": f"{float(item['price_xno']):.6f}"},
+            "protocols": [{"x402": {}}],
+        },
+        "responses": {
+            "200": {"description": "Successful response",
+                    "content": {"application/json": {"schema": {"type": "object"}}}},
+            "402": {"description": "Payment Required"},
+        },
+    }
+    if params:
+        op["parameters"] = params
+    return op
+
+
+def complete_openapi(spec: dict, paid: list) -> dict:
+    """Make the OpenAPI ``paths`` exactly the paid catalogue.
+
+    Hand-written operations (richer response schemas) are kept when they
+    exist; every other paid path gets an operation generated from the manifest
+    entry and its INPUT_SPECS. /api/v1 paths the manifest does not sell are
+    dropped, so the paid set can never differ from /.well-known/x402.
+    """
+    old = spec.get("paths", {})
+    paths = {k: v for k, v in old.items() if not k.startswith("/api/v1/")}
+    for item in paid:
+        m = item["method"].lower()
+        existing = (old.get(item["path"]) or {}).get(m)
+        paths.setdefault(item["path"], {})[m] = existing or _generated_operation(item)
+    spec["paths"] = paths
+    known = {s.get("url") for s in spec.get("servers", [])}
+    for item in paid:
+        if item["base"] not in known:
+            spec.setdefault("servers", []).append({"url": item["base"]})
+            known.add(item["base"])
+    return spec
+
+
+def _example_url(item: dict) -> str:
+    from urllib.parse import urlencode
+    ex = ((INPUT_SPECS.get(item["path"], {}).get("input") or {}).get("example")) or {}
+    return f"{item['url']}?{urlencode(ex, safe=':/,')}" if ex and item["method"] == "GET" else item["url"]
+
+
+def llms_endpoint_table(paid: list) -> str:
+    """The llms.txt endpoint table, one row per paid manifest resource."""
+    rows = [
+        "| Name | Method | URL | Price (XNO) | Description |",
+        "|------|--------|-----|-------------|-------------|",
+    ]
+    for item in paid:
+        name = item["path"].replace("/api/v1/", "")
+        desc = _first_sentence(item["description"]).replace("|", "/")
+        rows.append(f"| {name} | {item['method']} | `{_example_url(item)}` | "
+                    f"{item['price_xno']} | {desc} |")
+    return "\n".join(rows)
+
+
+def agent_tools_paid(paid: list) -> list:
+    """agent-tools.json resource entries for every paid manifest resource."""
+    return [{
+        "path": item["path"],
+        "url": item["url"],
+        "method": item["method"],
+        "description": item["description"],
+        "price_xno": float(item["price_xno"]),
+        "price_raw": item["amount_raw"],
+        "pay_to": item["pay_to"],
+    } for item in paid]
