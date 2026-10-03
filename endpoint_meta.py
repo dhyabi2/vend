@@ -33,6 +33,33 @@ INPUT_SPECS = {
             "example": {"url": "https://example.com/article"},
         },
     },
+    # /api/v1/select is sold by the manifest, so complete_openapi() generates an
+    # operation for it from this table. Without an entry the operation went out with
+    # no `parameters` at all, and a buyer reading /openapi.json could not tell that
+    # the call it is about to pay for needs `url` and `selector`.
+    "/api/v1/select": {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "format": "uri",
+                            "description": "Public URL to extract from"},
+                    "selector": {"type": "string",
+                                 "description": "CSS selector (e.g. h1, .price, table tr)"},
+                    "attr": {"type": "string",
+                             "description": "Optional attribute to read instead of text "
+                                            "(e.g. href, src)"},
+                    "limit": {"type": "integer", "default": 50,
+                              "description": "Max matches to return (default 50, cap 200)"},
+                },
+                "required": ["url", "selector"],
+            },
+            "example": {"url": "https://example.com", "selector": "h1"},
+        },
+    },
     "/api/v1/check-link": {
         "type": "http",
         "method": "GET",
