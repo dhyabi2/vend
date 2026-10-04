@@ -1465,11 +1465,9 @@ async def well_known_x402_json():
     return x402_manifest()
 
 
-@app.get("/.well-known/agent.json")
-async def well_known_agent_json():
-    """agent.json discovery manifest (Arcede / Open 402 spec). Lets the
-    Open-402 directory and Agent Internet Runtime discover Vend as a
-    Tier 2 (Capable) x402 service automatically."""
+def _agent_json_rows():
+    """The paid endpoints as rows. /.well-known/agent.json is built from these by agent_manifest, which owns
+    the shape the Open 402 validator accepts - do not serve this dict directly."""
     return {
         "version": "1.0",
         "origin": BASE_URL.split("://")[1] if "://" in BASE_URL else BASE_URL,
@@ -1637,6 +1635,16 @@ async def well_known_agent_json():
         "docs_url": BASE_URL,
         "updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
+
+
+@app.get("/.well-known/agent.json")
+async def well_known_agent_json():
+    """agent.json discovery manifest (Arcede / Open 402 spec), in the shape `agent-json-validate` accepts."""
+    import agent_manifest
+    r = _agent_json_rows()
+    return agent_manifest.open402_manifest(
+        r["origin"], r["payout_address"], r["display_name"], r["description"], r["intents"],
+        r["x402"]["api_base"], r["contact"], r["docs_url"], r["updated"])
 
 
 @app.get("/.well-known/agent-card.json")
