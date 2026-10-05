@@ -247,14 +247,63 @@ def endpoint_input_spec(endpoint_path: str) -> dict:
     return em_input_spec(endpoint_path)
 
 
-def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw: str = PRICE_RAW):
+def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw: str = PRICE_RAW,
+                    required: tuple = ()):
     """
     Decorator-like handler to require Nano payment for an endpoint.
+
+    ``required`` names the query parameters the endpoint cannot be served
+    without.  They are checked BEFORE anything the caller owns is consumed —
+    see the first block of ``checker``.
     Returns:
         - (True, None) if paid
         - (False, Response) if unpaid — the caller should return this Response
     """
     async def checker(request: Request):
+        # ── Required input, checked before anything is consumed ───────
+        # A caller paying for a call we cannot serve must not lose the
+        # payment.  Every redemption below is irreversible to the buyer:
+        # ``store.redeem`` marks the block spent (a second presentation comes
+        # back ``payment_already_redeemed``), ``deduct_balance`` debits the
+        # prepaid account, and ``confirm_signature_payment`` broadcasts the
+        # buyer's signed block, which moves the money on-ledger.  The handler's
+        # own ``if not <param>: 400`` runs only after all of that, so a missing
+        # parameter cost the buyer the call's price and returned no data.
+        #
+        # Checked here, the 400 leaves the payment untouched: the same block
+        # can be presented again with the parameter and is served.
+        #
+        # This fires only when a payment is actually being attempted.  A bare
+        # probe — no parameters, no payment — still falls through to the 402
+        # challenge below, which is what x402 discovery requires.
+        if required and (
+            extract_payment_block(request)
+            or has_signed_block(request)
+            or extract_balance_account(request)
+        ):
+            missing = [
+                name for name in required
+                if not (request.query_params.get(name) or "").strip()
+            ]
+            if missing:
+                log.info(
+                    "UNPAID-400: %s missing on %s — payment left unspent",
+                    missing[0], endpoint_path,
+                )
+                return False, JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": f"{missing[0]} parameter is required",
+                        "payment_taken": False,
+                        "message": (
+                            f"{missing[0]} parameter is required. No payment was "
+                            "taken for this call — present the same payment again "
+                            "with the parameter and it will be served."
+                        ),
+                    },
+                    headers={"X-PAYMENT-RESULT": "not-taken"},
+                )
+
         # ── Free trial check ─────────────────────────────────────────
         # Before demanding payment, see if this IP has free trial slots.
         # IMPORTANT: only grant a trial to a REAL call (one that carries
@@ -2567,7 +2616,7 @@ async def extract(
     (no payment, no parameter) reaches the 402 challenge *before* request
     validation rejects it — required by the x402scan discovery spec.
     """
-    paid, response = await require_payment("/api/v1/extract")(request)
+    paid, response = await require_payment("/api/v1/extract", required=("url",))(request)
     if not paid:
         return response
 
@@ -2596,7 +2645,7 @@ async def status_endpoint(
     reaches the 402 challenge *before* request validation rejects it —
     required by the x402scan discovery spec.
     """
-    paid, response = await require_payment("/api/v1/status")(request)
+    paid, response = await require_payment("/api/v1/status", required=("url",))(request)
     if not paid:
         return response
 
@@ -2624,7 +2673,7 @@ async def check_link_endpoint(
     reaches the 402 challenge *before* request validation rejects it —
     required by the x402scan discovery spec.
     """
-    paid, response = await require_payment("/api/v1/check-link")(request)
+    paid, response = await require_payment("/api/v1/check-link", required=("url",))(request)
     if not paid:
         return response
 
@@ -2653,7 +2702,7 @@ async def batch_status_endpoint(
     Returns each URL's status_code, response_time_ms, final_url and error,
     checked concurrently so a slow target never blocks the rest. Cap 50 URLs.
     """
-    paid, response = await require_payment("/api/v1/batch-status")(request)
+    paid, response = await require_payment("/api/v1/batch-status", required=("urls",))(request)
     if not paid:
         return response
 
@@ -2689,7 +2738,7 @@ async def select_endpoint(
     fields it cares about (prices, headings, table rows, link hrefs) in one
     paid call instead of re-parsing the whole page.
     """
-    paid, response = await require_payment("/api/v1/select")(request)
+    paid, response = await require_payment("/api/v1/select", required=("url", "selector"))(request)
     if not paid:
         return response
 
@@ -2721,7 +2770,7 @@ async def links_endpoint(
     data/scraping/research agent can crawl a site, audit outbound links, or build
     a sitemap in one paid call instead of fetching and re-parsing the whole page.
     """
-    paid, response = await require_payment("/api/v1/links")(request)
+    paid, response = await require_payment("/api/v1/links", required=("url",))(request)
     if not paid:
         return response
 
@@ -2746,7 +2795,7 @@ async def meta_endpoint(
     data/scraping/research agent can unfurl a link into a preview card or read
     structured data without scraping and re-parsing the whole page.
     """
-    paid, response = await require_payment("/api/v1/meta")(request)
+    paid, response = await require_payment("/api/v1/meta", required=("url",))(request)
     if not paid:
         return response
 
@@ -2771,7 +2820,7 @@ async def table_endpoint(
     so a data/scraping agent can pull comparison tables, price lists, schedules
     or statistics as clean rows instead of re-parsing HTML.
     """
-    paid, response = await require_payment("/api/v1/table")(request)
+    paid, response = await require_payment("/api/v1/table", required=("url",))(request)
     if not paid:
         return response
 
@@ -2803,6 +2852,7 @@ async def domain_info_endpoint(
         "/api/v1/domain-info",
         price_xno=PRICE_DOMAIN_XNO,
         price_raw=PRICE_DOMAIN_RAW,
+        required=("domain",),
     )(request)
     if not paid:
         return response
@@ -2836,6 +2886,7 @@ async def web_search_endpoint(
         "/api/v1/web-search",
         price_xno=PRICE_WEBSEARCH_XNO,
         price_raw=PRICE_WEBSEARCH_RAW,
+        required=("q",),
     )(request)
     if not paid:
         return response
@@ -2924,6 +2975,7 @@ async def geoip_endpoint(
         "/api/v1/geoip",
         price_xno=PRICE_GEO_XNO,
         price_raw=PRICE_GEO_RAW,
+        required=("ip",),
     )(request)
     if not paid:
         return response
@@ -2955,6 +3007,7 @@ async def nano_info_endpoint(
         "/api/v1/nano-info",
         price_xno=PRICE_NANO_XNO,
         price_raw=PRICE_NANO_RAW,
+        required=("account",),
     )(request)
     if not paid:
         return response
@@ -2990,6 +3043,7 @@ async def youtube_transcript_endpoint(
         "/api/v1/youtube-transcript",
         price_xno=PRICE_YT_XNO,
         price_raw=PRICE_YT_RAW,
+        required=("url",),
     )(request)
     if not paid:
         return response
@@ -3029,6 +3083,7 @@ async def screenshot_endpoint(
         "/api/v1/screenshot",
         price_xno=PRICE_SCREENSHOT_XNO,
         price_raw=PRICE_SCREENSHOT_RAW,
+        required=("url",),
     )(request)
     if not paid:
         return response
@@ -3067,6 +3122,7 @@ async def render_endpoint(
         "/api/v1/render",
         price_xno=PRICE_RENDER_XNO,
         price_raw=PRICE_RENDER_RAW,
+        required=("url",),
     )(request)
     if not paid:
         return response
@@ -3102,6 +3158,7 @@ async def pdf_extract_endpoint(
         "/api/v1/pdf-extract",
         price_xno=PRICE_PDF_XNO,
         price_raw=PRICE_PDF_RAW,
+        required=("url",),
     )(request)
     if not paid:
         return response
@@ -3140,6 +3197,7 @@ async def mcp_find_endpoint(
         "/api/v1/mcp-find",
         price_xno=PRICE_MCPFIND_XNO,
         price_raw=PRICE_MCPFIND_RAW,
+        required=("q",),
     )(request)
     if not paid:
         return response
@@ -3314,6 +3372,7 @@ async def address_verdict_endpoint(
         "/api/v1/address-verdict",
         price_xno=PRICE_VERDICT_XNO,
         price_raw=PRICE_VERDICT_RAW,
+        required=("account",),
     )(request)
     if not paid:
         return response
