@@ -5,6 +5,7 @@ No facilitator — direct ledger check.
 
 import base64
 import json
+import logging
 import os
 import re
 import time
@@ -553,6 +554,13 @@ def build_402_challenge(endpoint_path: str, price_xno: float = 0.0001,
             if usdc_entry:
                 accepts.append(usdc_entry)
         except Exception:
+            # This handler exists so a USDC problem cannot cost us the XNO sale:
+            # the Nano accept is already in `accepts` and the challenge must go
+            # out with it. `logging` was not imported, so the handler raised
+            # `NameError` and took the whole challenge with it - including the
+            # Nano accept - and no agent could pay in XNO at all. Keep the
+            # import; a bare `logging.getLogger` is the only thing between a
+            # degraded USDC rail and no 402 challenge.
             log = logging.getLogger("vend")
             log.warning(
                 "Failed to build USDC accept for %s", endpoint_path, exc_info=True
