@@ -66,7 +66,7 @@ from address_verdict import address_verdict
 from endpoint_meta import endpoint_input_spec as em_input_spec, build_openapi_spec, INPUT_SPECS
 from endpoint_meta import paid_from_manifest, complete_openapi, llms_endpoint_table, agent_tools_paid
 import cdp_verify
-from trial_tracker import get_tracker
+from trial_tracker import get_tracker, client_address, trial_bucket
 from a2a_handler import a2a_endpoint
 
 # --- Config ---
@@ -311,21 +311,28 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
         # probe (no params, no body) must still answer 402 so Vend stays
         # x402-conformant (x402scan, CDP Bazaar require naked probes to
         # get the payment challenge, not a validation error or free data).
-        # Extract real client IP behind reverse proxy. Caddy sends
-        # X-Forwarded-For and/or X-Real-IP; fall back to direct connection.
-        forwarded = request.headers.get("x-forwarded-for", "")
-        if forwarded and "," in forwarded:
-            client_ip = forwarded.split(",")[0].strip()
-        elif forwarded:
-            client_ip = forwarded.strip()
-        else:
-            client_ip = (request.headers.get("x-real-ip")
-                         or (request.client.host if request.client else "unknown"))
+        # Who the caller is, and which free-trial bucket that puts it in.
+        # Both answers are ``trial_tracker``'s, because both were wrong here
+        # until 2026-10-09 and both cost real money (see
+        # tests/test_trial_client_identity.py):
+        #   * the leftmost X-Forwarded-For element was believed from any
+        #     peer, so one header bought a fresh allowance and another
+        #     header bought the next one;
+        #   * the counter was keyed on the exact address, so a caller behind
+        #     a rotating egress pool collected the limit per source address.
+        # The header is now evidence only from our own proxy, at the hop that
+        # proxy appended, and the bucket is a /24 (or /48 on IPv6).
+        client_ip = client_address(
+            request.client.host if request.client else "",
+            request.headers.get("x-forwarded-for", ""),
+            request.headers.get("x-real-ip", ""),
+        )
+        trial_key = trial_bucket(client_ip)
         has_input = bool(request.query_params) or bool(
             request.headers.get("content-length")
         )
         trial = get_tracker()
-        remaining = trial.remaining(client_ip)
+        remaining = trial.remaining(trial_key)
         can_trial = (
             has_input
             and remaining > 0
@@ -333,11 +340,11 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
             and not has_signed_block(request)
         )
 
-        if can_trial and trial.consume(client_ip):
+        if can_trial and trial.consume(trial_key):
             # Grant a free trial call — the caller gets real data for free.
             new_remaining = remaining - 1
             log.info("TRIAL: %s used free trial on %s (%d remaining)",
-                      client_ip, endpoint_path, new_remaining)
+                      trial_key, endpoint_path, new_remaining)
             request.state.trial_info = {
                 "free_trial": True,
                 "trial_remaining": new_remaining,
@@ -347,8 +354,8 @@ def require_payment(endpoint_path: str, price_xno: float = PRICE_XNO, price_raw:
             request.state.payment = {
                 "valid": True,
                 "amount_raw": "0",
-                "block_hash": f"trial-{client_ip}-{int(time.time())}",
-                "source": f"trial-{client_ip[:12]}",
+                "block_hash": f"trial-{trial_key}-{int(time.time())}",
+                "source": f"trial-{trial_key[:12]}",
                 "is_trial": True,
             }
             return True, None
