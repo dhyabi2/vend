@@ -170,6 +170,12 @@ With `@x402/fetch` (JavaScript) configured for the Nano `exact` scheme, the `wra
 Each call returns structured JSON. Every response includes a receipt field for your records.  
 Failed or duplicate payments are never charged — the endpoint returns 402 without processing.
 
+> **If you retry before your send confirms**, you get a 402 saying the block is not confirmed
+> on the ledger yet. Nothing was charged and your block hash is **not** spent — present the
+> same hash again and it is served. Nano confirmation is normally sub-second, so this is a
+> single retry, not a wait. An unconfirmed send can still be forked away by whoever signed
+> it, which is why it is not served as a payment until the network has voted on it.
+
 ## Pricing
 
 | Endpoint | Price (XNO) | ~USD (at $4.50/XNO) |

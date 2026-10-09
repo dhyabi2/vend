@@ -178,6 +178,22 @@ def block_decrement_amount(block: dict) -> Optional[int]:
         return None
 
 
+def _is_explicitly_unconfirmed(block_info: dict) -> bool:
+    """True only when the ledger response says ``confirmed`` is false.
+
+    A missing or unreadable ``confirmed`` field returns ``False`` -- "we do not
+    know", which keeps the behaviour every caller had before this field was
+    read.  Nano's RPC reports the flag as the string ``"false"``; a JSON-typed
+    proxy may send the boolean.  Both are an explicit negative.
+    """
+    if not isinstance(block_info, dict):
+        return False
+    confirmed = block_info.get("confirmed")
+    if confirmed is False:
+        return True
+    return isinstance(confirmed, str) and confirmed.strip().lower() == "false"
+
+
 def broadcast_block(block: dict) -> dict:
     """Broadcast a signed Nano state block via RPC ``process``.
 
@@ -215,9 +231,20 @@ def wait_for_confirmation(block_hash: str, timeout_s: float = None,
     """Poll ``block_info`` until *block_hash* is a confirmed, on-ledger block.
 
     Returns a dict with ``confirmed`` (bool) and the ``block_info`` dict when
-    confirmed.  A block that is on-ledger (``block_info`` returns contents) is
-    treated as received; confirmation depth on a healthy Nano network for a
-    single-user send is effectively immediate.
+    confirmed.
+
+    On-ledger is not the same as confirmed: while a send is unconfirmed, the
+    account that signed it can publish a second block off the same ``previous``
+    and only one of the two survives the vote.  So a block the node reports as
+    ``confirmed: "false"`` keeps the poll running -- that is what this function's
+    timeout budget is for -- and the caller is told it did not confirm if the
+    deadline passes.  This is the spending half of what ``verify_payment``
+    refuses outright: here the block has just been broadcast, so waiting out the
+    sub-second confirmation serves the buyer better than refusing them.
+
+    A response that carries no ``confirmed`` field at all -- an RPC proxy that
+    drops it, an older node -- is treated as confirmed on sight, exactly as
+    before this check existed, so a field we cannot read can never stall a sale.
     """
     if timeout_s is None:
         timeout_s = PAYMENT_CONFIRM_TIMEOUT_S
@@ -225,15 +252,22 @@ def wait_for_confirmation(block_hash: str, timeout_s: float = None,
         poll_s = PAYMENT_CONFIRM_POLL_S
     import time
     deadline = time.time() + timeout_s
+    last_info = None
     while time.time() < deadline:
         info = check_block_exists(block_hash)
         if info and "contents" in info:
-            return {"confirmed": True, "block_info": info}
-        if info and "error" in info:
+            if not _is_explicitly_unconfirmed(info):
+                return {"confirmed": True, "block_info": info}
+            # On-ledger but not yet voted in; keep waiting.
+            last_info = info
+        elif info and "error" in info:
             # Rejected outright (e.g. not in ledger); no point waiting.
             return {"confirmed": False, "block_info": info,
                     "error": str(info.get("error"))}
         time.sleep(poll_s)
+    if last_info is not None:
+        return {"confirmed": False, "block_info": last_info,
+                "error": f"on-ledger but still unconfirmed after {timeout_s:g}s"}
     return {"confirmed": False, "error": "timed out waiting for confirmation"}
 
 
@@ -456,6 +490,34 @@ def verify_payment(block_hash: str, expected_amount_raw: str = PRICE_RAW,
         expected_xno = raw_to_xno(expected_amount_raw)
         result["message"] = (
             f"Payment too small: {actual_xno} XNO (expected at least {expected_xno} XNO)"
+        )
+        result["amount_raw"] = amount_raw
+        result["source"] = source
+        result["destination"] = destination
+        return result
+
+    # A block the node says is NOT yet confirmed is not a payment yet.
+    #
+    # `block_info` reports `confirmed` in the same response this function has
+    # already read.  While a send is unconfirmed, the account that signed it can
+    # publish a second block off the same `previous` -- a fork -- and only one of
+    # the two survives the representatives' vote.  Serving on the unconfirmed
+    # hash lets the payer be served and then keep the money.
+    #
+    # The refusal costs an honest buyer nothing: `require_payment` calls this
+    # BEFORE `store.redeem`, so a refused block is not marked spent and the same
+    # hash is served on a retry once it confirms (sub-second on a healthy
+    # network).  That is why this refuses rather than blocking on a poll.
+    #
+    # It refuses ONLY on an explicit negative.  A response with no `confirmed`
+    # field -- an RPC proxy that drops it, an older node -- keeps exactly the
+    # behaviour it had before this check existed, so a field we cannot read can
+    # never take the paywall down.
+    if _is_explicitly_unconfirmed(block_info):
+        result["message"] = (
+            "Payment not confirmed on the ledger yet: the node reports this "
+            "block as unconfirmed, so it can still be forked away. No payment "
+            "was taken -- present the same block hash again once it confirms."
         )
         result["amount_raw"] = amount_raw
         result["source"] = source
