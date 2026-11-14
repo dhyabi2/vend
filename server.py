@@ -1817,7 +1817,7 @@ async def well_known_agent_card():
                 "name": "Nano account info",
                 "description": "Return balance, representative, weight, frontier and pending for a Nano account.",
                 "tags": ["nano", "xno", "ledger"],
-                "examples": ["What is the balance of nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7?"],
+                "examples": ["What is the balance of nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy?"],
                 "inputModes": ["text/plain"],
                 "outputModes": ["application/json"],
             },
@@ -2946,7 +2946,7 @@ async def demo_endpoint(
         "wiki-summary": "/api/v1/wiki-summary?q=Nano",
         "arxiv-paper": "/api/v1/arxiv-paper?arxiv_id=2106.09685",
         "hn-news": "/api/v1/hn-news?list=top&limit=5",
-        "address-verdict": f"/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
+        "address-verdict": f"/api/v1/address-verdict?account=nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy",
     }
     target = type_map.get(type, type_map["extract"])
     return JSONResponse(

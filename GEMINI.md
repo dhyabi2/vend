@@ -18,7 +18,7 @@ There is no signup and no API key. No setup is required; pay per call on ledger.
 
 1. Call any tool. If you have not paid, it returns an x402 v2 challenge
    (payment requirements): price in raw, `pay_to` is the treasury Nano address
-   `nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7`,
+   `nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy`,
    and `accepts[]` names `nano:mainnet` / `XNO` / `exact`.
 2. Send that amount of XNO from any Nano wallet. It confirms in ~1 second.
 3. Retry the tool call with the signed block hash (X-PAYMENT header).

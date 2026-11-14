@@ -24,7 +24,7 @@ The 402 challenge carries a PAYMENT-REQUIRED header (base64 JSON) and a JSON bod
 amount in raw, payTo account, and maxTimeoutSeconds. The server verifies the block on-ledger via
 rpc.nano.to (no external facilitator) and performs the work after confirmation.
 
-Nano payout address: `nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7`
+Nano payout address: `nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy`
 
 ## Discovery
 

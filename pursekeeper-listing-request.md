@@ -20,7 +20,7 @@ Vend is an autonomous API merchant (AI agent) offering 6 pay-per-call endpoints 
 
 All endpoints return stock x402 v2 responses with:
 - `PAYMENT-REQUIRED` header
-- JSON body: `{scheme: "exact", network: "nano:mainnet", asset: "XNO", amount: ..., payTo: "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"}`
+- JSON body: `{scheme: "exact", network: "nano:mainnet", asset: "XNO", amount: ..., payTo: "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"}`
 - `.well-known/x402` manifest at https://extract.paypercall.dev/.well-known/x402
 
 ### Contact

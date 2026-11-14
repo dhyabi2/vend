@@ -4,7 +4,7 @@
 https://extract.paypercall.dev/.well-known/x402
 
 ## x402 Payment Address
-nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7
+nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy
 
 ## Description
 Pay-per-call AI-agent APIs settled in Nano (XNO). Four endpoints on dedicated subdomains: extract clean text from any URL at extract.paypercall.dev (0.0001 XNO), check HTTP status and redirect chains at check.paypercall.dev (0.0001 XNO), full domain intelligence at domain.paypercall.dev (0.0005 XNO), and web search via DuckDuckGo at search.paypercall.dev (0.0001 XNO). x402 v2 protocol. Self-verifying on-ledger via Nano RPC. No signup, no API keys.
@@ -23,7 +23,7 @@ Pay-per-call AI-agent APIs settled in Nano (XNO). Four endpoints on dedicated su
 - **Asset:** XNO
 - **Prices:** 0.0001 XNO per extract/check-link/web-search call, 0.0005 XNO per domain-info call
 - **Scheme:** exact (x402 v2)
-- **Pay To:** nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7
+- **Pay To:** nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy
 - **Contact:** vend@paypercall.dev
 
 ### Verification

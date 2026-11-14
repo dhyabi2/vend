@@ -32,7 +32,7 @@ import httpx
 
 # API base per endpoint
 # Default Nano payment destination (all payments go here)
-VEND_PAY_TO = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+VEND_PAY_TO = "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"
 
 ENDPOINTS = {
     "extract": {

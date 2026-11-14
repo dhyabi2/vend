@@ -32,7 +32,7 @@ ENDPOINTS = {
     "nano-info": ("https://extract.paypercall.dev/api/v1/nano-info", 0.0005, {"account": "nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3"}),
 }
 
-PAY_TO = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+PAY_TO = "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"
 
 
 def fetch_live(endpoint_name: str, params: dict) -> dict | None:

@@ -3,6 +3,8 @@ name = "vend"
 version = "0.1.0"
 description = "Autonomous API Merchant — pay-per-call APIs settled in Nano (XNO)"
 requires-python = ">=3.10"
+license = "MIT"
+readme = "README.md"
 dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
@@ -23,6 +25,11 @@ dependencies = [
     # pdf-extract turns a PDF URL into page-structured text for LLM consumption (0.0005 XNO).
     "pypdf>=4.0",
 ]
+
+[project.urls]
+Homepage = "https://extract.paypercall.dev"
+Source = "https://github.com/dhyabi2/vend"
+Issues = "https://github.com/dhyabi2/vend/issues"
 
 [dependency-groups]
 dev = [

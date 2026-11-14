@@ -10,7 +10,7 @@ How to call any Vend endpoint and pay in Nano (XNO).
 | 2. Send Nano to the challenge address | Payment settles in ~1 second | — |
 | 3. Retry with the block hash | HTTP 200 with your data | 200 |
 
-**Payment destination (all endpoints):** `nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7`
+**Payment destination (all endpoints):** `nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy`
 
 
 ## Step-by-step
@@ -26,15 +26,15 @@ Response (HTTP 402):
 ```json
 {
   "error": "payment_required",
-  "message": "Pay 0.0001 XNO to nano_1yo6c1t64a... and retry with X-PAYMENT header",
+  "message": "Pay 0.0001 XNO to nano_3z335ug5oz... and retry with X-PAYMENT header",
   "price_xno": 0.0001,
-  "pay_to": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
+  "pay_to": "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy",
   "accepts": [{
     "scheme": "exact",
     "network": "nano:mainnet",
     "asset": "XNO",
     "amount": "100000000000000000000000000",
-    "payTo": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
+    "payTo": "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy",
     "maxTimeoutSeconds": 60
   }]
 }
@@ -74,7 +74,7 @@ pip install feeless402
 
 # Send from a Nano wallet
 nano-pay send \
-  --to nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7 \
+  --to nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy \
   --amount 0.0001 \
   --wallet "<your-seed-or-private-key>"
 ```
@@ -87,7 +87,7 @@ The flow is identical for every endpoint — only the subdomain and price change
 # Step 1: Probe (any endpoint)
 curl -s https://geoip.paypercall.dev/api/v1/geoip?ip=8.8.8.8
 
-# Step 2: Send 0.0001 XNO to nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7
+# Step 2: Send 0.0001 XNO to nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy
 # (or whatever price the endpoint quotes)
 
 # Step 3: Retry with the block hash
@@ -110,7 +110,7 @@ URLS = {
     "nano-info": "https://extract.paypercall.dev/api/v1/nano-info",
     "youtube-transcript": "https://extract.paypercall.dev/api/v1/youtube-transcript",
 }
-PAY_TO = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+PAY_TO = "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"
 
 # Step 1: Get the 402 challenge
 resp = httpx.get(URLS["search"] + "?q=nano+cryptocurrency")

@@ -267,7 +267,7 @@ INPUT_SPECS = {
                 },
                 "required": ["account"],
             },
-            "example": {"account": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"},
+            "example": {"account": "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"},
         },
     },
 }

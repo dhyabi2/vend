@@ -2,6 +2,10 @@
 
 > Vend is an autonomous AI merchant that sells pay-per-call APIs settled in Nano (XNO) via the x402 v2 protocol. No signup, no API key — pay per request with instant feeless settlement. Independently audited: MCP score 92/100 (grade A).
 
+## Source
+
+Open source under the MIT license: https://github.com/dhyabi2/vend (server, payment verifier, MCP server, tests).
+
 ## Endpoints
 
 <!-- PAID-ENDPOINTS -->
@@ -14,7 +18,7 @@ This table is generated from the machine-readable list at `https://extract.paype
 
 ## Payment flow (x402 v2)
 
-1. Call any endpoint without payment → receives HTTP 402 with `PAYMENT-REQUIRED` header + JSON body `{accepts: [{scheme:"exact", network:"nano:mainnet", asset:"XNO", payTo:"nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7", amount:"<raw>"}]}`
+1. Call any endpoint without payment → receives HTTP 402 with `PAYMENT-REQUIRED` header + JSON body `{accepts: [{scheme:"exact", network:"nano:mainnet", asset:"XNO", payTo:"nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy", amount:"<raw>"}]}`
 2. Sign and broadcast a Nano send block to the payTo address for the exact amount
 3. Retry the request with header `X-PAYMENT: <64-char-hex-block-hash>`
 4. Server verifies the block on-ledger and returns the data

@@ -2,6 +2,10 @@
 
 Pay-per-call APIs settled in Nano (XNO). No signup, no API keys — just HTTP 402 with an x402 v2 challenge.
 
+**Open source, MIT licensed.** This repository is the complete source of the service running at
+`https://extract.paypercall.dev`: the server, every paid endpoint, the payment verifier, the MCP server and the
+tests. Run your own copy, read how a payment is checked, or send a pull request.
+
 ---
 
 ## Endpoints
@@ -16,7 +20,6 @@ Pay-per-call APIs settled in Nano (XNO). No signup, no API keys — just HTTP 40
 | `GET /api/v1/geoip?ip=` | 0.0001 | IP geolocation — country, city, coordinates, ISP, ASN |
 | `GET /api/v1/youtube-transcript?url=` | 0.0005 | Captions + timestamped transcript from a YouTube video |
 | `GET /api/v1/nano-info?account=` | 0.0005 | Nano account intelligence — balance, representative, block count, frontier, weight, pending |
-| `GET /api/v1/youtube-transcript?url=` | 0.0005 | Captions/transcript from a YouTube video |
 | `GET /api/v1/select?url=&selector=` | 0.0001 | CSS-selector structured field extraction from a page (prices, headings, links) |
 | `GET /api/v1/links?url=` | 0.0001 | Extract every anchor link on a page as structured JSON (crawl, audit, sitemap) |
 | `GET /api/v1/pdf-extract?url=` | 0.0005 | Extract text from a PDF URL, page-structured, ready for LLM consumption |
@@ -34,7 +37,8 @@ Pay-per-call APIs settled in Nano (XNO). No signup, no API keys — just HTTP 40
 1. GET /api/v1/extract?url=https://example.com
    → HTTP 402 with x402 payment challenge
 
-2. Send 0.0001 XNO to nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7
+2. Send 0.0001 XNO to the `payTo` address in the challenge
+   (today nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy - the challenge is the authority)
    → Get back a 64-char block hash
 
 3. GET /api/v1/extract?url=https://example.com  -H "X-PAYMENT: <block-hash>"
@@ -85,16 +89,30 @@ x402 v2 challenge in both header and body. Per-endpoint subdomains. Bazaar input
 - OpenAPI spec: `https://extract.paypercall.dev/openapi.json` (also at check, domain, search)
 - agent-tools.cloud: [https://agent-tools.cloud/services/extract-paypercall-dev-sub822](https://agent-tools.cloud/services/extract-paypercall-dev-sub822)
 
-## Running locally
+## Run your own
 
 ```bash
-# Our package is not on PyPI yet (the `vend` name on PyPI is an unrelated packaging tool).
-# Run from this repo instead:
+git clone https://github.com/dhyabi2/vend.git && cd vend
 uv sync
-export VEND_WALLET_ADDRESS="nano_..."
-uv run python -m vend
+export NANO_AGENT_ACCOUNT="nano_..."     # YOUR receiving account; payments go here
+export VEND_HOST=127.0.0.1 VEND_PORT=8402
+uv run python server.py
+curl -i "http://127.0.0.1:8402/api/v1/extract?url=https://example.com"   # 402 with your payTo
 ```
+
+The server is receive-only: it holds no seed and never sends. It verifies each payment on the Nano ledger
+(`nano_verify.py`) through the node in `NANO_RPC_URL`. The MCP server is `vend_mcp.py`
+(`python vend_mcp.py` for stdio, `--transport streamable-http` for HTTP). `screenshot` and `render` need a
+Chromium install; the other endpoints do not.
+
+Tests: `uv run pytest tests`.
+
+## Contributing and security
+
+Pull requests and issues are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Report a vulnerability as
+described in [SECURITY.md](SECURITY.md). Vend is built and operated by the maintainer of this repository
+([@dhyabi2](https://github.com/dhyabi2)).
 
 ## License
 
-MIT
+[MIT](LICENSE)
