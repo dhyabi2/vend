@@ -44,3 +44,4 @@ drafts/
 *.log
 rai-status-output.txt
 RUN_*.md
+.pytest-browser-agent.sqlite3*

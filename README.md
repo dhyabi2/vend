@@ -26,6 +26,14 @@ tests. Run your own copy, read how a payment is checked, or send a pull request.
 | `GET /api/v1/ai-jobs?q=` | 0.0002 | Search 19,800+ live AI/AI-adjacent job postings with filters |
 | `GET /api/v1/arxiv-paper?arxiv_id=` | 0.0001 | Clean arXiv paper metadata by ID or search: title, authors, primary category, abstract, published, DOI, PDF link |
 
+Where the operator also runs the browser-agent gateway (open source: [dhyabi2/jevim](https://github.com/dhyabi2/jevim),
+`vend-gateway/`; enabled with `VEND_BROWSER_AGENT=1`), one more endpoint is sold through the same paywall. The hosted
+service runs it:
+
+| Endpoint | Price (XNO) | What it does |
+|---|---|---|
+| `GET /api/v1/browser-agent?task=&website=` | 0.05 | A real browser that searches, clicks and reads a public site, then answers. Returns a job id; `GET /api/v1/browser-agent/jobs/{id}` (free) has the answer. No free trial; a run that fails on our side is retried free with `retry_of`. |
+
 ## Quick buyer guide
 
 > **[BUYERS_GUIDE.md](BUYERS_GUIDE.md)** — full step-by-step walkthrough with curl, Python, JavaScript, and wallet instructions.  

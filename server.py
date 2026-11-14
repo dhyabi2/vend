@@ -90,6 +90,11 @@ PRICE_LINKS_XNO = float(os.environ.get("VEND_PRICE_LINKS", "0.0001"))
 PRICE_META_XNO = float(os.environ.get("VEND_PRICE_META", "0.0001"))
 PRICE_TABLE_XNO = float(os.environ.get("VEND_PRICE_TABLE", "0.0001"))
 PRICE_SCREENSHOT_RAW = str(_price_to_raw(PRICE_SCREENSHOT_XNO))
+# The browser agent is a separate process (the Jevim gateway, github.com/dhyabi2/jevim vend-gateway/) that
+# reuses this paywall. It is advertised here only where that gateway is actually running beside this app.
+BROWSER_AGENT_ENABLED = os.environ.get("VEND_BROWSER_AGENT", "") == "1"
+PRICE_BROWSER_AGENT_XNO = float(os.environ.get("VEND_PRICE_BROWSER_AGENT", "0.05"))
+PRICE_BROWSER_AGENT_RAW = str(_price_to_raw(PRICE_BROWSER_AGENT_XNO))
 PRICE_RENDER_RAW = str(_price_to_raw(PRICE_RENDER_XNO))
 PRICE_SELECT_RAW = str(_price_to_raw(PRICE_SELECT_XNO))
 PRICE_LINKS_RAW = str(_price_to_raw(PRICE_LINKS_XNO))
@@ -166,6 +171,31 @@ ENDPOINT_BASE = {
     "/api/v1/hn-news": EXTRACT_BASE,
     "/api/v1/address-verdict": NANO_BASE,
 }
+
+if BROWSER_AGENT_ENABLED:
+    ENDPOINT_BASE["/api/v1/browser-agent"] = EXTRACT_BASE
+    INPUT_SPECS["/api/v1/browser-agent"] = {
+        "type": "http",
+        "method": "GET",
+        "input": {
+            "type": "query",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "task": {"type": "string",
+                             "description": "What the agent should do, in plain language (8-500 characters)"},
+                    "website": {"type": "string",
+                                "description": "The public website to do it on, e.g. arxiv.org"},
+                    "retry_of": {"type": "string",
+                                 "description": "Job id of a paid run that failed on our side: "
+                                                "starts a new run with no new payment"},
+                },
+                "required": ["task", "website"],
+            },
+            "example": {"task": "Find the title of the newest paper on diffusion models",
+                        "website": "arxiv.org"},
+        },
+    }
 
 logging.basicConfig(
     level=logging.INFO,
@@ -1136,6 +1166,34 @@ async def agent_tools_verify(request: Request):
 
 
 def x402_manifest():
+    """The manifest, plus the browser agent where its gateway runs beside this app."""
+    doc = _x402_manifest_base()
+    if BROWSER_AGENT_ENABLED:
+        entry = {
+            "url": f"{ENDPOINT_BASE['/api/v1/browser-agent']}/api/v1/browser-agent",
+            "method": "GET",
+            "description": (
+                "Browser agent: a real browser that searches, clicks, filters and reads a public website, "
+                "then answers. Accepts ?task= and ?website=. Returns a job id at once; poll "
+                "/api/v1/browser-agent/jobs/{job_id} (free) for the answer. No free trial. A run that fails "
+                f"on our side is retried with ?retry_of=<job_id> at no charge. {PRICE_BROWSER_AGENT_XNO} XNO per run."
+            ),
+            "accepts": [
+                {
+                    "scheme": "exact",
+                    "network": "nano:mainnet",
+                    "asset": "XNO",
+                    "amount": PRICE_BROWSER_AGENT_RAW,
+                    "payTo": VEND_ACCOUNT,
+                }
+            ],
+        }
+        # Before the POST top-up, which closes the list.
+        doc["resources"].insert(len(doc["resources"]) - 1, entry)
+    return doc
+
+
+def _x402_manifest_base():
     """The x402 v2 capability manifest. Served under both well-known names
     (``/.well-known/x402`` and ``/.well-known/x402.json``) because indexers try
     both and the access log shows outside clients asking for the ``.json`` name."""

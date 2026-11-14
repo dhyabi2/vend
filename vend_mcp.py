@@ -47,6 +47,9 @@ TRANSPORT = os.environ.get("VEND_MCP_TRANSPORT", "stdio")
 HTTP_HOST = os.environ.get("VEND_MCP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.environ.get("VEND_MCP_PORT", "8403"))
 VEND_API_PORT = int(os.environ.get("VEND_API_PORT", "8402"))
+# The browser agent's gateway, when it runs beside the API (see server.py BROWSER_AGENT_ENABLED).
+BROWSER_AGENT_ENABLED = os.environ.get("VEND_BROWSER_AGENT", "") == "1"
+BROWSER_AGENT_PORT = int(os.environ.get("BROWSER_AGENT_PORT", "8410"))
 
 # Override transport from CLI args
 if "--transport" in sys.argv:
@@ -310,7 +313,79 @@ def create_server():
         result = await call_vend_endpoint(ENDPOINTS["mcp_find"]["path"], params)
         return json.dumps(result)
 
+    if BROWSER_AGENT_ENABLED:
+        register_browser_agent(server)
+
     return server
+
+
+def register_browser_agent(server):
+    """Two tools for the browser agent. Unlike the other tools a run is never free, and an MCP client cannot
+    set HTTP headers on a tool call, so the payment travels as an argument."""
+    import re
+    from mcp.types import ToolAnnotations
+    base = f"http://127.0.0.1:{BROWSER_AGENT_PORT}/api/v1/browser-agent"
+
+    async def gateway(path: str, params: dict, headers: dict) -> dict:
+        async with httpx.AsyncClient(timeout=CLIENT_TIMEOUT) as client:
+            try:
+                resp = await client.get(base + path, params=params, headers=headers, follow_redirects=False)
+            except httpx.TimeoutException:
+                return {"error": f"Request timed out (limit: {CLIENT_TIMEOUT}s)"}
+            except httpx.RequestError as e:
+                return {"error": f"Request failed: {str(e)[:200]}"}
+        try:
+            body = resp.json()
+        except (json.JSONDecodeError, ValueError):
+            body = {"detail": resp.text[:500]}
+        if resp.status_code == 402:
+            return {"status": "payment_required", "error": "payment_required",
+                    "message": "Send the stated amount of Nano (XNO) to the stated account, then call this tool "
+                               "again with the same task and website and payment_block set to the block hash.",
+                    "payment_challenge": body}
+        if resp.status_code >= 400:
+            return {"status": "error", "http_status": resp.status_code, **(body if isinstance(body, dict) else {"detail": body})}
+        return {"status": "ok", "data": body}
+
+    @server.tool(
+        description=(
+            "Run a task in a real browser on a public website: it searches, clicks, filters and reads, then "
+            "answers. Returns a job_id at once; call browser_agent_status until the run is done. Costs 0.05 XNO "
+            "per run in Nano via x402 and has no free trial: the first call returns the payment challenge, the "
+            "second carries payment_block. A run that fails on our side is retried free with retry_of."
+        ),
+        annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False,
+                                    idempotent_hint=False, open_world_hint=True),
+    )
+    async def browser_agent(
+        task: Annotated[str, Field(description="What to do, in plain language (8-500 characters).")],
+        website: Annotated[str, Field(description="The public website to do it on, e.g. arxiv.org.")],
+        payment_block: Annotated[str, Field(description="64-character Nano block hash of your payment. Leave empty to get the payment challenge.")] = "",
+        retry_of: Annotated[str, Field(description="job_id of a paid run that failed on our side: starts a new run, no new payment.")] = "",
+    ) -> str:
+        """Start a browser-agent run. Returns a job id; follow it with browser_agent_status."""
+        params = {"task": task, "website": website}
+        if retry_of:
+            params["retry_of"] = retry_of
+        headers = {}
+        if payment_block:
+            if not re.fullmatch(r"[0-9A-Fa-f]{64}", payment_block.strip()):
+                return json.dumps({"status": "error", "error": "payment_block must be a 64-character hex block hash"})
+            headers["X-PAYMENT"] = payment_block.strip().upper()
+        return json.dumps(await gateway("", params, headers))
+
+    @server.tool(
+        description="Status of a browser-agent run: queued, running, done (with the answer), stopped or failed. Free.",
+        annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False,
+                                    idempotent_hint=True, open_world_hint=False),
+    )
+    async def browser_agent_status(
+        job_id: Annotated[str, Field(description="The job_id that browser_agent returned.")],
+    ) -> str:
+        """The run so far: status, steps and the answer."""
+        if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", job_id.strip().lower()):
+            return json.dumps({"status": "error", "error": "job_id is not a job id"})
+        return json.dumps(await gateway(f"/jobs/{job_id.strip().lower()}", {}, {}))
 
 
 def main():

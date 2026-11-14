@@ -9,7 +9,8 @@ repository is its complete source (MIT). Everything below can be checked against
 - Each call has a fixed price in Nano (XNO), between 0.0001 and 0.0005 XNO. The authoritative list is the
   machine-readable manifest at `https://extract.paypercall.dev/.well-known/x402`; the unpaid call to any
   endpoint answers HTTP 402 with the exact amount and the account to pay.
-- Five free calls per caller per rolling day, with no signup. After that a call needs a payment.
+- Five free calls per caller per rolling day, with no signup. After that a call needs a payment. The browser
+  agent is the exception: it has no free calls.
 - There is no subscription, no account and no minimum. Nano has no network fee, so the price is the whole cost.
 
 ## Privacy
@@ -33,6 +34,12 @@ repository is its complete source (MIT). Everything below can be checked against
 - If the paid work fails, it is retried once. If it fails again the call answers 502 and the block is recorded
   as `failed`; `GET /api/v1/delivery-proof?block_hash=...` shows what a payment delivered.
 - A block hash pays for one call. Presenting it again is refused.
+- **Browser agent runs** (`/api/v1/browser-agent`, where offered) are never free and cost more than the other
+  calls, so a failure on our side is made good with another run: if a paid run fails, or could not start, call
+  again with `retry_of=<job_id>` and a new run starts with no new payment. One payment buys at most three runs
+  this way, a job can be retried once, and only the job id you were given unlocks it. A run that finished, or
+  that used up its step or time budget, did its work and is not retried. If the agent is down when you call,
+  the answer is 503 and nothing is taken.
 - **There is no automatic refund.** The server is receive-only: it holds no key and cannot send. To dispute a
   payment, open an issue at https://github.com/dhyabi2/vend/issues with the block hash; the record above shows
   whether it was delivered.
