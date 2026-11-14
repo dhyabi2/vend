@@ -109,6 +109,8 @@ Tests: `uv run pytest tests`.
 
 ## Contributing and security
 
+Pricing, privacy, refunds and payment risks are in [POLICIES.md](POLICIES.md).
+
 Pull requests and issues are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Report a vulnerability as
 described in [SECURITY.md](SECURITY.md). Vend is built and operated by the maintainer of this repository
 ([@dhyabi2](https://github.com/dhyabi2)).
